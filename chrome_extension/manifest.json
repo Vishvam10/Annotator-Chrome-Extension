@@ -1,0 +1,31 @@
+{
+  "name": "ReMark",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "manifest_version": 3,
+  "version": "0.0.1",
+  "description": "Annotate any website",
+  "host_permissions": ["*://*/*"],
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "js": [
+        "scripts/contentScript.js"
+      ],
+      "run_at": "document_start",
+      "matches": [
+        "https://developer.chrome.com/docs/extensions/*",
+        "https://developer.chrome.com/docs/webstore/*"
+      ]
+    }
+  ],
+  "background": {
+    "service_worker": "scripts/backgroundScript.js"
+  }
+}
