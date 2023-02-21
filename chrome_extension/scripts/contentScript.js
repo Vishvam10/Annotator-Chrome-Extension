@@ -1,6 +1,6 @@
 (() => {
     console.log("from foreground");
-   
+    
     remark_init()
 
     chrome.runtime.onMessage.addListener(function(response, sendResponse) {
@@ -14,19 +14,17 @@ function remark_init() {
 }
 
 
-
 function startAnnotationProcess() {
 
     let annotations = []
     
     createCSSClass(".remark_highlight_element_light", "outline: dashed 1px #ff28009c; border-radius: 0.4rem; padding: 0.4rem; cursor: crosshair;")
     createCSSClass(".remark_highlight_element_strong", "outline: solid 1px #ff28009c; border-radius: 0.4rem; padding: 0.4rem; cursor: crosshair;")
-    
+
     document.body.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log("clicked : ");
-
+      
         // Add label
 
         const t = e.target;
@@ -35,7 +33,7 @@ function startAnnotationProcess() {
                 return;
             }
             const rect = t.getBoundingClientRect();;
-            const x = Math.round(rect.x, 2), y = Math.round(rect.y, 2), w = Math.round(rect.width, 2), h = Math.round(rect.height, 2);
+            const x = Math.round(rect.x), y = Math.round(rect.y), w = Math.round(rect.width), h = Math.round(rect.height);
             console.log(x,y,w,h);
 
             annotations.push({
@@ -56,18 +54,12 @@ function startAnnotationProcess() {
     
     document.body.addEventListener("mouseover", mouseOverListener);
     document.body.addEventListener("mouseout", mouseOutListener);
+    document.addEventListener("contextmenu", contextMenuListener,  true);
     
 }
 
-function createCSSClass(name,rules){
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    document.getElementsByTagName('head')[0].appendChild(style);
-    if(!(style.sheet||{}).insertRule) 
-    (style.styleSheet || style.sheet).addRule(name, rules);
-    else
-    style.sheet.insertRule(name+"{"+rules+"}",0);
-}
+
+// ******************* Listeners *******************
 
 function mouseOverListener(e) {
     e.preventDefault();
@@ -94,3 +86,37 @@ function mouseOutListener(e) {
         targetHTMLElement.classList.toggle("remark_highlight_element_light");
     }
 }
+
+function removeHTMLElement(ele) {
+    ele.parentElement.removeChild(ele);
+    return;
+}
+
+
+// ******************* Handlers ********************
+
+function addLabel() {
+    return
+}
+
+function deleteLabel() {
+    return
+}
+
+function editLabel() {
+    return
+}
+
+
+// *************** Utility functions *************** 
+
+function createCSSClass(name,rules){
+    var style = document.createElement("style");
+    style.type = "text/css";
+    document.getElementsByTagName("head")[0].appendChild(style);
+    if(!(style.sheet||{}).insertRule) 
+    (style.styleSheet || style.sheet).addRule(name, rules);
+    else
+    style.sheet.insertRule(name+"{"+rules+"}",0);
+}
+
