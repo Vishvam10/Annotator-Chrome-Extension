@@ -15,17 +15,20 @@
   ],
   "content_scripts": [
     {
-      "js": [
-        "scripts/contentScript.js"
-      ],
-      "run_at": "document_start",
       "matches": [
         "https://developer.chrome.com/docs/extensions/*",
         "https://developer.chrome.com/docs/webstore/*"
+      ],
+      "js": [
+        "scripts/contentScript.js"
       ]
     }
   ],
   "background": {
     "service_worker": "scripts/backgroundScript.js"
-  }
+  },
+  "web_accessible_resources": [{
+    "resources": ["remark.css"],
+    "matches": ["<all_urls>"]
+  }]
 }
