@@ -1,18 +1,17 @@
-(() => {    
-    // chrome.runtime.onMessage.addListener(function(res, sendResponse) {
-    //     console.log("from foreground : ", res.msg, res.dataURI);
-    //     if(req.msg == "start") {
-    //     }
-    // });
-    console.log("from foreground : init . . .")
-    remark_init();
+(async() => {    
+    console.log("from foreground : init . . .");
+    let settings = await getDataFromStorage("remark_settings");
+    console.log("outside storage : ", settings);
+
+    let REMARK_SETTINGS = settings["remark_settings"];
+    remark_init(REMARK_SETTINGS);
 })();
 
 
-function remark_init() {
-    console.log("DOM check : ", document.body)
+
+function remark_init(REMARK_SETTINGS) {
+    console.log("DOM check and Settings check : ", document.body, REMARK_SETTINGS)
     removeAllExistingModals();
-    addStyleSheet();
     addAllClasses();
     startAnnotationProcess();  
 }
@@ -24,94 +23,90 @@ function startAnnotationProcess() {
 
  
 
-    document.body.addEventListener("keypress", (e) => {
-        if(e.key === "Escape") {
-            removeAllExistingModals();
-        }
-    })
+    document.body.addEventListener("keypress", keyPressListener)
 
-    document.body.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      
-        const t = e.target;
-
-        if(e.ctrlKey) {
-            // Delete label
-            if(t.classList.contains("highlight_element_strong")) {
-                annotations = deleteLabel(t, annotations);
-            }
-
-            console.log("delete annotations : ", annotations);
-            t.classList.add("highlight_element_light");
-            t.classList.remove("highlight_element_strong");
-            
-        } else if(e.shiftKey) {
-            // Edit label
-            
-            if(t.classList.contains("highlight_element_strong")) {
-                curAnnotation = getAnnotationByID(t.dataset.annotation_id, annotations);
-                let editAnnotationModal = EDIT_ANNOTATION_MODAL(curAnnotation);
-                document.body.insertAdjacentHTML("afterbegin", editAnnotationModal);
-
-                const editButton = document.getElementById("remark_edit_annotation_button");
-                editButton.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const annotation_id = Number(document.getElementById("editAnnotationForm").dataset.annotation_id);
-                    const newType = document.querySelector("input[name='annotation_type']").value;
-                    const newText = document.querySelector("input[name='annotation_text']").value;
-                    const newCoordinates = document.querySelector("input[name='annotation_coordinates']").value;
-
-                    console.log(newText, newCoordinates, annotation_id, newType);
-
-                    for(let ele of annotations) {
-                        if(ele["id"] == annotation_id) {
-                            ele["text"] = newText;
-                            ele["type"] = newType;
-                            ele["coordinates"] = newCoordinates;
-                        }
-                    }
-                    
-                    const edit_modal_check = document.getElementById("remark_edit_annotation_modal");
-                    if(edit_modal_check) {
-                        removeHTMLElement(edit_modal_check);
-                    }
-
-                });
-
-
-            }
-
-            console.log("edit annotations : ", annotations);
-
-        } else {
-             // Add label
-             if(t.classList.contains("highlight_element_light")) {
-                if(t.classList.contains("highlight_element_strong")) {
-                    return;
-                }
-    
-                annotations = addLabel(t, annotations);
-                
-                console.log("add annotations : ", annotations);
-    
-                t.classList.remove("highlight_element_light");
-                t.classList.add("highlight_element_strong");
-            }
-
-        }
-
-
-    });
-    
+    document.body.addEventListener("click", clickListener);
     document.body.addEventListener("mouseover", mouseOverListener);
     document.body.addEventListener("mouseout", mouseOutListener);    
 }
 
 
 // ******************* Listeners *******************
+
+function clickListener(e) {
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const t = e.target;
+
+    if(e.ctrlKey) {
+        // Delete label
+        if(t.classList.contains("highlight_element_strong")) {
+            annotations = deleteLabel(t, annotations);
+        }
+
+        console.log("delete annotations : ", annotations);
+        t.classList.add("highlight_element_light");
+        t.classList.remove("highlight_element_strong");
+        
+    } else if(e.shiftKey) {
+        // Edit label
+        
+        if(t.classList.contains("highlight_element_strong")) {
+            curAnnotation = getAnnotationByID(t.dataset.annotation_id, annotations);
+            let editAnnotationModal = EDIT_ANNOTATION_MODAL(curAnnotation);
+            document.body.insertAdjacentHTML("afterbegin", editAnnotationModal);
+
+            const editButton = document.getElementById("remark_edit_annotation_button");
+            editButton.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const annotation_id = Number(document.getElementById("editAnnotationForm").dataset.annotation_id);
+                const newType = document.querySelector("input[name='annotation_type']").value;
+                const newText = document.querySelector("input[name='annotation_text']").value;
+                const newCoordinates = document.querySelector("input[name='annotation_coordinates']").value;
+
+                console.log(newText, newCoordinates, annotation_id, newType);
+
+                for(let ele of annotations) {
+                    if(ele["id"] == annotation_id) {
+                        ele["text"] = newText;
+                        ele["type"] = newType;
+                        ele["coordinates"] = newCoordinates;
+                    }
+                }
+                
+                const edit_modal_check = document.getElementById("remark_edit_annotation_modal");
+                if(edit_modal_check) {
+                    removeHTMLElement(edit_modal_check);
+                }
+
+            });
+
+
+        }
+
+        console.log("edit annotations : ", annotations);
+
+    } else {
+            // Add label
+            if(t.classList.contains("highlight_element_light")) {
+            if(t.classList.contains("highlight_element_strong")) {
+                return;
+            }
+
+            annotations = addLabel(t, annotations);
+            
+            console.log("add annotations : ", annotations);
+
+            t.classList.remove("highlight_element_light");
+            t.classList.add("highlight_element_strong");
+        }
+
+    }
+}
 
 function mouseOverListener(e) {
     e.preventDefault();
@@ -144,6 +139,12 @@ function mouseOutListener(e) {
     if (VALID_HTML_ELEMENTS.includes(tag)) {
         const targetHTMLElement = e.target;
         targetHTMLElement.classList.toggle("highlight_element_light");
+    }
+}
+
+function keyPressListener(e) {
+    if(e.key === "Escape") {
+        removeAllExistingModals();
     }
 }
 
@@ -232,14 +233,6 @@ let EDIT_ANNOTATION_MODAL = (curAnnotation) => {
 // *************** Utility functions *************** 
 
 
-function addStyleSheet(){
-    var link = document.createElement("link");
-    link.href = chrome.runtime.getURL("remark.css");
-    link.type = "text/css";
-    link.rel = "stylesheet";
-    document.documentElement.appendChild(link);
-}
-  
 function createCSSClass(name,rules){
     var style = document.createElement("style");
     style.type = "text/css";
@@ -414,4 +407,25 @@ function removeAllExistingModals() {
     // if (delete_modal_check) {
     //     removeHTMLElement(delete_modal_check);
     // }
+}
+
+function setDataToStorage(key, value) {
+    try {
+        // [k] is a computed property. 
+        // Without it, we can not set dynamic keys.
+        chrome.storage.local.set({
+            [key]: value 
+        });
+    } catch(e) {
+        console.log("chrome error : ", e.message)
+    }
+}
+
+function getDataFromStorage(key) {
+    return new Promise((resolve) => {
+                chrome.storage.local.get([key], function(res) {
+                resolve(res);
+            })
+        }
+    )
 }

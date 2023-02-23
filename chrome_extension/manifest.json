@@ -13,15 +13,6 @@
     "scripting",
     "storage"
   ],
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "all_frames": true,
-      "js": [
-        "scripts/contentScript.js"
-      ]
-    }
-  ],
   "background": {
     "service_worker": "scripts/backgroundScript.js"
   }

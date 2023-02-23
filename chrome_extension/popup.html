@@ -9,10 +9,54 @@
 </head>
 <body>
     <div class="container">
-        <h4 class="main_heading">
-            ANNOTATIONS CONTROL PANEL
-        </h4>
+        <h3 class="main_heading">
+            REMARK
+        </h3>
         <div class="settings">
+            <div class="settings_subgroup">
+                <h5 class="settings_subgroup_title">GROUPING</h5>      
+                <span class="setting_subgroup_item">
+                    <label class="remark_toggle" for="groupByClassName">
+                        <input class="remark_toggle_checkbox" type="checkbox" id="groupByClassName" checked>
+                        <div class="remark_toggle_switch"></div>
+                        <span class="remark_toggle_label">BY CLASSNAME</span>
+                    </label>
+                </span>     
+                <span class="setting_subgroup_item">
+                    <label class="remark_toggle" for="groupByTagName">
+                        <input class="remark_toggle_checkbox" type="checkbox" id="groupByTagName">
+                        <div class="remark_toggle_switch"></div>
+                        <span class="remark_toggle_label">BY TAGNAME</span>
+                    </label>
+                </span>     
+                <span class="setting_subgroup_item">
+                    <label class="remark_toggle" for="alwaysGroup">
+                        <input class="remark_toggle_checkbox" type="checkbox" id="confirmBeforeGrouping" checked>
+                        <div class="remark_toggle_switch"></div>
+                        <span class="remark_toggle_label">CONFIRM BEFORE GROUPING</span>
+                    </label>
+                </span>     
+            </div>
+            <div class="settings_subgroup">
+                <h5 class="settings_subgroup_title">DEBUG</h5>      
+                <span class="setting_subgroup_item">
+                    <label class="remark_toggle" for="showDebubInfo">
+                        <input class="remark_toggle_checkbox" type="checkbox" id="showDebubInfo">
+                        <div class="remark_toggle_switch"></div>
+                        <span class="remark_toggle_label">SHOW DEBUG INFO</span>
+                    </label>
+                </span>     
+            </div>
+            <div class="settings_subgroup">
+                <h5 class="settings_subgroup_title">EXTRAS</h5>      
+                <span class="setting_subgroup_item">
+                    <label class="remark_toggle" for="showTooltip">
+                        <input class="remark_toggle_checkbox" type="checkbox" id="showToolTip">
+                        <div class="remark_toggle_switch"></div>
+                        <span class="remark_toggle_label">SHOW TOOLTIP</span>
+                    </label>
+                </span>     
+            </div>
             
         </div>
         <button class="btn" id="start_annotation">

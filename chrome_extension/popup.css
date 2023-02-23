@@ -1,34 +1,30 @@
 :root {
-  --color-blue: #4285f4;
-  --color-green: #0f9d58;
-  --color-yellow: #b06820;
-  --color-red: rgb(255, 47, 102);
-  --color-grey-light-1: #9c9c9c;
-  --color-grey-light-2: #d0d0d0;
-  --color-grey-light-3: #f2f2f2;
-  --color-grey-light-4: #fdfafa;
-  --color-grey: #808080;
-  --color-grey-dark-1: #6c6c6c;
-  --color-grey-dark-2: #444444;
-  --color-grey-dark-3: #2d2c2c;
-  --color-grey-dark-4: #151515;
-  --color-grey-primary: #1a1c23;
-  --color-grey-accent: #f7f5f5;
-  --color-black: #000000;
-  --color-white: #ffffff;
-  --gradient-1: linear-gradient(90deg, #b53b4d, #045996);
-  --gradient-2: linear-gradient(to right, #7f00ff, #e100ff);
+  --remark-color-primary: #0d6efd;
+  --remark-color-primary-lighter: #5498ff;
+  --remark-color-primary-darker: #0b5dd7;
+  --remark-color-success: #5ec576;
+  --remark-color-success-darker: #399e66;
+  --remark-color-warning: #ffcb03;
+  --remark-color-warning-darker: #eaac00;
 
-  --default-border: 1px solid #dfe1e6;
-  --default-box-shadow: rgba(161, 161, 161, 0.2) 0px 8px 24px;
-  --fs-xxlarge: 6.4rem;
-  --fs-xlarge: 4rem;
-  --fs-large: 3.2rem;
-  --fs-medium-2: 2.4rem;
-  --fs-medium-1: 2rem;
-  --fs-normal: 1.6rem;
-  --fs-small: 1.2rem;
-  --fs-xsmall: 0.8rem;
+  --remark-color-danger: #ff585f;
+  --remark-color-danger-darker: #fd424b;
+  --remark-color-grey-light-3: #f2f2f2;
+  --remark-color-grey-light-2: #d0d0d0;
+  --remark-color-grey-light-1: #9c9c9c;
+  --remark-color-grey: #808080;
+  --remark-color-grey-dark-1: #6c6c6c;
+  --remark-color-grey-dark-2: #444444;
+  --remark-color-grey-dark-3: #2d2c2c;
+  --remark-color-grey-dark-4: #141313;
+  --remark-color-black: #000000;
+  --remark-color-white: #ffffff;
+  --remark-color-danger-opacity: #ff58602d;
+  --gradient-primary: linear-gradient(to top left, #39b385, #9be15d);
+  --gradient-secondary: linear-gradient(to top left, #ffb003, #ffcb03);
+  --remark-default-box-shadow-light: rgba(120, 123, 127, 0.2) 0px 8px 16px;
+  --remark-default-box-shadow: rgba(75, 77, 80, 0.2) 0px 8px 24px;
+  --remark-default-sanserif-font: Arial, Helvetica, sans-serif;
 }
 
 html {
@@ -103,19 +99,19 @@ ion-icon:active {
 }
 
 .container {
-    height: 40rem;
+    height: 52rem;
     width: 24rem;
     border-radius: 1.2rem;
-    box-shadow: var(--default-box-shadow);
-    background-color: var(--color-white);
+    box-shadow: var(--remark-default-box-shadow);
+    background-color: var(--remark-color-white);
     display: flex;
     flex-direction: column;
     padding: 2rem;
 }
 
 .main_heading {
-    font-size: 1.2rem;
-    color: var(--color-grey-dark-2);
+    font-size: 1.6rem;
+    color: var(--remark-color-grey-dark-2);
     text-align: center;
 }
 
@@ -125,10 +121,92 @@ ion-icon:active {
     align-items: center;
     padding: 1rem;
     border-radius: 1.2rem;
-    color: var(--color-white);
-    background-color: var(--color-black);
+    color: var(--remark-color-white);
+    background-color: var(--remark-color-black);
     margin: 2rem 0rem 2rem 0rem;
     width: 100%;
     height: 4rem;
     border: none;
+}
+
+.settings {
+  height: 100%;
+display: flex;
+flex-direction: column;
+margin: -2rem 0rem 0rem 0rem;
+}
+
+.settings_subgroup {
+  height: 100%;
+  box-shadow: var(--remark-default-box-shadow-light);
+  padding: 1rem;
+  border-radius: 1.2rem;
+  margin: 2rem 0rem 0rem 0rem;
+}
+
+.settings_subgroup_title {
+  color: var(--remark-color-grey-light-1);
+  margin: 1rem 0rem 0.8em 0rem;
+}
+
+.setting_subgroup_item {
+  margin: 0rem 0rem 0rem 0rem;
+}
+
+
+
+
+.remark_toggle {
+  cursor: pointer;
+  display: inline-block;
+  margin: 0.4rem 0rem;
+}
+
+.remark_toggle_switch {
+  display: inline-block;
+  background: #ccc;
+  border-radius: 16px;
+  width: 36px;
+height: 20px;
+  position: relative;
+  vertical-align: middle;
+  transition: background 0.25s;
+}
+.remark_toggle_switch:before, .remark_toggle_switch:after {
+  content: "";
+}
+.remark_toggle_switch:before {
+  display: block;
+  background: linear-gradient(to bottom, #fff 0%, #eee 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  width: 12px;
+  height: 12px;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  transition: left 0.25s;
+}
+.remark_toggle:hover .remark_toggle_switch:before {
+  background: linear-gradient(to bottom, #fff 0%, #fff 100%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.remark_toggle_checkbox:checked + .remark_toggle_switch {
+  background: var(--remark-color-primary);
+}
+.remark_toggle_checkbox:checked + .remark_toggle_switch:before {
+  left: 20px;
+}
+
+.remark_toggle_checkbox {
+  position: absolute;
+  visibility: hidden;
+}
+
+.remark_toggle_label {
+  margin-left: 5px;
+  position: relative;
+  top: 2px;
+  font-size: 1.2rem;
+  color: var(--remark-color-grey);
 }
