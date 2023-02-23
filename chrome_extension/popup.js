@@ -26,12 +26,12 @@ startStopBtn.addEventListener("click", (e) => {
 async function remark_start() {
 
     // Check if the extension is already running
-    // const running = getDataFromStorage("remark_running");
-    // if(running === true) {
-    //     return;
-    // }
+    const running = getDataFromStorage("remark_running");
+    if(running === true) {
+        return;
+    }
 
-    // setDataToStorage("remark_running", true);
+    setDataToStorage("remark_running", true);
 
     // Configure the settings and store them for this session
     const remark_settings = getSettings();
@@ -54,6 +54,8 @@ async function remark_start() {
     } catch(e) {
         console.log("chrome error : ", e.message)
     }   
+
+    window.close();
 }
 
 function remark_destroy() {

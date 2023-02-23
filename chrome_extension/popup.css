@@ -63,16 +63,16 @@ a {
 }
 
 a:hover {
-    transform: scale(1.1);
+  transform: scale(1.1);
 }
 
 a:active {
-    transform: scale(1);
+  transform: scale(1);
 }
 
 button {
-    transition: all 0.1s cubic-bezier(0.445, 0.05, 0.55, 0.95);
-    cursor: pointer;
+  transition: all 0.1s cubic-bezier(0.445, 0.05, 0.55, 0.95);
+  cursor: pointer;
 }
 
 button:hover {
@@ -99,41 +99,41 @@ ion-icon:active {
 }
 
 .container {
-    height: 52rem;
-    width: 24rem;
-    border-radius: 1.2rem;
-    box-shadow: var(--remark-default-box-shadow);
-    background-color: var(--remark-color-white);
-    display: flex;
-    flex-direction: column;
-    padding: 2rem;
+  height: 52rem;
+  width: 24rem;
+  border-radius: 1.2rem;
+  box-shadow: var(--remark-default-box-shadow);
+  background-color: var(--remark-color-white);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
 }
 
 .main_heading {
-    font-size: 1.6rem;
-    color: var(--remark-color-grey-dark-2);
-    text-align: center;
+  font-size: 1.6rem;
+  color: var(--remark-color-grey-dark-2);
+  text-align: center;
 }
 
 .btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 1rem;
-    border-radius: 1.2rem;
-    color: var(--remark-color-white);
-    background-color: var(--remark-color-black);
-    margin: 2rem 0rem 2rem 0rem;
-    width: 100%;
-    height: 4rem;
-    border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 1.2rem;
+  color: var(--remark-color-white);
+  background-color: var(--remark-color-black);
+  margin: 2rem 0rem 2rem 0rem;
+  width: 100%;
+  height: 4rem;
+  border: none;
 }
 
 .settings {
   height: 100%;
-display: flex;
-flex-direction: column;
-margin: -2rem 0rem 0rem 0rem;
+  display: flex;
+  flex-direction: column;
+  margin: -2rem 0rem 0rem 0rem;
 }
 
 .settings_subgroup {
@@ -153,9 +153,6 @@ margin: -2rem 0rem 0rem 0rem;
   margin: 0rem 0rem 0rem 0rem;
 }
 
-
-
-
 .remark_toggle {
   cursor: pointer;
   display: inline-block;
@@ -167,12 +164,13 @@ margin: -2rem 0rem 0rem 0rem;
   background: #ccc;
   border-radius: 16px;
   width: 36px;
-height: 20px;
+  height: 20px;
   position: relative;
   vertical-align: middle;
   transition: background 0.25s;
 }
-.remark_toggle_switch:before, .remark_toggle_switch:after {
+.remark_toggle_switch:before,
+.remark_toggle_switch:after {
   content: "";
 }
 .remark_toggle_switch:before {
@@ -209,4 +207,16 @@ height: 20px;
   top: 2px;
   font-size: 1.2rem;
   color: var(--remark-color-grey);
+}
+
+.temp {
+  padding: 0.4rem;
+  cursor: crosshair;
+  border-radius: 0.4rem;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: rgb(255 255 255 / 10%) 0px 1px inset;
+  transition: background-color 125ms ease-in-out 0s;
+  z-index: 100000;
 }

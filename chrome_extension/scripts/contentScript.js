@@ -38,14 +38,16 @@ function clickListener(e) {
     
     const t = e.target;
 
-    if(e.ctrlKey) {
+    if(e.altKey) {
         // Delete label
         if(t.classList.contains("highlight_element_strong")) {
             annotations = deleteLabel(t, annotations);
         }
-
+        
+        if(t.classList.contains("highlight_element_light")) {
+            t.classList.remove("highlight_element_light");
+        }
         console.log("delete annotations : ", annotations);
-        t.classList.add("highlight_element_light");
         t.classList.remove("highlight_element_strong");
         
     } else if(e.shiftKey) {
@@ -134,6 +136,8 @@ function mouseOverListener(e) {
     const tag = e.target.tagName;
     if (VALID_HTML_ELEMENTS.includes(tag)) {
         const targetHTMLElement = e.target;
+        let tooltipMarkup = TOOLTIP(e.target);
+        targetHTMLElement.insertAdjacentHTML("afterbegin", tooltipMarkup);
         targetHTMLElement.classList.toggle("highlight_element_light");
     }
 }
@@ -153,6 +157,8 @@ function mouseOutListener(e) {
     const tag = e.target.tagName;
     if (VALID_HTML_ELEMENTS.includes(tag)) {
         const targetHTMLElement = e.target;
+        const tooltipNode = document.getElementById("remark_tooltip");
+        removeHTMLElement(tooltipNode);
         targetHTMLElement.classList.toggle("highlight_element_light");
     }
 }
@@ -244,6 +250,18 @@ let EDIT_ANNOTATION_MODAL = (curAnnotation) => {
     return markup;
 }
 
+let TOOLTIP = (ele) => {
+    const rect = ele.getBoundingClientRect();;
+    const x = Math.round(rect.x), y = Math.round(rect.y), w = Math.round(rect.width), h = Math.round(rect.height);
+    const markup = `
+        <div id="remark_tooltip">
+            <h4>${ele.tagName}</h4>
+            <p style="margin: 0.1rem 0rem 0rem 0rem;">(${w} x ${h})</p>
+        </div>
+    
+    `;
+    return markup;
+}
 
 // *************** Utility functions *************** 
 
@@ -289,24 +307,19 @@ function addAllClasses() {
     `)
 
     createCSSClass(".highlight_element_light", `
-        padding: 0.4rem;
         cursor: crosshair;
         border-radius: 0.4rem;
-        align-items: center;
-        gap: 1rem;
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: rgb(255 255 255 / 10%) 0px 1px inset;
+        padding: 0.4rem;
+        background: rgba(13, 109, 253, 0.269);
         transition: background-color 125ms ease-in-out 0s;
         z-index: 100000;
-        `)
+    `)
         
     createCSSClass(".highlight_element_strong", `
         outline: solid 1px #ff28009c; 
         border-radius: 0.4rem; 
         padding: 0.4rem; 
         cursor: crosshair;
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: rgb(255 255 255 / 10%) 0px 1px inset;
         z-index: 100000;
     `)
 
@@ -396,6 +409,23 @@ function addAllClasses() {
         font-family: var(--remark-default-sanserif-font);
         font-size: 12px;
         color: var(--remark-color-grey-light-1);
+    `)
+
+    createCSSClass("#remark_tooltip", `
+        display: flex;
+        flex-direction: row;
+        padding: 1rem;
+        position: fixed;
+        top: 2rem;
+        left: 2rem;
+        border-radius: 0.8rem;
+        margin: 0rem 0rem 2rem;
+        background-color: var(--remark-color-black);
+        color: var(--remark-color-white);
+        width: 10rem;
+        height: 3.2rem;
+        gap: 0.8rem;
+        z-index: 10000;
     `)
 }
 
