@@ -1,15 +1,17 @@
 (async() => {    
     console.log("from foreground : init . . .");
     let settings = await getDataFromStorage("remark_settings");
+    settings = settings["remark_settings"];
     console.log("outside storage : ", settings);
-
-    let REMARK_SETTINGS = settings["remark_settings"];
-    remark_init(REMARK_SETTINGS);
+    remark_init(settings);
 })();
 
 
+var REMARK_SETTINGS;
+var annotations = []
 
-function remark_init(REMARK_SETTINGS) {
+function remark_init(settings) {
+    REMARK_SETTINGS = settings;
     console.log("DOM check and Settings check : ", document.body, REMARK_SETTINGS)
     removeAllExistingModals();
     addAllClasses();
@@ -18,10 +20,6 @@ function remark_init(REMARK_SETTINGS) {
 
 
 function startAnnotationProcess() {
-
-    let annotations = []
-
- 
 
     document.body.addEventListener("keypress", keyPressListener)
 
@@ -91,18 +89,31 @@ function clickListener(e) {
         console.log("edit annotations : ", annotations);
 
     } else {
-            // Add label
-            if(t.classList.contains("highlight_element_light")) {
+        // Add label
+        if(t.classList.contains("highlight_element_light")) {
             if(t.classList.contains("highlight_element_strong")) {
                 return;
             }
 
-            annotations = addLabel(t, annotations);
+            if(REMARK_SETTINGS["groupByClassName"]) {
+
+                const className = t.className.split(" ")[0];
+                const nodes = document.querySelectorAll(`.${className}`);
+
+                Array.from(nodes).forEach((ele) => {
+                    annotations = addLabel(ele, annotations);
+                    ele.classList.remove("highlight_element_light");
+                    ele.classList.add("highlight_element_strong");
+                })
+
+            } else {
+                annotations = addLabel(t, annotations);
+                
+                t.classList.remove("highlight_element_light");
+                t.classList.add("highlight_element_strong");
+            }
             
             console.log("add annotations : ", annotations);
-
-            t.classList.remove("highlight_element_light");
-            t.classList.add("highlight_element_strong");
         }
 
     }
@@ -115,8 +126,10 @@ function mouseOverListener(e) {
         "DIV", "SPAN", "BUTTON", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", "SVG", "NAV", "A", "TABLE", "INPUT", "LABEL", "FORM", "AUDIO", "VIDEO"
     ]
     const className = e.target.className;
-    if (className.includes("remark_") || className.includes("highlight_element_strong")) {
-        return;
+    if(className) {
+        if (className.includes("remark_") || className.includes("highlight_element_strong")) {
+            return;
+        }
     }
     const tag = e.target.tagName;
     if (VALID_HTML_ELEMENTS.includes(tag)) {
@@ -132,8 +145,10 @@ function mouseOutListener(e) {
         "DIV", "SPAN", "BUTTON", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", "SVG", "NAV", "A", "TABLE", "INPUT", "LABEL", "FORM", "AUDIO", "VIDEO"
     ]
     const className = e.target.className;
-    if (className.includes("remark_") || className.includes("highlight_element_strong")) {
-        return;
+    if(className) {
+        if (className.includes("remark_") || className.includes("highlight_element_strong")) {
+            return;
+        }
     }
     const tag = e.target.tagName;
     if (VALID_HTML_ELEMENTS.includes(tag)) {
