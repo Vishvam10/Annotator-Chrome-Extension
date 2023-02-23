@@ -1,12 +1,16 @@
 (() => {    
-    chrome.runtime.onMessage.addListener(function(res, sendResponse) {
-        console.log("from foreground : ", res.msg, res.dataURI);
-    });
+    // chrome.runtime.onMessage.addListener(function(res, sendResponse) {
+    //     console.log("from foreground : ", res.msg, res.dataURI);
+    //     if(req.msg == "start") {
+    //     }
+    // });
+    console.log("from foreground : init . . .")
     remark_init();
 })();
 
 
 function remark_init() {
+    console.log("DOM check : ", document.body)
     removeAllExistingModals();
     addStyleSheet();
     addAllClasses();

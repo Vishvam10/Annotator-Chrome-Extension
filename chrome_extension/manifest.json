@@ -6,7 +6,7 @@
   "manifest_version": 3,
   "version": "0.0.1",
   "description": "Annotate any website",
-  "host_permissions": ["*://*/*"],
+  "host_permissions": ["*://*/*", "<all_urls>"],
   "permissions": [
     "tabs",
     "activeTab",
@@ -15,10 +15,8 @@
   ],
   "content_scripts": [
     {
-      "matches": [
-        "https://developer.chrome.com/docs/extensions/*",
-        "https://developer.chrome.com/docs/webstore/*"
-      ],
+      "matches": ["<all_urls>"],
+      "all_frames": true,
       "js": [
         "scripts/contentScript.js"
       ]
@@ -26,9 +24,5 @@
   ],
   "background": {
     "service_worker": "scripts/backgroundScript.js"
-  },
-  "web_accessible_resources": [{
-    "resources": ["remark.css"],
-    "matches": ["<all_urls>"]
-  }]
+  }
 }
