@@ -48,6 +48,7 @@ function clickListener(e) {
             t.classList.remove("highlight_element_light");
         }
         console.log("delete annotations : ", annotations);
+        t.classList.remove("highlight_element_light");
         t.classList.remove("highlight_element_strong");
         
     } else if(e.shiftKey) {
@@ -160,6 +161,28 @@ function clickListener(e) {
             }
             
             console.log("add annotations : ", annotations);
+        } else if(t.classList.contains("highlight_element_strong")) {
+            const id = t.dataset.annotation_id;
+            const curAnnotation = getAnnotationByID(id, annotations);
+            let sideBar = SIDEBAR(curAnnotation);
+
+            console.log("in strong")
+            const check = document.getElementById("remark_annotations_sidebar");    
+            if (check) {
+                removeHTMLElement(check);
+            }
+
+            document.body.insertAdjacentHTML("afterbegin", sideBar);
+
+            const modalCloseBtn = document.getElementById("remark_standard_modal_close_btn");
+            if(modalCloseBtn) {
+                modalCloseBtn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const ele = document.getElementById("remark_annotations_sidebar");
+                    removeHTMLElement(ele);
+                })
+            }
         }
 
     }
@@ -257,6 +280,52 @@ function deleteLabel(t, annotations) {
 // ************** Component functions **************
 
 
+let SIDEBAR = (curAnnotation) => {
+    
+    let text = curAnnotation['text'];
+    if(text.length > 60) {
+        text = text.substr(0, 60) + ". . ."
+    }
+
+    const markup =
+    `
+        <div class="remark_standard_sidebar" id="remark_annotations_sidebar">
+            <div class="remark_standard_modal_header">
+                <h3 class="remark_standard_modal_title">${curAnnotation['id']}</h3>
+                <div class="remark_standard_modal_actions">
+                    <span class="remark_modal_close_btn" id="remark_standard_modal_close_btn">Close</span>
+                </div>
+            </div>
+            <div class="remark_standard_modal_body remark_standard_sidebar_body remark_standard_sidebar_body_full" id="remark_sidebar_body">
+                <div class="remark_form_fields">
+                    <label for="annotation_id" class="remark_form_label">ID</label>
+                    <input type="text" name="annotation_id" class="remark_form_input" value="${curAnnotation['id']}" readonly disabled>
+                </div>
+                <div class="remark_form_fields">
+                    <label for="annotation_id" class="remark_form_label">TYPE</label>
+                    <input type="text" name="annotation_id" class="remark_form_input" value="${curAnnotation['type']}" readonly disabled>
+                </div>
+                <div class="remark_form_fields">
+                    <label for="annotation_id" class="remark_form_label">COORDINATES</label>
+                    <input type="text" name="annotation_id" class="remark_form_input" value="${curAnnotation['coordinates']}" readonly disabled>
+                </div>
+                <div class="remark_form_fields">
+                    <label for="annotation_id" class="remark_form_label">PARENT</label>
+                    <input type="text" name="annotation_id" class="remark_form_input" value="${curAnnotation['parent']}" readonly disabled>
+                </div>
+                <div class="remark_form_fields">
+                    <label for="annotation_id" class="remark_form_label">TEXT</label>
+                    <input type="text" name="annotation_id" class="remark_form_input" value="${text}" readonly disabled>
+                </div>
+            </div>
+        </div>
+    `
+
+    return markup;
+
+}
+
+
 let EDIT_ANNOTATION_MODAL = (curAnnotation) => {
     const markup = `
         <div class="remark_standard_modal" id="remark_edit_annotation_modal">
@@ -293,6 +362,7 @@ let EDIT_ANNOTATION_MODAL = (curAnnotation) => {
     `
     return markup;
 }
+
 
 let TOOLTIP = (ele) => {
     const rect = ele.getBoundingClientRect();;
@@ -527,11 +597,62 @@ function addAllClasses() {
     createCSSClass(".remark_grouping_options:hover", `
         transform: scale(1.05);
     `)
-    
+
     createCSSClass(".remark_grouping_options", `
         transform: scale(1.0);
     `)
 
+    createCSSClass(".remark_standard_sidebar", `
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        width: 20rem;
+        background-color: var(--remark-color-white);
+        color: var(--remark-color-grey-dark-1);
+        border-radius: 1rem;
+        z-index: 100000000;
+        height: 100vh;
+        animation: 0.6s cubic-bezier(0.165, 0.84, 0.44, 1) 0s 1 normal forwards running remark_sidebar_animation;
+        display: flex;
+        overflow: hidden;
+        flex-direction: column;
+        padding: 2rem;
+    `)
+
+    createCSSClass("@keyframes remark_sidebar_animation", `
+        from {
+            width: 0px;
+        }
+        to {
+            width: 20rem;
+        }
+    `)
+    
+    createCSSClass(".remark_standard_sidebar_body", `
+        height: 80%;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        scrollbar-width: none;    
+    `)
+
+    createCSSClass(".remark_standard_sidebar_body_full", `
+        height: 100%;
+        overflow: hidden;
+    `)
+
+    createCSSClass(".remark_form_fields", `
+        margin: 0.6rem 0rem 0rem 0rem;
+    `)
+
+    createCSSClass(".remark_form_input:focus", `
+        border: 0.5px solid var(--remark-color-primary);
+    `)
+
+    createCSSClass(".remark_form_label", `
+        font-family: var(--remark-default-sanserif-font);
+        font-size: 0.8rem;
+        color: var(--remark-color-grey-dark-2);  
+    `)
 }
 
 function getAnnotationByID(annotation_id, annotations) {
