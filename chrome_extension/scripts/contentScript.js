@@ -290,10 +290,12 @@ let SIDEBAR = (curAnnotation) => {
     const markup =
     `
         <div class="remark_standard_sidebar" id="remark_annotations_sidebar">
-            <div class="remark_standard_modal_header">
-                <h3 class="remark_standard_modal_title">${curAnnotation['id']}</h3>
-                <div class="remark_standard_modal_actions">
-                    <span class="remark_modal_close_btn" id="remark_standard_modal_close_btn">Close</span>
+            <div class="remark_sidebar_modal_header">
+                <h3 class="remark_standard_sidebar_title">ANNOTATION DATA</h3>
+                <div class="remark_standard_sidebar_actions">
+                    <span class="remark_close_btn" id="remark_standard_modal_close_btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn"><path fill="currentColor" d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z" class="remark_"/></svg>
+                    </span>
                 </div>
             </div>
             <div class="remark_standard_modal_body remark_standard_sidebar_body remark_standard_sidebar_body_full" id="remark_sidebar_body">
@@ -363,7 +365,6 @@ let EDIT_ANNOTATION_MODAL = (curAnnotation) => {
     return markup;
 }
 
-
 let TOOLTIP = (ele) => {
     const rect = ele.getBoundingClientRect();;
     const x = Math.round(rect.x), y = Math.round(rect.y), w = Math.round(rect.width), h = Math.round(rect.height);
@@ -401,6 +402,7 @@ function createCSSClass(name,rules){
 }
 
 function addAllClasses() {
+
     createCSSClass(":root", `
         --remark-color-primary: #0d6efd;
         --remark-color-primary-lighter: #5498ff;
@@ -475,10 +477,11 @@ function addAllClasses() {
         background-color: var(--remark-color-white);
         margin: 0.4rem 0rem 1.4rem 0rem;
         transition: border 0.2s ease-in 0s;
-        border: 0.5px solid var(--remark-color-grey);
+        border: 1px solid var(--remark-color-grey-light-1);
         font-size: 1rem;
         color: var(--remark-color-grey);
         outline: 0px !important;
+        
     `);
 
     createCSSClass(".remark_standard_button", `
@@ -627,6 +630,39 @@ function addAllClasses() {
             width: 20rem;
         }
     `)
+
+    createCSSClass(".remark_sidebar_modal_header", `
+        padding: 1rem;
+        height: 2rem;
+        margin: 0rem -1rem 2rem 3rem;
+        width: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    `)
+      
+    createCSSClass(".remark_standard_sidebar_actions", `
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 10%;
+    `)
+
+    createCSSClass(".remark_standard_sidebar_title", `
+        display: flex;
+        flex-direction: row;
+        justify-content: start;
+        overflow-wrap: break-word;
+        margin: 0.4rem 0rem 0rem;
+        font-size: 0.8rem;
+        font-weight: bold;
+    `)
+
+    createCSSClass(".remark_close_btn", `
+        margin: 0.4rem 0rem 0rem 0rem;
+        cursor: pointer;
+    `) 
     
     createCSSClass(".remark_standard_sidebar_body", `
         height: 80%;
@@ -641,7 +677,7 @@ function addAllClasses() {
     `)
 
     createCSSClass(".remark_form_fields", `
-        margin: 0.6rem 0rem 0rem 0rem;
+        margin: 0rem 0rem 0rem 0rem;
     `)
 
     createCSSClass(".remark_form_input:focus", `
@@ -651,8 +687,22 @@ function addAllClasses() {
     createCSSClass(".remark_form_label", `
         font-family: var(--remark-default-sanserif-font);
         font-size: 0.8rem;
-        color: var(--remark-color-grey-dark-2);  
+        color: var(--remark-color-grey-light-2);  
+    `);
+
+    createCSSClass("#remark_standard_modal_close_btn", `
+        transition: all 0.1s ease 0s;
     `)
+
+    createCSSClass("#remark_standard_modal_close_btn:hover", `
+        transform: scale(1.1);
+    `)
+    
+    createCSSClass("#remark_standard_modal_close_btn:active", `
+        transform: scale(1.0);
+    `)
+
+
 }
 
 function getAnnotationByID(annotation_id, annotations) {
@@ -679,6 +729,11 @@ function removeAllExistingModals() {
     //     removeHTMLElement(delete_modal_check);
     // }
 }
+
+
+// ****************** Chrome APIs ****************** 
+
+
 
 function setDataToStorage(key, value) {
     try {
