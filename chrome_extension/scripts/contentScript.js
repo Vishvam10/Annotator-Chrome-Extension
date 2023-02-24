@@ -98,17 +98,61 @@ function clickListener(e) {
             }
 
             if(REMARK_SETTINGS["groupByClassName"]) {
+                console.log("REACHED")
+                if(REMARK_SETTINGS["confirmBeforeGrouping"]) {
+                    let cgm = CONFIRM_GROUPING_MARKUP();
+                    t.insertAdjacentHTML("afterbegin", cgm);
+                    cgm = document.querySelector(".remark_confirm_grouping");
 
-                const className = t.className.split(" ")[0];
-                const nodes = document.querySelectorAll(`.${className}`);
-
-                Array.from(nodes).forEach((ele) => {
-                    annotations = addLabel(ele, annotations);
-                    ele.classList.remove("highlight_element_light");
-                    ele.classList.add("highlight_element_strong");
-                })
+                    Array.from(document.querySelectorAll(".remark_grouping_options")).forEach((ele) => {
+                        console.log("REACHED 3")
+                        ele.addEventListener("click", (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            const val = e.target.innerText;
+                            console.log("VAL : ", val)
+                            if(val == "Yes") {
+                                
+                                const className = t.className.split(" ")[0];
+                                const nodes = document.querySelectorAll(`.${className}`);
+                                
+                                Array.from(nodes).forEach((ele) => {
+                                    annotations = addLabel(ele, annotations);
+                                    ele.classList.remove("highlight_element_light");
+                                    ele.classList.add("highlight_element_strong");
+                                });
+                                
+                                if(cgm) {
+                                    console.log("REACHED DEL 1")
+                                    removeHTMLElement(cgm);
+                                }
+                                
+                            } else {
+                                console.log("clicked no : ", cgm)
+                                annotations = addLabel(t, annotations);
+                                
+                                t.classList.remove("highlight_element_light");
+                                t.classList.add("highlight_element_strong");
+                                if(cgm) {
+                                    console.log("REACHED DEL 2")
+                                    removeHTMLElement(cgm);
+                                }
+                            } 
+    
+                        });
+                    })
+                    
+                } else {
+                    console.log("REACHED 1")
+                    annotations = addLabel(t, annotations);
+                    t.classList.remove("highlight_element_light");
+                    t.classList.add("highlight_element_strong");
+                }
 
             } else {
+                console.log("REACHED 2")
+
                 annotations = addLabel(t, annotations);
                 
                 t.classList.remove("highlight_element_light");
@@ -259,6 +303,16 @@ let TOOLTIP = (ele) => {
             <p style="margin: 0.1rem 0rem 0rem 0rem;">(${w} x ${h})</p>
         </div>
     
+    `;
+    return markup;
+}
+
+let CONFIRM_GROUPING_MARKUP = () => {
+    const markup = `
+        <span class="remark_confirm_grouping">
+            <span class="remark_grouping_options">Yes</span>
+            <span class="remark_grouping_options">No</span>
+        </span>
     `;
     return markup;
 }
@@ -426,7 +480,58 @@ function addAllClasses() {
         height: 3.2rem;
         gap: 0.8rem;
         z-index: 10000;
+    `);
+        
+    createCSSClass(".remark_confirm_grouping", `
+        display: flex;
+        flex-direction: row;
+        gap: 1.2rem;
+        padding: 1rem;
+        position: inherit;
+        top: 0rem;
+        right: 0rem;
+        border-radius: 0.8rem;
+        margin: 0rem 0rem 0rem;
+        background-color: #000000;
+        color: var(--remark-color-white);
+        width: 9rem;
+        height: 3.2rem;
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: all 125ms ease-in-out 0s;
+    `);
+
+    createCSSClass(".remark_confirm_grouping:hover", `
+        transform: scale(1.05);
+    `);
+
+    createCSSClass(".remark_confirm_grouping:active", `
+        transform: scale(1.0);
+    `);
+
+    createCSSClass(".remark_grouping_options", `
+        background: var(--remark-color-grey-dark-4);
+        padding: 1rem;
+        height: 1rem;
+        width: 10rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 0.5rem;
+        transition: all 125ms ease-in-out 0s;
+        cursor: pointer;
     `)
+
+    createCSSClass(".remark_grouping_options:hover", `
+        transform: scale(1.05);
+    `)
+    
+    createCSSClass(".remark_grouping_options", `
+        transform: scale(1.0);
+    `)
+
 }
 
 function getAnnotationByID(annotation_id, annotations) {
