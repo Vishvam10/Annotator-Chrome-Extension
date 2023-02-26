@@ -4,9 +4,6 @@
 //         groupByClassName: true,
 //         groupByTagName: false,
 //         confirmBeforeGrouping: false,
-
-//         // Debug info
-//         showDebugInfo: false,
         
 //         // Extras 
 //         showToolTip: false,
