@@ -239,14 +239,12 @@ remark_error_container_success {
 }
 .remark_standard_modal_header {
   padding: 1rem;
-  height: 6rem;
+  height: 2rem;
   margin: -1rem -1rem 0rem -1rem;
   width: auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--remark-color-grey-light-1);
-  border-radius: 1rem 1rem 0rem 0rem;
 }
 .remark_standard_modal_actions {
   display: flex;

@@ -8,40 +8,118 @@
     <title>Annotations Control Panel</title>
 </head>
 <body>
-    <div class="container temp">
-        <h3 class="main_heading">
-            REMARK
-        </h3>
+    <div class="remark_standard_minimodal">
+        <span>
+            <h3>
+                Title
+            </h3>
+            <div class="remark_standard_minimodal_body">
+                <label for="probeDepth">
+                    <div class="number-input">
+                        <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_settings_input"></button>
+                        <input id="probeDepth" min="4" max="50" value="20" type="number" name="configuration" clas>
+                        <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_settings_input"></button>
+                    </div>       
+                    <span class="remark_toggle_label">PRODE DEPTH</span>
+                </label>
+            </div>
+        </span>
+    </div>
+    <div class="container hide">
+        <div class="remark_standard_modal_header">
+            <h3 class="remark_standard_sidebar_title">MENU</h3>
+            <div class="remark_standard_sidebar_actions">
+                <span class="remark_close_btn" id="remark_standard_menu_close_btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn"><path fill="currentColor" d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z" class="remark_"/></svg>
+                </span>
+            </div>
+        </div>
         <div class="settings">
             <div class="settings_subgroup">
-                <h5 class="settings_subgroup_title">GROUPING</h5>      
+                <h5 class="settings_subgroup_title">ACTIONS </h5>      
                 <span class="setting_subgroup_item">
-                    <label class="remark_toggle" for="groupByClassName">
-                        <input class="remark_toggle_checkbox" type="checkbox" id="groupByClassName">
-                        <div class="remark_toggle_switch"></div>
-                        <span class="remark_toggle_label">BY CLASSNAME</span>
-                    </label>
+                    <button class="remark_action_btn" id="remarkUndoBtn" name="actions">
+                        UNDO
+                    </button>
+                    <button class="remark_action_btn" id="remarkRedoBtn" name="actions">
+                        REDO
+                    </button>
                 </span>     
+            </div>  
+            <div class="settings_subgroup">
+                <h5 class="settings_subgroup_title">BATCH ACTIONS</h5>      
                 <span class="setting_subgroup_item">
-                    <label class="remark_toggle" for="groupByTagName">
-                        <input class="remark_toggle_checkbox" type="checkbox" id="groupByTagName">
-                        <div class="remark_toggle_switch"></div>
-                        <span class="remark_toggle_label">BY TAGNAME</span>
-                    </label>
+                    <button class="remark_action_btn" id="remarkBatchCreateBtn" name="batchActions">
+                        CREATE
+                    </button>
+                    <button class="remark_action_btn" id="remarkBatchUpdateBtn" name="batchActions">
+                        UPDATE
+                    </button>
+                    <button class="remark_action_btn" id="remarkBatchDeleteBtn" name="batchActions">
+                        DELETE
+                    </button>
                 </span>       
+            </div>  
+            <div class="settings_subgroup">
+                <h5 class="settings_subgroup_title">APPEARANCE</h5>      
                 <span class="setting_subgroup_item">
-                    <label class="remark_toggle" for="confirmBeforeGrouping">
-                        <input class="remark_toggle_checkbox" type="checkbox" id="confirmBeforeGrouping">
+                    <label class="remark_toggle" for="highlightUsingSameColor">
+                        <input class="remark_toggle_checkbox remark_settings_input" type="checkbox" id="highlightUsingSameColor" name="appearance">
                         <div class="remark_toggle_switch"></div>
-                        <span class="remark_toggle_label">CONFIRM BEFORE GROUPING</span>
+                        <span class="remark_toggle_label">UNIFORM COLOR</span>
                     </label>
                 </span>     
+      
+                <span class="setting_subgroup_item">
+                    <label for="highlightThickness">
+                        <div class="number-input">
+                            <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_settings_input"></button>
+                            <input id="highlightThickness" min="1" value="8" type="number" name="appearance">
+                            <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_settings_input" ></button>
+                        </div>       
+                        <span class="remark_toggle_label">THICKNESS</span>
+                    </label>
+                </span>
+                <span class="setting_subgroup_item">
+                    <label for="highlightBorderRadius">
+                        <div class="number-input">
+                            <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_settings_input"></button>
+                            <input id="highlightBorderRadius" class="remark_settings_input" min="0" value="24" type="number" name="appearance">
+                            <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_settings_input"></button>
+                        </div>       
+                        <span class="remark_toggle_label">RADIUS</span>
+                    </label>
+                </span>
             </div>
             <div class="settings_subgroup">
-                <h5 class="settings_subgroup_title">EXTRAS</h5>      
+                <h5 class="settings_subgroup_title">CONFIGURATION</h5>      
+                <span class="setting_subgroup_item">
+                    <label for="probeDepth">
+                        <div class="number-input">
+                            <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_settings_input"></button>
+                            <input id="probeDepth" min="4" max="50" value="20" type="number" name="configuration" clas>
+                            <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_settings_input"></button>
+                        </div>       
+                        <span class="remark_toggle_label">PRODE DEPTH</span>
+                    </label>
+                </span>
+                <span class="setting_subgroup_item">
+                    <label class="remark_toggle" for="includeXPath">
+                        <input class="remark_toggle_checkbox remark_settings_input" type="checkbox" id="includeXPath" name="configuration">
+                        <div class="remark_toggle_switch"></div>
+                        <span class="remark_toggle_label">INCLUDE XPATH</span>
+                    </label>
+                </span>     
+                <span class="setting_subgroup_item">
+                    <label class="remark_toggle" for="includeStyles">
+                        <input class="remark_toggle_checkbox remark_settings_input" type="checkbox" id="includeStyles" name="configuration">
+                        <div class="remark_toggle_switch"></div>
+                        <span class="remark_toggle_label">INCLUDE CSS STYLES</span>
+                    </label>
+                </span>     
                 <span class="setting_subgroup_item">
                     <label class="remark_toggle" for="showToolTip">
-                        <input class="remark_toggle_checkbox" type="checkbox" id="showToolTip">
+                        <input class="remark_toggle_checkbox remark_settings_input" type="checkbox" id="showToolTip" name="configuration">
                         <div class="remark_toggle_switch"></div>
                         <span class="remark_toggle_label">SHOW TOOLTIP</span>
                     </label>
