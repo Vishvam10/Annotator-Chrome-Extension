@@ -9,20 +9,21 @@
 </head>
 <body>
     <div class="remark_standard_minimodal">
-        <span>
-            <h3>
-                Title
-            </h3>
-            <div class="remark_standard_minimodal_body">
-                <label for="probeDepth">
-                    <div class="number-input">
-                        <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_settings_input"></button>
-                        <input id="probeDepth" min="4" max="50" value="20" type="number" name="configuration" clas>
-                        <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_settings_input"></button>
-                    </div>       
-                    <span class="remark_toggle_label">PRODE DEPTH</span>
-                </label>
-            </div>
+        <h4 class="remark_standard_minimodal_title">BATCH UPDATE</h4>
+        <div class="remark_standard_minimodal_body">
+            <span class="remark_standard_minimodal_input_container">
+                <label for="batchInputTagName" class="remark_standard_minimodal_label">TAGNAME</label>
+                <br>
+                <input id="batchInputTagName" class="remark_standard_minimodal_input" type="text">
+            </span>
+            <span class="remark_standard_minimodal_input_container">
+                <label for="batchInputTagName" class="remark_standard_minimodal_label">CLASSNAME</label>
+                <br>
+                <input id="batchInputTagName" class="remark_standard_minimodal_input" type="text">
+            </span>
+        </div>
+        <span style="height: 100%; border-left: 1px solid var(--remark-color-grey-light-2); margin: 0rem 0rem 0rem -2rem">
+            <button class="remark_standard_minimodal_button">GO</button>
         </span>
     </div>
     <div class="container hide">
@@ -97,7 +98,7 @@
                     <label for="probeDepth">
                         <div class="number-input">
                             <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_settings_input"></button>
-                            <input id="probeDepth" min="4" max="50" value="20" type="number" name="configuration" clas>
+                            <input id="probeDepth" min="4" max="50" value="20" type="number" name="configuration">
                             <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_settings_input"></button>
                         </div>       
                         <span class="remark_toggle_label">PRODE DEPTH</span>

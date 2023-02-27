@@ -98,17 +98,70 @@ ion-icon:active {
   transform: scale(1);
 }
 
+.remark_standard_minimodal_input {
+  margin: 0.8rem 0rem 0rem 0rem;
+  height: 1.2rem;
+  width: 16rem;
+  border-radius: 1rem;
+  border: 1px solid var(--remark-color-grey-light-2);
+  outline: none;
+  padding: 1rem;
+  color: var(--remark-color-grey-light-1);
+}
+
+.remark_standard_minimodal_button {
+  width: 8rem;
+  height: 3.2rem;
+  border-radius: 1rem;
+  background-color: var(--remark-color-grey-light-3);
+  color: var(--remark-color-grey);
+  border-left: 1px solid var(--remark-color-grey-light-2);
+  font-size: 1.2rem;
+  padding: 1rem;
+  margin: 2.4rem 1rem 0rem 1rem;
+  border: none;
+}
+
+.remark_standard_minimodal_input_container {
+  height: 100%;
+  display: block;
+  width: 100%;
+  margin: 1rem 1rem 0rem 0rem;
+}
+
+.remark_standard_minimodal_label {
+  font-size: 1rem;
+  color: var(--remark-color-grey);
+  margin: 0rem 0rem 1rem 0rem;
+}
+
 .remark_standard_minimodal {
   width: 64rem;
   height: 8rem;
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: flex-start;
   background-color: var(--remark-color-white);
   color: var(--remark-color-grey-light-1);
   border: 1px solid var(--remark-color-grey-light-2);
   border-radius: 1.2rem;
+}
+
+.remark_standard_minimodal_body {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+}
+
+.remark_standard_minimodal_title {
+  width: 7%;
+  border-right: 1px solid var(--remark-color-grey-light-2);
+  margin: 0rem 0rem 0rem 0rem;
+  padding: 2.4rem;
+  font-size: 1.2rem;
 }
 
 .hide {
