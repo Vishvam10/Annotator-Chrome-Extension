@@ -500,6 +500,114 @@ function handleBatchAction(action) {
 
 let MENU = () => {
 
+    const markup = `
+        <div class="remark_standard_menu_container">
+            <div class="remark_standard_modal_header">
+                <h3 class="remark_standard_sidebar_title">MENU</h3>
+                <div class="remark_standard_sidebar_actions">
+                    <span class="remark_close_btn" id="remark_standard_menu_close_btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn"><path fill="currentColor" d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z" class="remark_"/></svg>
+                    </span>
+                </div>
+            </div>
+            <div class="remark_settings">
+                <div class="remark_settings_subgroup">
+                    <h5 class="remark_settings_subgroup_title">ACTIONS </h5>      
+                    <span class="setting_subgroup_item">
+                        <button class="remark_action_btn" id="remarkUndoBtn" name="actions">
+                            UNDO
+                        </button>
+                        <button class="remark_action_btn" id="remarkRedoBtn" name="actions">
+                            REDO
+                        </button>
+                    </span>     
+                </div>  
+                <div class="remark_settings_subgroup">
+                    <h5 class="remark_settings_subgroup_title">BATCH ACTIONS</h5>      
+                    <span class="setting_subgroup_item">
+                        <button class="remark_action_btn" id="remarkBatchCreateBtn" name="batchActions">
+                            CREATE
+                        </button>
+                        <button class="remark_action_btn" id="remarkBatchUpdateBtn" name="batchActions">
+                            UPDATE
+                        </button>
+                        <button class="remark_action_btn" id="remarkBatchDeleteBtn" name="batchActions">
+                            DELETE
+                        </button>
+                    </span>       
+                </div>  
+                <div class="remark_settings_subgroup">
+                    <h5 class="remark_settings_subgroup_title">APPEARANCE</h5>      
+                    <span class="setting_subgroup_item">
+                        <label class="remark_toggle" for="highlightUsingSameColor">
+                            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="highlightUsingSameColor" name="appearance">
+                            <div class="remark_toggle_switch"></div>
+                            <span class="remark_toggle_label">UNIFORM COLOR</span>
+                        </label>
+                    </span>     
+        
+                    <span class="setting_subgroup_item">
+                        <label for="highlightThickness">
+                            <div class="number-input">
+                                <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
+                                <input id="highlightThickness" min="1" value="8" type="number" name="appearance">
+                                <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input" ></button>
+                            </div>       
+                            <span class="remark_toggle_label">THICKNESS</span>
+                        </label>
+                    </span>
+                    <span class="setting_subgroup_item">
+                        <label for="highlightBorderRadius">
+                            <div class="number-input">
+                                <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
+                                <input id="highlightBorderRadius" class="remark_remark_settings_input" min="0" value="24" type="number" name="appearance">
+                                <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input"></button>
+                            </div>       
+                            <span class="remark_toggle_label">RADIUS</span>
+                        </label>
+                    </span>
+                </div>
+                <div class="remark_settings_subgroup">
+                    <h5 class="remark_settings_subgroup_title">CONFIGURATION</h5>      
+                    <span class="setting_subgroup_item">
+                        <label for="probeDepth">
+                            <div class="number-input">
+                                <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
+                                <input id="probeDepth" min="4" max="50" value="20" type="number" name="configuration">
+                                <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input"></button>
+                            </div>       
+                            <span class="remark_toggle_label">PRODE DEPTH</span>
+                        </label>
+                    </span>
+                    <span class="setting_subgroup_item">
+                        <label class="remark_toggle" for="includeXPath">
+                            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="includeXPath" name="configuration">
+                            <div class="remark_toggle_switch"></div>
+                            <span class="remark_toggle_label">INCLUDE XPATH</span>
+                        </label>
+                    </span>     
+                    <span class="setting_subgroup_item">
+                        <label class="remark_toggle" for="includeStyles">
+                            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="includeStyles" name="configuration">
+                            <div class="remark_toggle_switch"></div>
+                            <span class="remark_toggle_label">INCLUDE CSS STYLES</span>
+                        </label>
+                    </span>     
+                    <span class="setting_subgroup_item">
+                        <label class="remark_toggle" for="showToolTip">
+                            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="showToolTip" name="configuration">
+                            <div class="remark_toggle_switch"></div>
+                            <span class="remark_toggle_label">SHOW TOOLTIP</span>
+                        </label>
+                    </span>     
+                </div>
+            </div>
+            <button class="remark_standard_button" id="remarkPushToServer">
+                PUSH TO SERVER
+            </button>
+        </div>
+    `
+
     return markup;
 }
 
@@ -943,6 +1051,256 @@ function addAllClasses() {
         display: flex;
         align-items: center;
         justify-content: center;
+    `)
+
+    createClass(".remark_standard_minimodal_input ", `
+        margin: 0.8rem 0rem 0rem 0rem;
+        height: 1.2rem;
+        width: 16rem;
+        border-radius: 1rem;
+        border: 1px solid var(--remark-color-grey-light-2);
+        outline: none;
+        padding: 1rem;
+        color: var(--remark-color-grey-light-1);
+    `)
+
+    createClass(".remark_standard_minimodal_button ", `
+        width: 8rem;
+        height: 3.2rem;
+        border-radius: 1rem;
+        background-color: var(--remark-color-grey-light-3);
+        color: var(--remark-color-grey);
+        border-left: 1px solid var(--remark-color-grey-light-2);
+        font-size: 1.2rem;
+        padding: 1rem;
+        margin: 2.4rem 1rem 0rem 1rem;
+        border: none;
+    `)
+
+    createClass(".remark_standard_minimodal_input_container ", `
+        height: 100%;
+        display: block;
+        width: 100%;
+        margin: 1rem 1rem 0rem 0rem;
+    `)
+
+    createClass(".remark_standard_minimodal_label ", `
+        font-size: 1rem;
+        color: var(--remark-color-grey);
+        margin: 0rem 0rem 1rem 0rem;
+    `)
+
+    createClass(".remark_standard_minimodal ", `
+        width: 64rem;
+        height: 8rem;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        background-color: var(--remark-color-white);
+        color: var(--remark-color-grey-light-1);
+        border: 1px solid var(--remark-color-grey-light-2);
+        border-radius: 1.2rem;
+    `)
+
+    createClass(".remark_standard_minimodal_body ", `
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        height: 100%;
+    `)
+
+    createClass(".remark_standard_minimodal_title ", `
+        width: 7%;
+        border-right: 1px solid var(--remark-color-grey-light-2);
+        margin: 0rem 0rem 0rem 0rem;
+        padding: 2.4rem;
+        font-size: 1.2rem;
+    `)
+
+    createClass(".remark_hide ", `
+        display: none;
+        opacity: 0;
+        visibility: hidden;
+    `)
+
+    createClass(".remark_show ", `
+        display: flex;
+        opacity: 1;
+        visibility: visible;
+    `)
+
+    createClass(".remark_standard_menu_container ", `
+        height: 72rem;
+        width: 24rem;
+        border-radius: 1.2rem;
+        background-color: var(--remark-color-white);
+        display: flex;
+        flex-direction: column;
+        padding: 2rem;
+        border: 1px solid var(--remark-color-grey-light-2);
+    `)
+
+    createClass(".remark_main_heading ", `
+        font-size: 1.6rem;
+        color: var(--remark-color-grey-dark-2);
+        text-align: center;
+    `)
+
+    createClass(".remark_settings ", `
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        margin: -2rem 0rem 0rem 0rem;
+    `)
+
+    createClass(".remark_settings_subgroup ", `
+        height: auto;
+        border: 1px solid var(--remark-color-grey-light-2);
+        padding: 2rem;
+        border-radius: 1.2rem;
+        margin: 2rem 0rem 0rem 0rem;
+    `)
+
+    createClass(".remark_settings_subgroup_title ", `
+        color: var(--remark-color-grey-light-1);
+        margin: 0rem 0rem 1.2em 0rem;
+        font-weight: normal;
+    `)
+
+    createClass(".setting_subgroup_item ", `
+        margin: 0.8rem 0rem 0rem 0rem;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    `)
+
+    createClass(".remark_toggle ", `
+        cursor: pointer;
+        display: inline-block;
+        margin: 0.4rem 0rem;
+    `)
+
+    createClass(".remark_toggle_switch ", `
+        display: inline-block;
+        background: #ccc;
+        border-radius: 16px;
+        width: 36px;
+        height: 20px;
+        position: relative;
+        vertical-align: middle;
+        transition: background 0.25s;
+    `)
+
+    createClass(".remark_toggle_switch:before,.remark_toggle_switch:after ", `
+        content: "";
+    `)
+
+    createClass(".remark_toggle_switch:before ", `
+        display: block;
+        background: linear-gradient(to bottom, #fff 0%, #eee 100%);
+        border-radius: 50%;
+        width: 12px;
+        height: 12px;
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        transition: left 0.25s;
+    `)
+
+    createClass(".remark_toggle_checkbox:checked + .remark_toggle_switch ", `
+        background: var(--remark-color-primary);
+    `)
+
+    createClass(".remark_toggle_checkbox:checked + .remark_toggle_switch:before ", `
+     left: 20px;
+    `)
+
+    createClass(".remark_toggle_checkbox ", `
+        position: absolute;
+        visibility: hidden;
+    `)
+
+    createClass(".remark_toggle_label ", `
+        margin-left: 5px;
+        position: relative;
+        top: 2px;
+        font-size: 1.2rem;
+        color: var(--remark-color-grey);
+    `)
+
+    createClass(".remark_action_btn ", `
+        width: 100%;
+        margin: 0.2rem 1rem 0rem 0rem;
+        height: 3.6rem;
+        color: var(--remark-color-grey-dark-1);
+        padding: 0.8rem;
+        background-color: var(--remark-color-grey-light-3);
+        border-radius: 1.2rem;
+        border: 1px solid var(--remark-color-grey-light-2);;
+    `)
+
+    createClass("input[type='number'] ", `
+        -webkit-appearance: textfield;
+        -moz-appearance: textfield;
+        appearance: textfield;
+        color: var(--remark-color-grey-light-1);
+    `)
+
+    createClass("input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button ", `
+        -webkit-appearance: none;
+    `)
+
+    createClass(".remark_number_input ", `
+        border: 1px solid var(--remark-color-grey-light-2);
+        border-radius: 1rem;
+        display: inline-flex;
+    `)
+
+    createClass(".remark_number_input,.remark_number_input * ", `
+        box-sizing: border-box;
+    `)
+
+    createClass(".remark_number_input button ", `
+        outline:none;
+        -webkit-appearance: none;
+        background-color: transparent;
+        border: none;
+        align-items: center;
+        justify-content: center;
+        width: 3rem;
+        height: 3rem;
+        cursor: pointer;
+        margin: 0;
+        position: relative;
+    `)
+
+    createClass(".remark_number_input button:before,.remark_number_input button:after ", `
+        display: inline-block;
+        position: absolute;
+        content: '';
+        width: 1rem;
+        height: 2px;
+        background-color: var(--remark-color-grey);
+        transform: translate(-50%, -50%);
+    `)
+
+    createClass(".remark_number_input button.plus:after ", `
+        transform: translate(-50%, -50%) rotate(90deg);
+    `)
+
+    createClass(".remark_number_input input[type=number] ", `
+        font-family: sans-serif;
+        max-width: 5rem;
+        padding: .5rem;
+        border: solid #ddd;
+        border-width: 0 2px;
+        font-size: 1.6rem;
+        height: 3rem;
+        font-weight: bold;
+        text-align: center;
     `)
 
 }

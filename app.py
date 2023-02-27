@@ -1,103 +1,12 @@
-:root {
-  --remark-color-primary: #0d6efd;
-  --remark-color-primary-lighter: #5498ff;
-  --remark-color-primary-darker: #0b5dd7;
-  --remark-color-success: #5ec576;
-  --remark-color-success-darker: #399e66;
-  --remark-color-warning: #ffcb03;
-  --remark-color-warning-darker: #eaac00;
+import re
 
-  --remark-color-danger: #ff585f;
-  --remark-color-danger-darker: #fd424b;
-  --remark-color-grey-light-3: #f2f2f2;
-  --remark-color-grey-light-2: #d0d0d0;
-  --remark-color-grey-light-1: #9c9c9c;
-  --remark-color-grey: #808080;
-  --remark-color-grey-dark-1: #6c6c6c;
-  --remark-color-grey-dark-2: #444444;
-  --remark-color-grey-dark-3: #2d2c2c;
-  --remark-color-grey-dark-4: #141313;
-  --remark-color-black: #000000;
-  --remark-color-white: #ffffff;
-  --remark-color-danger-opacity: #ff58602d;
-  --gradient-primary: linear-gradient(to top left, #39b385, #9be15d);
-  --gradient-secondary: linear-gradient(to top left, #ffb003, #ffcb03);
-  --remark-default-box-shadow-light: rgba(120, 123, 127, 0.2) 0px 8px 16px;
-  --remark-default-box-shadow: rgba(75, 77, 80, 0.2) 0px 8px 24px;
-  --remark-default-sanserif-font: Arial, Helvetica, sans-serif;
-}
+"""
+    createCSSClass(".remark_fade", `
+        opacity: 0.5;
+    `)
+"""
 
-html {
-  /* Now, 1rem = 10px */
-  font-size: 63.5%;
-}
-
-body {
-  font-family: Inter var, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI,
-    Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji,
-    Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
-  font-feature-remark_settings: normal;
-  font-smooth: always;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  font-size: 1.6rem;
-}
-
-/* ::-moz-selection {
-  color: var(--color-red);
-  background: var(--color-red-dark);
-}
-
-::selection {
-  color: var(--color-red);
-  background: var(--color-red-dark);
-} */
-
-a {
-  text-decoration: none !important;
-  list-style: none;
-  font-size: 1.6rem;
-  transition: all 0.1s cubic-bezier(0.445, 0.05, 0.55, 0.95);
-}
-
-a:hover {
-  transform: scale(1.1);
-}
-
-a:active {
-  transform: scale(1);
-}
-
-button {
-  transition: all 0.1s cubic-bezier(0.445, 0.05, 0.55, 0.95);
-  cursor: pointer;
-}
-
-button:hover {
-  transform: scale(1.05);
-}
-
-button:active {
-  transform: scale(1);
-}
-
-ion-icon {
-  color: var(--color-grey-dark-2);
-  font-size: 2rem;
-  transition: all 0.1s cubic-bezier(0.445, 0.05, 0.55, 0.95);
-  cursor: pointer;
-}
-
-ion-icon:hover {
-  transform: scale(1.1);
-}
-
-ion-icon:active {
-  transform: scale(1);
-}
-
+s = '''
 .remark_standard_minimodal_input {
   margin: 0.8rem 0rem 0rem 0rem;
   height: 1.2rem;
@@ -304,37 +213,6 @@ ion-icon:active {
   border: 1px solid var(--remark-color-grey-light-2);;
 }
 
-.remark_standard_modal_header {
-  padding: 0rem;
-  height: 4rem;
-  margin: 0rem 0rem 1rem 0.4rem;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 1rem 1rem 0rem 0rem;
-  color: var(--remark-color-grey);
-}
-.remark_standard_modal_actions {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  width: 10%;
-}
-.remark_standard_modal_title {
-  display: flex;
-  flex-direction: row;
-  justify-content: start;
-  width: 71%;
-  word-wrap: break-word;
-  padding: 1rem;
-  margin: 3rem 0rem 1rem 2rem;
-  font-size: 1.7rem;
-  height: inherit;
-  line-height: 2rem;
-  font-weight: 500;
-}
 
 input[type="number"] {
   -webkit-appearance: textfield;
@@ -398,3 +276,27 @@ input[type=number]::-webkit-outer-spin-button {
   font-weight: bold;
   text-align: center;
 }
+'''
+
+x = s.split("}")
+res = []
+
+for i in range(len(x) - 1) :    
+    ele = x[i] + "}"
+    pattern = r"\{([\s\S]*)\}"
+
+    rule_name = ele.split("{")[0].replace("\n", "")
+    try :
+        rules = re.search(pattern, ele).group(1)
+    except :
+        print("")
+    css_class = 'createClass("{}", `{}`)'.format(rule_name, rules)
+
+    print(css_class)
+
+    res.append(css_class)
+
+res = "\n\n".join(res)
+
+f = open("p_styles.txt", "a")
+f.write(res)

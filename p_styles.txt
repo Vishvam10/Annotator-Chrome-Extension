@@ -1,104 +1,4 @@
-:root {
-  --remark-color-primary: #0d6efd;
-  --remark-color-primary-lighter: #5498ff;
-  --remark-color-primary-darker: #0b5dd7;
-  --remark-color-success: #5ec576;
-  --remark-color-success-darker: #399e66;
-  --remark-color-warning: #ffcb03;
-  --remark-color-warning-darker: #eaac00;
-
-  --remark-color-danger: #ff585f;
-  --remark-color-danger-darker: #fd424b;
-  --remark-color-grey-light-3: #f2f2f2;
-  --remark-color-grey-light-2: #d0d0d0;
-  --remark-color-grey-light-1: #9c9c9c;
-  --remark-color-grey: #808080;
-  --remark-color-grey-dark-1: #6c6c6c;
-  --remark-color-grey-dark-2: #444444;
-  --remark-color-grey-dark-3: #2d2c2c;
-  --remark-color-grey-dark-4: #141313;
-  --remark-color-black: #000000;
-  --remark-color-white: #ffffff;
-  --remark-color-danger-opacity: #ff58602d;
-  --gradient-primary: linear-gradient(to top left, #39b385, #9be15d);
-  --gradient-secondary: linear-gradient(to top left, #ffb003, #ffcb03);
-  --remark-default-box-shadow-light: rgba(120, 123, 127, 0.2) 0px 8px 16px;
-  --remark-default-box-shadow: rgba(75, 77, 80, 0.2) 0px 8px 24px;
-  --remark-default-sanserif-font: Arial, Helvetica, sans-serif;
-}
-
-html {
-  /* Now, 1rem = 10px */
-  font-size: 63.5%;
-}
-
-body {
-  font-family: Inter var, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI,
-    Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji,
-    Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
-  font-feature-remark_settings: normal;
-  font-smooth: always;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  font-size: 1.6rem;
-}
-
-/* ::-moz-selection {
-  color: var(--color-red);
-  background: var(--color-red-dark);
-}
-
-::selection {
-  color: var(--color-red);
-  background: var(--color-red-dark);
-} */
-
-a {
-  text-decoration: none !important;
-  list-style: none;
-  font-size: 1.6rem;
-  transition: all 0.1s cubic-bezier(0.445, 0.05, 0.55, 0.95);
-}
-
-a:hover {
-  transform: scale(1.1);
-}
-
-a:active {
-  transform: scale(1);
-}
-
-button {
-  transition: all 0.1s cubic-bezier(0.445, 0.05, 0.55, 0.95);
-  cursor: pointer;
-}
-
-button:hover {
-  transform: scale(1.05);
-}
-
-button:active {
-  transform: scale(1);
-}
-
-ion-icon {
-  color: var(--color-grey-dark-2);
-  font-size: 2rem;
-  transition: all 0.1s cubic-bezier(0.445, 0.05, 0.55, 0.95);
-  cursor: pointer;
-}
-
-ion-icon:hover {
-  transform: scale(1.1);
-}
-
-ion-icon:active {
-  transform: scale(1);
-}
-
-.remark_standard_minimodal_input {
+createClass(".remark_standard_minimodal_input ", `
   margin: 0.8rem 0rem 0rem 0rem;
   height: 1.2rem;
   width: 16rem;
@@ -107,9 +7,9 @@ ion-icon:active {
   outline: none;
   padding: 1rem;
   color: var(--remark-color-grey-light-1);
-}
+`)
 
-.remark_standard_minimodal_button {
+createClass(".remark_standard_minimodal_button ", `
   width: 8rem;
   height: 3.2rem;
   border-radius: 1rem;
@@ -120,22 +20,22 @@ ion-icon:active {
   padding: 1rem;
   margin: 2.4rem 1rem 0rem 1rem;
   border: none;
-}
+`)
 
-.remark_standard_minimodal_input_container {
+createClass(".remark_standard_minimodal_input_container ", `
   height: 100%;
   display: block;
   width: 100%;
   margin: 1rem 1rem 0rem 0rem;
-}
+`)
 
-.remark_standard_minimodal_label {
+createClass(".remark_standard_minimodal_label ", `
   font-size: 1rem;
   color: var(--remark-color-grey);
   margin: 0rem 0rem 1rem 0rem;
-}
+`)
 
-.remark_standard_minimodal {
+createClass(".remark_standard_minimodal ", `
   width: 64rem;
   height: 8rem;
   display: flex;
@@ -146,37 +46,37 @@ ion-icon:active {
   color: var(--remark-color-grey-light-1);
   border: 1px solid var(--remark-color-grey-light-2);
   border-radius: 1.2rem;
-}
+`)
 
-.remark_standard_minimodal_body {
+createClass(".remark_standard_minimodal_body ", `
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   height: 100%;
-}
+`)
 
-.remark_standard_minimodal_title {
+createClass(".remark_standard_minimodal_title ", `
   width: 7%;
   border-right: 1px solid var(--remark-color-grey-light-2);
   margin: 0rem 0rem 0rem 0rem;
   padding: 2.4rem;
   font-size: 1.2rem;
-}
+`)
 
-.remark_hide {
+createClass(".remark_hide ", `
   display: none;
   opacity: 0;
   visibility: hidden;
-}
+`)
 
-.remark_show {
+createClass(".remark_show ", `
   display: flex;
   opacity: 1;
   visibility: visible;
-}
+`)
 
-.remark_standard_menu_container {
+createClass(".remark_standard_menu_container ", `
   height: 72rem;
   width: 24rem;
   border-radius: 1.2rem;
@@ -185,22 +85,22 @@ ion-icon:active {
   flex-direction: column;
   padding: 2rem;
   border: 1px solid var(--remark-color-grey-light-2);
-}
+`)
 
-.remark_main_heading {
+createClass(".remark_main_heading ", `
   font-size: 1.6rem;
   color: var(--remark-color-grey-dark-2);
   text-align: center;
-}
+`)
 
-.remark_settings {
+createClass(".remark_settings ", `
   height: 100%;
   display: flex;
   flex-direction: column;
   margin: -2rem 0rem 0rem 0rem;
-}
+`)
 
-.remark_standard_button {
+createClass(".remark_standard_button ", `
   background-color: var(--remark-color-primary);
   font-size: 1.6rem;
   color: var(--remark-color-white);
@@ -217,37 +117,37 @@ ion-icon:active {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-}
+`)
 
-.remark_settings_subgroup {
+createClass(".remark_settings_subgroup ", `
   height: auto;
   border: 1px solid var(--remark-color-grey-light-2);
   padding: 2rem;
   border-radius: 1.2rem;
   margin: 2rem 0rem 0rem 0rem;
-}
+`)
 
-.remark_settings_subgroup_title {
+createClass(".remark_settings_subgroup_title ", `
   color: var(--remark-color-grey-light-1);
   margin: 0rem 0rem 1.2em 0rem;
   font-weight: normal;
-}
+`)
 
-.setting_subgroup_item {
+createClass(".setting_subgroup_item ", `
   margin: 0.8rem 0rem 0rem 0rem;
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
+`)
 
-.remark_toggle {
+createClass(".remark_toggle ", `
   cursor: pointer;
   display: inline-block;
   margin: 0.4rem 0rem;
-}
+`)
 
-.remark_toggle_switch {
+createClass(".remark_toggle_switch ", `
   display: inline-block;
   background: #ccc;
   border-radius: 16px;
@@ -256,12 +156,13 @@ ion-icon:active {
   position: relative;
   vertical-align: middle;
   transition: background 0.25s;
-}
-.remark_toggle_switch:before,
-.remark_toggle_switch:after {
+`)
+
+createClass(".remark_toggle_switch:before,.remark_toggle_switch:after ", `
   content: "";
-}
-.remark_toggle_switch:before {
+`)
+
+createClass(".remark_toggle_switch:before ", `
   display: block;
   background: linear-gradient(to bottom, #fff 0%, #eee 100%);
   border-radius: 50%;
@@ -271,29 +172,30 @@ ion-icon:active {
   top: 4px;
   left: 4px;
   transition: left 0.25s;
-}
+`)
 
-.remark_toggle_checkbox:checked + .remark_toggle_switch {
+createClass(".remark_toggle_checkbox:checked + .remark_toggle_switch ", `
   background: var(--remark-color-primary);
-}
-.remark_toggle_checkbox:checked + .remark_toggle_switch:before {
-  left: 20px;
-}
+`)
 
-.remark_toggle_checkbox {
+createClass(".remark_toggle_checkbox:checked + .remark_toggle_switch:before ", `
+  left: 20px;
+`)
+
+createClass(".remark_toggle_checkbox ", `
   position: absolute;
   visibility: hidden;
-}
+`)
 
-.remark_toggle_label {
+createClass(".remark_toggle_label ", `
   margin-left: 5px;
   position: relative;
   top: 2px;
   font-size: 1.2rem;
   color: var(--remark-color-grey);
-}
+`)
 
-.remark_action_btn {
+createClass(".remark_action_btn ", `
   width: 100%;
   margin: 0.2rem 1rem 0rem 0rem;
   height: 3.6rem;
@@ -302,64 +204,30 @@ ion-icon:active {
   background-color: var(--remark-color-grey-light-3);
   border-radius: 1.2rem;
   border: 1px solid var(--remark-color-grey-light-2);;
-}
+`)
 
-.remark_standard_modal_header {
-  padding: 0rem;
-  height: 4rem;
-  margin: 0rem 0rem 1rem 0.4rem;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 1rem 1rem 0rem 0rem;
-  color: var(--remark-color-grey);
-}
-.remark_standard_modal_actions {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  width: 10%;
-}
-.remark_standard_modal_title {
-  display: flex;
-  flex-direction: row;
-  justify-content: start;
-  width: 71%;
-  word-wrap: break-word;
-  padding: 1rem;
-  margin: 3rem 0rem 1rem 2rem;
-  font-size: 1.7rem;
-  height: inherit;
-  line-height: 2rem;
-  font-weight: 500;
-}
-
-input[type="number"] {
+createClass("input[type="number"] ", `
   -webkit-appearance: textfield;
   -moz-appearance: textfield;
   appearance: textfield;
   color: var(--remark-color-grey-light-1);
-}
+`)
 
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
+createClass("input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button ", `
   -webkit-appearance: none;
-}
+`)
 
-.remark_number_input {
+createClass(".remark_number_input ", `
   border: 1px solid var(--remark-color-grey-light-2);
   border-radius: 1rem;
   display: inline-flex;
-}
+`)
 
-.remark_number_input,
-.remark_number_input * {
+createClass(".remark_number_input,.remark_number_input * ", `
   box-sizing: border-box;
-}
+`)
 
-.remark_number_input button {
+createClass(".remark_number_input button ", `
   outline:none;
   -webkit-appearance: none;
   background-color: transparent;
@@ -371,10 +239,9 @@ input[type=number]::-webkit-outer-spin-button {
   cursor: pointer;
   margin: 0;
   position: relative;
-}
+`)
 
-.remark_number_input button:before,
-.remark_number_input button:after {
+createClass(".remark_number_input button:before,.remark_number_input button:after ", `
   display: inline-block;
   position: absolute;
   content: '';
@@ -382,12 +249,13 @@ input[type=number]::-webkit-outer-spin-button {
   height: 2px;
   background-color: var(--remark-color-grey);
   transform: translate(-50%, -50%);
-}
-.remark_number_input button.plus:after {
-  transform: translate(-50%, -50%) rotate(90deg);
-}
+`)
 
-.remark_number_input input[type=number] {
+createClass(".remark_number_input button.plus:after ", `
+  transform: translate(-50%, -50%) rotate(90deg);
+`)
+
+createClass(".remark_number_input input[type=number] ", `
   font-family: sans-serif;
   max-width: 5rem;
   padding: .5rem;
@@ -397,4 +265,4 @@ input[type=number]::-webkit-outer-spin-button {
   height: 3rem;
   font-weight: bold;
   text-align: center;
-}
+`)
