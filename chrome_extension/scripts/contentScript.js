@@ -524,7 +524,19 @@ let SIDEBAR = (curAnnotation) => {
             <div class="remark_standard_modal_body remark_standard_sidebar_body remark_standard_sidebar_body_full" id="remark_sidebar_body">
                 <div class="remark_form_fields">
                     <label for="annotation_id" class="remark_form_label">ID</label>
-                    <input type="text" name="annotation_id" class="remark_form_input" value="${curAnnotation['id']}" readonly disabled>
+                    <input type="text" name="annotation_id" class="remark_form_input remark_fade" value="${curAnnotation['id']}" readonly disabled>
+                </div>
+                <div class="remark_form_fields">
+                    <label for="annotation_parent" class="remark_form_label">PARENT</label>
+                    <input type="text" name="annotation_parent" class="remark_form_input remark_fade" value="${curAnnotation['parent']}" readonly disabled>
+                </div>
+                <div class="remark_form_fields">
+                    <label for="annotation_parent" class="remark_form_label">HTML CLASS</label>
+                    <input type="text" name="annotation_parent" class="remark_form_input remark_fade" value="${curAnnotation['html_class']}" readonly disabled>
+                </div>
+                <div class="remark_form_fields">
+                    <label for="annotation_parent" class="remark_form_label">HTML XPATH</label>
+                    <input type="text" name="annotation_parent" class="remark_form_input remark_fade" value="${curAnnotation['html_xpath']}" readonly disabled>
                 </div>
                 <div class="remark_form_fields">
                     <label for="annotation_type" class="remark_form_label">TYPE</label>
@@ -539,11 +551,8 @@ let SIDEBAR = (curAnnotation) => {
                     <input type="text" name="annotation_coordinates" class="remark_form_input" value="${curAnnotation['coordinates']}">
                 </div>
                 <div class="remark_form_fields">
-                    <label for="annotation_parent" class="remark_form_label">PARENT</label>
-                    <input type="text" name="annotation_parent" class="remark_form_input" value="${curAnnotation['parent']}" readonly disabled>
-                </div>
-                <div class="remark_form_fields">
-                    <button type="button" class="remark_standard_button" id="remark_edit_annotation_button"}>Edit</button>
+                    <button type="button" class="remark_standard_button" id="remark_edit_annotation_button" style="position: absolute;
+                    bottom: 1.6rem; width: 16rem;">Edit</button>
                 </div>
             </div>
         </div>
@@ -620,6 +629,10 @@ function addAllClasses() {
         --remark-default-sanserif-font: Arial, Helvetica, sans-serif;
     `)
 
+    createCSSClass(".remark_fade", `
+        opacity: 0.5;
+    `)
+
     createCSSClass(".highlight_element_light", `
         cursor: crosshair;
         border-radius: 0.4rem;
@@ -663,13 +676,12 @@ function addAllClasses() {
         width: 100%;
         border-radius: 0.6rem;
         background-color: var(--remark-color-white);
-        margin: 0.4rem 0rem 1.4rem 0rem;
+        margin: 0.2rem 0rem 1rem 0rem;
         transition: border 0.2s ease-in 0s;
         border: 1px solid var(--remark-color-grey-light-1);
-        font-size: 1rem;
+        font-size: 0.8rem;
         color: var(--remark-color-grey);
-        outline: 0px !important;
-        
+        outline: 0px !important;        
     `);
 
     createCSSClass(".remark_standard_button", `
@@ -690,7 +702,6 @@ function addAllClasses() {
         align-items: center;
         justify-content: center;
         height: 3.2rem;
-
     `)
 
     createCSSClass(".remark_standard_button:hover", `
@@ -875,7 +886,8 @@ function addAllClasses() {
     createCSSClass(".remark_form_label", `
         font-family: var(--remark-default-sanserif-font);
         font-size: 0.8rem;
-        color: var(--remark-color-grey-light-2);  
+        color: var(--remark-color-grey-light-1);
+        font-weight: normal;
     `);
 
     createCSSClass("#remark_standard_modal_close_btn", `
