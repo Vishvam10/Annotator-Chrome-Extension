@@ -14,13 +14,115 @@
             showToolTip: false            
         }
     }
-
-    // let settings = await getDataFromStorage("remark_settings");
-    // settings = settings["remark_settings"];
-
+    
     remark_init(settings);
 })();
 
+
+
+// function attachListeners() {
+
+//     const inps = document.querySelectorAll(".remark_settings_input");
+//     Array.from(inps).forEach((ele) => {
+//         ele.addEventListener("click", updateRemarkGlobalSettings.bind(ele))
+//     })
+
+//     const undoBtn = document.getElementById("remarkUndoBtn");
+//     undoBtn.addEventListener("click", handleUndo);
+
+//     const redoBtn = document.getElementById("remarkRedoBtn");
+//     redoBtn.addEventListener("click", handleRedo);
+
+//     const remarkBatchCreateBtn = document.getElementById("remarkBatchCreateBtn");
+//     remarkBatchCreateBtn.addEventListener("click", handleBatchCreate);
+    
+//     const remarkBatchUpdateBtn = document.getElementById("remarkBatchUpdateBtn");
+//     remarkBatchUpdateBtn.addEventListener("click", handleBatchUpdate);
+    
+//     const remarkBatchDeleteBtn = document.getElementById("remarkBatchDeleteBtn");
+//     remarkBatchDeleteBtn.addEventListener("click", handleBatchDelete);
+
+// }
+
+// function handleBatchCreate() {
+//     console.log("clicked : handleBatchCreate");
+
+//     const markup = BATCH_ACTION_MODAL("batchCreate");
+//     document.body.insertAdjacentHTML("afterbegin", markup);
+
+//     const goBtn = document.getElementById("remark_standard_minimodal_button");
+//     goBtn.addEventListener("click", (e) => {
+//         e.preventDefault();
+//         e.stopPropagation();
+
+//         const className = document.getElementById("batchInputClassName").value;
+//         const tagName = document.getElementById("batchInputTagName").value;
+
+//     })
+
+//     return;
+// }
+// function handleBatchUpdate() {
+//     console.log("clicked : handleBatchUpdate")
+//     return;
+// }
+// function handleBatchDelete() {
+//     console.log("clicked : handleBatchDelete")
+//     return;
+// }
+// function handleUndo() {
+//     console.log("clicked : handleUndo")
+//     return;
+// }
+// function handleRedo() {
+//     console.log("clicked : handleRedo")
+//     return;
+// }
+
+// const BATCH_ACTION_MODAL = (action) => {
+
+//     let title = "";
+
+//     if(action == "batchCreate") {
+//         title = "BATCH CREATE"
+//     } else if(action == "batchDelete") {
+//         title = "BATCH DELETE"
+//     }
+
+//     const markup = `
+//         <div class="remark_standard_minimodal">
+//             <h4 class="remark_standard_minimodal_title">${title}</h4>
+//             <div class="remark_standard_minimodal_body">
+//                 <span class="remark_standard_minimodal_input_container">
+//                     <label for="batchInputTagName" class="remark_standard_minimodal_label">TAGNAME</label>
+//                     <br>
+//                     <input id="batchInputTagName" class="remark_standard_minimodal_input" type="text">
+//                 </span>
+//                 <span class="remark_standard_minimodal_input_container">
+//                     <label for="batchInputClassName" class="remark_standard_minimodal_label">CLASSNAME</label>
+//                     <br>
+//                     <input id="batchInputClassName" class="remark_standard_minimodal_input" type="text">
+//                 </span>
+//             </div>
+//             <span style="height: 100%; border-left: 1px solid var(--remark-color-grey-light-2); margin: 0rem 0rem 0rem -2rem">
+//                 <button class="remark_standard_minimodal_button" id="remark_standard_minimodal_button">GO</button>
+//             </span>
+//         </div>
+//     `
+//     return markup;
+// }
+
+// function updateRemarkGlobalSettings(e) {
+//     const t = e.target;
+//     console.log("clicked : ", t, t.id, t.value, t.checked, t.name, typeof(t.checked));
+
+//     if(typeof(t.checked) == "boolean") {
+//         settings[t.name][t.id] = t.checked;
+//     } 
+
+// }
+
+// attachListeners()
 
 var REMARK_SETTINGS;
 var annotations = []
@@ -29,42 +131,41 @@ function remark_init(settings) {
     REMARK_SETTINGS = settings;
     console.log("DOM check and Settings check : ", document.body, REMARK_SETTINGS);
     
+    addAllClasses();    
+
     const markup = `
         <div class="remark_init_container">
             <span class="remark_init_text">REMARK</span>
+            <button type="button" class="remark_standard_button remark_init_button" id="remark_start">Start Annotation</button>
         </div>
     `
-    // <button type="button" class="remark_standard_button remark_init_button" id="remark_start">Start Annotation</button>
     document.body.insertAdjacentHTML("afterbegin", markup);
 
-    console.log("ADMPWIDMAKSD", );
 
-    // document.getElementById("remark_start").addEventListener("click", (e) => {
-    //     e.preventDefault();
-    //     e.stopPropagation();
-    //     if(e.target.innerText == "Start Annotation") {
-    //         document.querySelector(".remark_init_container").classList.add("remark_init_container_resize");
-    //         e.target.innerText = "Stop Annotation";
-    //         removeAllExistingModals();
-    //         addAllClasses();
-    //         startAnnotationProcess();
-    //     }
-    //     else if(e.target.innerText == "Stop Annotation") {
-    //         e.target.innerText = "Start Annotation";
-    //         stopAnnotationProcess();
-    //         document.querySelector(".remark_init_container").classList.remove("remark_init_container_resize");
-    //         return;
-    //     } else {
-    //         return;
-    //     }
-    // })
+    document.getElementById("remark_start").addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if(e.target.innerText == "Start Annotation") {
+            document.querySelector(".remark_init_container").classList.add("remark_init_container_resize");
+            e.target.innerText = "Stop Annotation";
+            removeAllExistingModals();
+            startAnnotationProcess();
+        }
+        else if(e.target.innerText == "Stop Annotation") {
+            e.target.innerText = "Start Annotation";
+            stopAnnotationProcess();
+            document.querySelector(".remark_init_container").classList.remove("remark_init_container_resize");
+            return;
+        } else {
+            return;
+        }
+    })
 
 }
 
 
 
 function startAnnotationProcess() {
-
     document.body.addEventListener("keypress", keyPressListener)
     document.body.addEventListener("click", clickListener);
     document.body.addEventListener("mouseover", mouseOverListener);
@@ -90,7 +191,7 @@ function clickListener(e) {
     if(e.altKey) {
         // Delete label
         if(t.classList.contains("highlight_element_strong")) {
-            annotations = deleteLabel(t, annotations);
+            annotations = handleDeleteLabel(t, annotations);
         }
         
         if(t.classList.contains("highlight_element_light")) {
@@ -128,7 +229,7 @@ function clickListener(e) {
                                 const nodes = document.querySelectorAll(`.${className}`);
                                 
                                 Array.from(nodes).forEach((ele) => {
-                                    annotations = addLabel(ele, annotations);
+                                    annotations = handleCreateLabel(ele, annotations);
                                     ele.classList.remove("highlight_element_light");
                                     ele.classList.add("highlight_element_strong");
                                 });
@@ -140,7 +241,7 @@ function clickListener(e) {
                                 
                             } else {
                                 console.log("clicked no : ", cgm)
-                                annotations = addLabel(t, annotations);
+                                annotations = handleCreateLabel(t, annotations);
                                 
                                 t.classList.remove("highlight_element_light");
                                 t.classList.add("highlight_element_strong");
@@ -155,7 +256,7 @@ function clickListener(e) {
                     
                 } else {
                     console.log("REACHED 1")
-                    annotations = addLabel(t, annotations);
+                    annotations = handleCreateLabel(t, annotations);
                     t.classList.remove("highlight_element_light");
                     t.classList.add("highlight_element_strong");
                 }
@@ -163,7 +264,7 @@ function clickListener(e) {
             } else {
                 console.log("REACHED 2")
 
-                annotations = addLabel(t, annotations);
+                annotations = handleCreateLabel(t, annotations);
                 
                 t.classList.remove("highlight_element_light");
                 t.classList.add("highlight_element_strong");
@@ -200,7 +301,7 @@ function clickListener(e) {
             editBtn.addEventListener("click", (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                editLabel(t, annotations)
+                handleEditLabel(t, annotations)
             })
         }
 
@@ -221,12 +322,12 @@ function mouseOverListener(e) {
     }
     const tag = e.target.tagName;
     if (VALID_HTML_ELEMENTS.includes(tag)) {
-        if(REMARK_SETTINGS["showToolTip"]) {
-            const targetHTMLElement = e.target;
+        const targetHTMLElement = e.target;
+        if(REMARK_SETTINGS["configuration"]["showToolTip"]) {
             let tooltipMarkup = TOOLTIP(e.target);
             targetHTMLElement.insertAdjacentHTML("afterbegin", tooltipMarkup);
-            targetHTMLElement.classList.toggle("highlight_element_light");
         }
+        targetHTMLElement.classList.toggle("highlight_element_light");
     }
 }
 
@@ -243,10 +344,12 @@ function mouseOutListener(e) {
         }
     }
     const tag = e.target.tagName;
+    const targetHTMLElement = e.target;
     if (VALID_HTML_ELEMENTS.includes(tag)) {
-        const targetHTMLElement = e.target;
-        const tooltipNode = document.getElementById("remark_tooltip");
-        removeHTMLElement(tooltipNode);
+        if(REMARK_SETTINGS["configuration"]["showToolTip"]) {
+            const tooltipNode = document.getElementById("remark_tooltip");
+            removeHTMLElement(tooltipNode);
+        }
         targetHTMLElement.classList.toggle("highlight_element_light");
     }
 }
@@ -258,7 +361,9 @@ function keyPressListener(e) {
 }
 
 function removeHTMLElement(ele) {
-    ele.parentElement.removeChild(ele);
+    if(ele && ele.parentElement) {
+        ele.parentElement.removeChild(ele);
+    }
     return;
 }
 
@@ -269,29 +374,32 @@ function repositionStart() {
 
 // ******************* Handlers ********************
 
-function addLabel(t, annotations) {
-    const rect = t.getBoundingClientRect();;
+function handleCreateLabel(targetHTMLElement, annotations) {
+    const rect = targetHTMLElement.getBoundingClientRect();;
     const x = Math.round(rect.x), y = Math.round(rect.y), w = Math.round(rect.width), h = Math.round(rect.height);
     console.log(x,y,w,h);
 
     const d = {
         "id" : Math.round(Math.random() * 10000),
-        "type" : t.tagName.toLowerCase(),
+        "type" : targetHTMLElement.tagName.toLowerCase(),
         "coordinates" : [x, y, w, h],
-        "text" : t.innerText,
-        "parent" : t.parentNode.tagName.toLocaleLowerCase()
+        "text" : targetHTMLElement.innerText,
+        "parent" : targetHTMLElement.parentNode.tagName.toLocaleLowerCase(),
+        "html_id" : targetHTMLElement.id,
+        "html_class" : targetHTMLElement.className,
+        "html_xpath" : getNodeXpath(targetHTMLElement)
     }
 
     annotations.push(d);
-    t.dataset.annotation_id = d["id"]
+    targetHTMLElement.dataset.annotation_id = d["id"]
 
     return annotations
 }
 
-function editLabel(t, annotations) {
-    if(t.classList.contains("highlight_element_strong")) {
+function handleEditLabel(targetHTMLElement, annotations) {
+    if(targetHTMLElement.classList.contains("highlight_element_strong")) {
             
-        const annotation_id = Number(t.dataset.annotation_id);
+        const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
         const newType = document.querySelector("input[name='annotation_type']").value;
         const newText = document.querySelector("input[name='annotation_text']").value;
         const newCoordinates = document.querySelector("input[name='annotation_coordinates']").value;
@@ -315,44 +423,82 @@ function editLabel(t, annotations) {
     console.log("edit annotations : ", annotations);
 }
 
-function deleteLabel(t, annotations) {
+function handleDeleteLabel(targetHTMLElement, annotations) {
 
-    const annotation_id = Number(t.dataset.annotation_id);
+    const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
 
     annotations = annotations.filter(function(ele) {
         return ele.id != annotation_id;
     });
     
-    delete t.dataset.annotation_id;
+    delete targetHTMLElement.dataset.annotation_id;
 
     return annotations;
+}
+
+function handleBatchAction(action) {
+    const ele = document.querySelector(".remark_standard_minimodal");
+    if(ele) {
+        removeHTMLElement(ele);
+    }
+    if(action == "batchCreate") {
+
+        console.log("clicked : handleBatchCreate");
+        
+        const markup = BATCH_ACTION_MODAL("batchCreate");
+        document.body.insertAdjacentHTML("afterbegin", markup);
+        
+        const ele = document.querySelector(".remark_standard_minimodal");
+        
+        const goBtn = document.getElementById("remark_standard_minimodal_button");
+        goBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        
+            const className = document.getElementById("batchInputClassName").value;
+            const tagName = document.getElementById("batchInputTagName").value;
+        
+            console.log("tagname, classname : ", tagName, className);
+        
+            // batchCreateLabels(className, tagName);
+        
+            removeHTMLElement(ele)
+        
+        });
+        
+    } else if(action == "batchDelete") {
+        
+        console.log("clicked : handleBatchDelete");
+        
+        const markup = BATCH_ACTION_MODAL("batchDelete");
+        document.body.insertAdjacentHTML("afterbegin", markup);
+        
+        const ele = document.querySelector(".remark_standard_minimodal");
+        
+        const goBtn = document.getElementById("remark_standard_minimodal_button");
+        goBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        
+            const className = document.getElementById("batchInputClassName").value;
+            const tagName = document.getElementById("batchInputTagName").value;
+        
+            console.log("tagname, classname : ", tagName, className);
+        
+            // batchCreateLabels(className, tagName);
+        
+            removeHTMLElement(ele)
+        
+        });
+
+
+    }
 }
 
 
 // ************** Component functions **************
 
 let MENU = () => {
-    const markup =
-    `
-        <div class="remark_standard_sidebar" id="remark_main_menu">
-            <div class="remark_sidebar_modal_header">
-                <h3 class="remark_standard_sidebar_title">MENU</h3>
-                <div class="remark_standard_sidebar_actions">
-                    <span class="remark_close_btn" id="remark_standard_modal_close_btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn"><path fill="currentColor" d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z" class="remark_"/></svg>
-                    </span>
-                </div>
-            </div>
-            <div class="remark_standard_sidebar_body remark_standard_sidebar_body_full" id="remark_sidebar_body">
-            
-                <div class="remark_form_fields">
-                    <label for="annotation_id" class="remark_form_label">ID</label>
-                    <input type="text" name="annotation_id" class="remark_form_input">
-                </div>
-
-            </div>
-        </div>
-    `
 
     return markup;
 }
@@ -745,11 +891,11 @@ function addAllClasses() {
     `)
 
     createCSSClass(".remark_init_container", `
-        width: 40rem;
+        width: 20rem;
         background: var(--remark-color-white);
         padding: 1rem;
-        height: 8rem;
-        border-radius: 1.6rem;
+        height: 4rem;
+        border-radius: 1.2rem;
         position: fixed;
         z-index: 10000000;
         bottom: 3rem;
@@ -764,23 +910,22 @@ function addAllClasses() {
 
     createCSSClass(".remark_init_container_resize", `
         left: 4%;
-        width: 40rem;
+        width: 20rem;
     `)
 
     createCSSClass(".remark_init_button", `
-        width: 60% !important;
-        font-size: 1.6rem !important;
-        padding: 1rem !important;
-        background-color: var(--remark-color-primary) !important;
         color: var(--remark-color-white);
-        height: 5rem !important;
-        margin: 0.5rem 0rem 0rem 1rem !important;
-    
+        width: 60%;
+        font-size: 0.9rem;
+        padding: 1rem;
+        background-color: var(--remark-color-primary);
+        height: 3rem;
+        margin: -0.5rem -0.4rem 0rem 2rem;
     `)
 
     createCSSClass(".remark_init_text", `
         width: 30%;
-        font-size: 1.6rem;
+        font-size: 1rem;
         font-weight: 500;
         color: var(--remark-color-grey-dark-1);
         display: flex;
@@ -820,6 +965,59 @@ function stopHighlightElements() {
     while (elements.length) {
         elements[0].classList.remove("highlight_element_strong");
     }
+}
+
+function getNodeXpath(node) {
+    let comp, comps = [];
+    let parent = null;
+    let xpath = '';
+    let getPos = function(node) {
+        let position = 1, curNode;
+        if (node.nodeType == Node.ATTRIBUTE_NODE) {
+            return null;
+        }
+        for (curNode = node.previousSibling; curNode; curNode = curNode.previousSibling) {
+            if (curNode.nodeName == node.nodeName) {
+                ++position;
+            }
+        }
+        return position;
+     }
+
+    if (node instanceof Document) {
+        return '/';
+    }
+
+    for (; node && !(node instanceof Document); node = node.nodeType == Node.ATTRIBUTE_NODE ? node.ownerElement : node.parentNode) {
+        comp = comps[comps.length] = {};
+        switch (node.nodeType) {
+            case Node.TEXT_NODE:
+                comp.name = 'text()';
+                break;
+            case Node.ATTRIBUTE_NODE:
+                comp.name = '@' + node.nodeName;
+                break;
+            case Node.PROCESSING_INSTRUCTION_NODE:
+                comp.name = 'processing-instruction()';
+                break;
+            case Node.COMMENT_NODE:
+                comp.name = 'comment()';
+                break;
+            case Node.ELEMENT_NODE:
+                comp.name = node.nodeName;
+                break;
+        }
+        comp.position = getPos(node);
+    }
+
+    for (var i = comps.length - 1; i >= 0; i--) {
+        comp = comps[i];
+        xpath += '/' + comp.name;
+        if (comp.position != null) {
+            xpath += '[' + comp.position + ']';
+        }
+    }
+    return xpath;
 }
 
 

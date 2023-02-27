@@ -28,28 +28,85 @@ function attachListeners() {
     redoBtn.addEventListener("click", handleRedo);
 
     const remarkBatchCreateBtn = document.getElementById("remarkBatchCreateBtn");
-    remarkBatchCreateBtn.addEventListener("click", handleBatchCreate);
+    remarkBatchCreateBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleBatchAction("batchCreate")
+    });
     
-    const remarkBatchUpdateBtn = document.getElementById("remarkBatchUpdateBtn");
-    remarkBatchUpdateBtn.addEventListener("click", handleBatchUpdate);
+    // const remarkBatchUpdateBtn = document.getElementById("remarkBatchUpdateBtn");
+    // remarkBatchUpdateBtn.addEventListener("click", handleBatchUpdate);
     
     const remarkBatchDeleteBtn = document.getElementById("remarkBatchDeleteBtn");
-    remarkBatchDeleteBtn.addEventListener("click", handleBatchDelete);
+    remarkBatchDeleteBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleBatchAction("batchDelete")
+    });
+    
 
 }
 
-function handleBatchCreate() {
-    console.log("clicked : handleBatchCreate")
-    return;
+function handleBatchAction(action) {
+    const ele = document.querySelector(".remark_standard_minimodal");
+    if(ele) {
+        removeHTMLElement(ele);
+    }
+    if(action == "batchCreate") {
+
+        console.log("clicked : handleBatchCreate");
+        
+        const markup = BATCH_ACTION_MODAL("batchCreate");
+        document.body.insertAdjacentHTML("afterbegin", markup);
+        
+        const ele = document.querySelector(".remark_standard_minimodal");
+        
+        const goBtn = document.getElementById("remark_standard_minimodal_button");
+        goBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        
+            const className = document.getElementById("batchInputClassName").value;
+            const tagName = document.getElementById("batchInputTagName").value;
+        
+            console.log("tagname, classname : ", tagName, className);
+        
+            // batchCreateLabels(className, tagName);
+        
+            removeHTMLElement(ele)
+        
+        });
+        
+    } else if(action == "batchDelete") {
+        
+        console.log("clicked : handleBatchDelete");
+        
+        const markup = BATCH_ACTION_MODAL("batchDelete");
+        document.body.insertAdjacentHTML("afterbegin", markup);
+        
+        const ele = document.querySelector(".remark_standard_minimodal");
+        
+        const goBtn = document.getElementById("remark_standard_minimodal_button");
+        goBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        
+            const className = document.getElementById("batchInputClassName").value;
+            const tagName = document.getElementById("batchInputTagName").value;
+        
+            console.log("tagname, classname : ", tagName, className);
+        
+            // batchCreateLabels(className, tagName);
+        
+            removeHTMLElement(ele)
+        
+        });
+
+
+    }
 }
-function handleBatchUpdate() {
-    console.log("clicked : handleBatchUpdate")
-    return;
-}
-function handleBatchDelete() {
-    console.log("clicked : handleBatchDelete")
-    return;
-}
+
+
 function handleUndo() {
     console.log("clicked : handleUndo")
     return;
@@ -57,6 +114,39 @@ function handleUndo() {
 function handleRedo() {
     console.log("clicked : handleRedo")
     return;
+}
+
+const BATCH_ACTION_MODAL = (action) => {
+
+    let title = "";
+
+    if(action == "batchCreate") {
+        title = "BATCH CREATE"
+    } else if(action == "batchDelete") {
+        title = "BATCH DELETE"
+    }
+
+    const markup = `
+        <div class="remark_standard_minimodal">
+            <h4 class="remark_standard_minimodal_title">${title}</h4>
+            <div class="remark_standard_minimodal_body">
+                <span class="remark_standard_minimodal_input_container">
+                    <label for="batchInputTagName" class="remark_standard_minimodal_label">TAGNAME</label>
+                    <br>
+                    <input id="batchInputTagName" class="remark_standard_minimodal_input" type="text">
+                </span>
+                <span class="remark_standard_minimodal_input_container">
+                    <label for="batchInputClassName" class="remark_standard_minimodal_label">CLASSNAME</label>
+                    <br>
+                    <input id="batchInputClassName" class="remark_standard_minimodal_input" type="text">
+                </span>
+            </div>
+            <span style="height: 100%; border-left: 1px solid var(--remark-color-grey-light-2); margin: 0rem 0rem 0rem -2rem">
+                <button class="remark_standard_minimodal_button" id="remark_standard_minimodal_button">GO</button>
+            </span>
+        </div>
+    `
+    return markup;
 }
 
 function updateRemarkGlobalSettings(e) {
@@ -85,6 +175,12 @@ attachListeners()
 
 
 
+function removeHTMLElement(ele) {
+    if(ele && ele.parentElement) {
+        ele.parentElement.removeChild(ele);
+    }
+    return;
+}
 
 
 

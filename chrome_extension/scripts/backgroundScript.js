@@ -1,24 +1,11 @@
 console.log("from background", chrome.tabs);
 
-// var http_pattern =  /^https?:\/\/(.*)/
-
-// chrome.tabs.onActivated.addListener((tab) => {
-
-//     setTimeout(() => {
-//         chrome.tabs.captureVisibleTab(null, {
-//             "format": "png"
-//         }, function(dataURI) {        
-//             if (typeof dataURI !== "undefined") {
-//                 image = new Image();
-//                 image.src = dataURI;
-//                 chrome.tabs.sendMessage(tab.tabId, {
-//                     "msg": "screenshotResult",
-//                     "dataURI" : dataURI
-//                 })
-    
-//             }
-    
-//         }); 
-//     }, 500)
-
-// })
+chrome.action.onClicked.addListener(function(tab) {
+    console.log("CLICKED EXTENSION ICON")
+    chrome.scripting.executeScript({
+        target: {
+            tabId: tab.id,
+        },
+        files: ["/scripts/contentScript.js"]
+    })
+})
