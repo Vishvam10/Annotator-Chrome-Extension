@@ -290,7 +290,7 @@ for i in range(len(x) - 1) :
         rules = re.search(pattern, ele).group(1)
     except :
         print("")
-    css_class = 'createClass("{}", `{}`)'.format(rule_name, rules)
+    css_class = 'createCSSClass("{}", `{}`)'.format(rule_name, rules)
 
     print(css_class)
 

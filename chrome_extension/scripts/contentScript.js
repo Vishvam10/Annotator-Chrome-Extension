@@ -148,6 +148,9 @@ function remark_init(settings) {
         if(e.target.innerText == "Start Annotation") {
             document.querySelector(".remark_init_container").classList.add("remark_init_container_resize");
             e.target.innerText = "Stop Annotation";
+
+            const markup = MENU();
+            document.body.insertAdjacentHTML("afterbegin", markup);
             removeAllExistingModals();
             startAnnotationProcess();
         }
@@ -174,9 +177,10 @@ function startAnnotationProcess() {
 
 function stopAnnotationProcess() {
     stopHighlightElements();
-    document.removeEventListener("click", clickListener, true);
-    document.removeEventListener("mouseover", mouseOverListener, true);
-    document.removeEventListener("mouseout", mouseOutListener, true);
+    document.removeEventListener("click", clickListener);
+    document.removeEventListener("mouseover", mouseOverListener);
+    document.removeEventListener("mouseout", mouseOutListener);
+    return;
 }
 
 // ******************* Listeners *******************
@@ -495,14 +499,13 @@ function handleBatchAction(action) {
     }
 }
 
-
 // ************** Component functions **************
 
 let MENU = () => {
 
     const markup = `
         <div class="remark_standard_menu_container">
-            <div class="remark_standard_modal_header">
+            <div class="remark_standard_menu_header">
                 <h3 class="remark_standard_sidebar_title">MENU</h3>
                 <div class="remark_standard_sidebar_actions">
                     <span class="remark_close_btn" id="remark_standard_menu_close_btn">
@@ -513,7 +516,7 @@ let MENU = () => {
             <div class="remark_settings">
                 <div class="remark_settings_subgroup">
                     <h5 class="remark_settings_subgroup_title">ACTIONS </h5>      
-                    <span class="setting_subgroup_item">
+                    <span class="remark_setting_subgroup_item">
                         <button class="remark_action_btn" id="remarkUndoBtn" name="actions">
                             UNDO
                         </button>
@@ -524,7 +527,7 @@ let MENU = () => {
                 </div>  
                 <div class="remark_settings_subgroup">
                     <h5 class="remark_settings_subgroup_title">BATCH ACTIONS</h5>      
-                    <span class="setting_subgroup_item">
+                    <span class="remark_setting_subgroup_item">
                         <button class="remark_action_btn" id="remarkBatchCreateBtn" name="batchActions">
                             CREATE
                         </button>
@@ -538,7 +541,7 @@ let MENU = () => {
                 </div>  
                 <div class="remark_settings_subgroup">
                     <h5 class="remark_settings_subgroup_title">APPEARANCE</h5>      
-                    <span class="setting_subgroup_item">
+                    <span class="remark_setting_subgroup_item">
                         <label class="remark_toggle" for="highlightUsingSameColor">
                             <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="highlightUsingSameColor" name="appearance">
                             <div class="remark_toggle_switch"></div>
@@ -546,9 +549,9 @@ let MENU = () => {
                         </label>
                     </span>     
         
-                    <span class="setting_subgroup_item">
-                        <label for="highlightThickness">
-                            <div class="number-input">
+                    <span class="remark_setting_subgroup_item">
+                        <label for="highlightThickness" class="remark_">
+                            <div class="remark_number_input">
                                 <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
                                 <input id="highlightThickness" min="1" value="8" type="number" name="appearance">
                                 <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input" ></button>
@@ -556,9 +559,9 @@ let MENU = () => {
                             <span class="remark_toggle_label">THICKNESS</span>
                         </label>
                     </span>
-                    <span class="setting_subgroup_item">
-                        <label for="highlightBorderRadius">
-                            <div class="number-input">
+                    <span class="remark_setting_subgroup_item">
+                        <label for="highlightBorderRadius" class="remark_">
+                            <div class="remark_number_input">
                                 <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
                                 <input id="highlightBorderRadius" class="remark_remark_settings_input" min="0" value="24" type="number" name="appearance">
                                 <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input"></button>
@@ -569,9 +572,9 @@ let MENU = () => {
                 </div>
                 <div class="remark_settings_subgroup">
                     <h5 class="remark_settings_subgroup_title">CONFIGURATION</h5>      
-                    <span class="setting_subgroup_item">
-                        <label for="probeDepth">
-                            <div class="number-input">
+                    <span class="remark_setting_subgroup_item">
+                        <label for="probeDepth" class="remark_">
+                            <div class="remark_number_input">
                                 <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
                                 <input id="probeDepth" min="4" max="50" value="20" type="number" name="configuration">
                                 <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input"></button>
@@ -579,21 +582,21 @@ let MENU = () => {
                             <span class="remark_toggle_label">PRODE DEPTH</span>
                         </label>
                     </span>
-                    <span class="setting_subgroup_item">
+                    <span class="remark_setting_subgroup_item">
                         <label class="remark_toggle" for="includeXPath">
                             <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="includeXPath" name="configuration">
                             <div class="remark_toggle_switch"></div>
                             <span class="remark_toggle_label">INCLUDE XPATH</span>
                         </label>
                     </span>     
-                    <span class="setting_subgroup_item">
+                    <span class="remark_setting_subgroup_item">
                         <label class="remark_toggle" for="includeStyles">
                             <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="includeStyles" name="configuration">
                             <div class="remark_toggle_switch"></div>
                             <span class="remark_toggle_label">INCLUDE CSS STYLES</span>
                         </label>
                     </span>     
-                    <span class="setting_subgroup_item">
+                    <span class="remark_setting_subgroup_item">
                         <label class="remark_toggle" for="showToolTip">
                             <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="showToolTip" name="configuration">
                             <div class="remark_toggle_switch"></div>
@@ -708,600 +711,623 @@ function createCSSClass(name,rules){
 
 function addAllClasses() {
 
-    createCSSClass(":root", `
-        --remark-color-primary: #0d6efd;
-        --remark-color-primary-lighter: #5498ff;
-        --remark-color-primary-darker: #0b5dd7;
-        --remark-color-success: #5ec576;
-        --remark-color-success-darker: #399e66;
-        --remark-color-warning: #ffcb03;
-        --remark-color-warning-darker: #eaac00;
-        
-        --remark-color-danger: #ff585f;
-        --remark-color-danger-darker: #fd424b;
-        --remark-color-grey-light-3: #f2f2f2;
-        --remark-color-grey-light-2: #d0d0d0;
-        --remark-color-grey-light-1: #9c9c9c;
-        --remark-color-grey: #808080;
-        --remark-color-grey-dark-1: #6c6c6c;
-        --remark-color-grey-dark-2: #444444;
-        --remark-color-grey-dark-3: #2d2c2c;
-        --remark-color-grey-dark-4: #141313;
-        --remark-color-black: #000000;
-        --remark-color-white: #FFFFFF;
-        --remark-color-danger-opacity: #ff58602d;
-        --gradient-primary: linear-gradient(to top left, #39b385, #9be15d);
-        --gradient-secondary: linear-gradient(to top left, #ffb003, #ffcb03);
-        --remark-default-box-shadow-light: rgba(120, 123, 127, 0.2) 0px 8px 16px;
-        --remark-default-box-shadow: rgba(75, 77, 80, 0.2) 0px 8px 24px;
-        --remark-default-sanserif-font: Arial, Helvetica, sans-serif;
-    `)
+    try {
 
-    createCSSClass(".remark_fade", `
-        opacity: 0.5;
-    `)
-
-    createCSSClass(".highlight_element_light", `
-        cursor: crosshair;
-        border-radius: 0.4rem;
-        padding: 0.4rem;
-        background: rgba(13, 109, 253, 0.269);
-        transition: background-color 125ms ease-in-out 0s;
-        z-index: 100000;
-    `)
-        
-    createCSSClass(".highlight_element_strong", `
-        outline: solid 1px #ff28009c; 
-        border-radius: 0.4rem; 
-        padding: 0.4rem; 
-        cursor: crosshair;
-        z-index: 100000;
-    `)
-
-    createCSSClass(".remark_standard_modal", `
-        display: flex;
-        flex-direction: column;
-        background: white;
-        color: black;
-        justify-content: center;
-        align-items: center;
-        padding: 2rem;
-        border-radius: 1.2rem;
-        width: 22rem;
-        height: auto;
-        position: absolute;
-        top: 14%;
-        left: 40%;
-        box-shadow: rgb(149 157 165 / 20%) 0px 8px 24px;
-        z-index: 1000000;
-    `)
-
-    createCSSClass(".remark_form_input", `        
-        padding: 1rem 2rem 1.2rem 1rem;
-        font-family: var(--remark-default-sanserif-font);
-        appearance: none;
-        height: 2.8rem;
-        width: 100%;
-        border-radius: 0.6rem;
-        background-color: var(--remark-color-white);
-        margin: 0.2rem 0rem 1rem 0rem;
-        transition: border 0.2s ease-in 0s;
-        border: 1px solid var(--remark-color-grey-light-1);
-        font-size: 0.8rem;
-        color: var(--remark-color-grey);
-        outline: 0px !important;        
-    `);
-
-    createCSSClass(".remark_standard_button", `
-        background-color: var(--remark-color-primary);
-        font-size: 1rem;
-        color: var(--remark-color-white);
-        font-family: inherit;
-        font-weight: 500;
-        border: none;
-        padding: 1.25rem 4.5rem;
-        border-radius: 0.8rem;
-        cursor: pointer;
-        transition: all 0.1s ease 0s;
-        margin: 1rem 0rem 0rem;
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        height: 3.2rem;
-    `)
-
-    createCSSClass(".remark_standard_button:hover", `
-        background-color: var(--remark-color-primary) !important;
-        transform: scale(1.04);
-    `)
-
-    createCSSClass(".remark_standard_button:active", `
-        transform: scale(1.0) !important;
-    `)
-
-    createCSSClass(".remark_standard_button:focus", `
-        background-color: var(--remark-color-primary) !important
-        transform: scale(1.0);
-    `)
-
-    createCSSClass(".remark_standard_modal_title", `
-        display: flex;
-        flex-direction: row;
-        justify-content: start;
-        overflow-wrap: break-word;
-        padding: 0rem;
-        margin: 1rem 0rem 2rem 0rem;
-        font-size: 1.1rem;
-        height: inherit;
-        line-height: 0rem;
-        font-weight: bold;
-    `)
-
-    createCSSClass(".remark_form_label", `
-        font-family: var(--remark-default-sanserif-font);
-        font-size: 12px;
-        color: var(--remark-color-grey-light-1);
-    `)
-
-    createCSSClass("#remark_tooltip", `
-        display: flex;
-        flex-direction: row;
-        padding: 1rem;
-        position: fixed;
-        top: 2rem;
-        left: 2rem;
-        border-radius: 0.8rem;
-        margin: 0rem 0rem 2rem;
-        background-color: var(--remark-color-black);
-        color: var(--remark-color-white);
-        width: 10rem;
-        height: 3.2rem;
-        gap: 0.8rem;
-        z-index: 10000;
-    `);
-        
-    createCSSClass(".remark_confirm_grouping", `
-        display: flex;
-        flex-direction: row;
-        gap: 1.2rem;
-        padding: 1rem;
-        position: inherit;
-        top: 0rem;
-        right: 0rem;
-        border-radius: 0.8rem;
-        margin: 0rem 0rem 0rem;
-        background-color: #000000;
-        color: var(--remark-color-white);
-        width: 9rem;
-        height: 3.2rem;
-        z-index: 10000;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-        transition: all 125ms ease-in-out 0s;
-    `);
-
-    createCSSClass(".remark_confirm_grouping:hover", `
-        transform: scale(1.05);
-    `);
-
-    createCSSClass(".remark_confirm_grouping:active", `
-        transform: scale(1.0);
-    `);
-
-    createCSSClass(".remark_grouping_options", `
-        background: var(--remark-color-grey-dark-4);
-        padding: 1rem;
-        height: 1rem;
-        width: 10rem;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 0.5rem;
-        transition: all 125ms ease-in-out 0s;
-        cursor: pointer;
-    `)
-
-    createCSSClass(".remark_grouping_options:hover", `
-        transform: scale(1.05);
-    `)
-
-    createCSSClass(".remark_grouping_options", `
-        transform: scale(1.0);
-    `)
-
-    createCSSClass(".remark_standard_sidebar", `
-        position: fixed;
-        top: 0px;
-        right: 0px;
-        width: 20rem;
-        background-color: var(--remark-color-white);
-        color: var(--remark-color-grey-dark-1);
-        border-radius: 1.2rem 0rem 0rem 1.2rem;
-        z-index: 100000000;
-        height: 100vh;
-        animation: 0.6s cubic-bezier(0.165, 0.84, 0.44, 1) 0s 1 normal forwards running remark_sidebar_animation;
-        display: flex;
-        overflow: hidden;
-        flex-direction: column;
-        padding: 2rem;
-    `)
-
-    createCSSClass("@keyframes remark_sidebar_animation", `
-        from {
-            width: 0px;
-        }
-        to {
+        createCSSClass(":root", `
+            --remark-color-primary: #0d6efd;
+            --remark-color-primary-lighter: #5498ff;
+            --remark-color-primary-darker: #0b5dd7;
+            --remark-color-success: #5ec576;
+            --remark-color-success-darker: #399e66;
+            --remark-color-warning: #ffcb03;
+            --remark-color-warning-darker: #eaac00;
+            
+            --remark-color-danger: #ff585f;
+            --remark-color-danger-darker: #fd424b;
+            --remark-color-grey-light-3: #f2f2f2;
+            --remark-color-grey-light-2: #d0d0d0;
+            --remark-color-grey-light-1: #9c9c9c;
+            --remark-color-grey: #808080;
+            --remark-color-grey-dark-1: #6c6c6c;
+            --remark-color-grey-dark-2: #444444;
+            --remark-color-grey-dark-3: #2d2c2c;
+            --remark-color-grey-dark-4: #141313;
+            --remark-color-black: #000000;
+            --remark-color-white: #FFFFFF;
+            --remark-color-danger-opacity: #ff58602d;
+            --gradient-primary: linear-gradient(to top left, #39b385, #9be15d);
+            --gradient-secondary: linear-gradient(to top left, #ffb003, #ffcb03);
+            --remark-default-box-shadow-light: rgba(120, 123, 127, 0.2) 0px 8px 16px;
+            --remark-default-box-shadow: rgba(75, 77, 80, 0.2) 0px 8px 24px;
+            --remark-default-sanserif-font: Arial, Helvetica, sans-serif;
+        `)
+    
+        createCSSClass(".remark_fade", `
+            opacity: 0.5;
+        `)
+    
+        createCSSClass(".highlight_element_light", `
+            cursor: crosshair;
+            border-radius: 0.4rem;
+            padding: 0.4rem;
+            background: rgba(13, 109, 253, 0.269);
+            transition: background-color 125ms ease-in-out 0s;
+            z-index: 100000;
+        `)
+            
+        createCSSClass(".highlight_element_strong", `
+            outline: solid 1px #ff28009c; 
+            border-radius: 0.4rem; 
+            padding: 0.4rem; 
+            cursor: crosshair;
+            z-index: 100000;
+        `)
+    
+        createCSSClass(".remark_standard_modal", `
+            display: flex;
+            flex-direction: column;
+            background: white;
+            color: black;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            border-radius: 1.2rem;
+            width: 22rem;
+            height: auto;
+            position: absolute;
+            top: 14%;
+            left: 40%;
+            box-shadow: rgb(149 157 165 / 20%) 0px 8px 24px;
+            z-index: 1000000;
+        `)
+    
+        createCSSClass(".remark_form_input", `        
+            padding: 1rem 2rem 1.2rem 1rem;
+            font-family: var(--remark-default-sanserif-font);
+            appearance: none;
+            height: 2.8rem;
+            width: 100%;
+            border-radius: 0.6rem;
+            background-color: var(--remark-color-white);
+            margin: 0.2rem 0rem 1rem 0rem;
+            transition: border 0.2s ease-in 0s;
+            border: 1px solid var(--remark-color-grey-light-1);
+            font-size: 0.8rem;
+            color: var(--remark-color-grey);
+            outline: 0px !important;        
+        `);
+    
+        createCSSClass(".remark_standard_button", `
+            background-color: var(--remark-color-primary);
+            font-size: 1rem;
+            color: var(--remark-color-white);
+            font-family: inherit;
+            font-weight: 500;
+            border: none;
+            padding: 1.25rem 4.5rem;
+            border-radius: 0.8rem;
+            cursor: pointer;
+            transition: all 0.1s ease 0s;
+            margin: 1rem 0rem 0rem;
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            height: 3.2rem;
+        `)
+    
+        createCSSClass(".remark_standard_button:hover", `
+            background-color: var(--remark-color-primary) !important;
+            transform: scale(1.04);
+        `)
+    
+        createCSSClass(".remark_standard_button:active", `
+            transform: scale(1.0) !important;
+        `)
+    
+        createCSSClass(".remark_standard_button:focus", `
+            background-color: var(--remark-color-primary) !important
+            transform: scale(1.0);
+        `)
+    
+        createCSSClass(".remark_standard_modal_title", `
+            display: flex;
+            flex-direction: row;
+            justify-content: start;
+            overflow-wrap: break-word;
+            padding: 0rem;
+            margin: 1rem 0rem 2rem 0rem;
+            font-size: 1.1rem;
+            height: inherit;
+            line-height: 0rem;
+            font-weight: bold;
+        `)
+    
+        createCSSClass(".remark_form_label", `
+            font-family: var(--remark-default-sanserif-font);
+            font-size: 12px;
+            color: var(--remark-color-grey-light-1);
+        `)
+    
+        createCSSClass("#remark_tooltip", `
+            display: flex;
+            flex-direction: row;
+            padding: 1rem;
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            border-radius: 0.8rem;
+            margin: 0rem 0rem 2rem;
+            background-color: var(--remark-color-black);
+            color: var(--remark-color-white);
+            width: 10rem;
+            height: 3.2rem;
+            gap: 0.8rem;
+            z-index: 10000;
+        `);
+            
+        createCSSClass(".remark_confirm_grouping", `
+            display: flex;
+            flex-direction: row;
+            gap: 1.2rem;
+            padding: 1rem;
+            position: inherit;
+            top: 0rem;
+            right: 0rem;
+            border-radius: 0.8rem;
+            margin: 0rem 0rem 0rem;
+            background-color: #000000;
+            color: var(--remark-color-white);
+            width: 9rem;
+            height: 3.2rem;
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 125ms ease-in-out 0s;
+        `);
+    
+        createCSSClass(".remark_confirm_grouping:hover", `
+            transform: scale(1.05);
+        `);
+    
+        createCSSClass(".remark_confirm_grouping:active", `
+            transform: scale(1.0);
+        `);
+    
+        createCSSClass(".remark_grouping_options", `
+            background: var(--remark-color-grey-dark-4);
+            padding: 1rem;
+            height: 1rem;
+            width: 10rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 0.5rem;
+            transition: all 125ms ease-in-out 0s;
+            cursor: pointer;
+        `)
+    
+        createCSSClass(".remark_grouping_options:hover", `
+            transform: scale(1.05);
+        `)
+    
+        createCSSClass(".remark_grouping_options", `
+            transform: scale(1.0);
+        `)
+    
+        createCSSClass(".remark_standard_sidebar", `
+            position: fixed;
+            top: 0px;
+            right: 0px;
             width: 20rem;
-        }
-    `)
-
-    createCSSClass(".remark_sidebar_modal_header", `
-        padding: 1rem;
-        height: 2rem;
-        margin: 0rem -1rem 2rem 3rem;
-        width: auto;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    `)
-      
-    createCSSClass(".remark_standard_sidebar_actions", `
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        width: 10%;
-    `)
-
-    createCSSClass(".remark_standard_sidebar_title", `
-        display: flex;
-        flex-direction: row;
-        justify-content: start;
-        overflow-wrap: break-word;
-        margin: 0.4rem 0rem 0rem;
-        font-size: 0.8rem;
-        font-weight: bold;
-    `)
-
-    createCSSClass(".remark_close_btn", `
-        margin: 0.4rem 0rem 0rem 0rem;
-        cursor: pointer;
-    `) 
+            background-color: var(--remark-color-white);
+            color: var(--remark-color-grey-dark-1);
+            border-radius: 1.2rem 0rem 0rem 1.2rem;
+            z-index: 100000000;
+            height: 100vh;
+            animation: 0.6s cubic-bezier(0.165, 0.84, 0.44, 1) 0s 1 normal forwards running remark_sidebar_animation;
+            display: flex;
+            overflow: hidden;
+            flex-direction: column;
+            padding: 2rem;
+        `)
     
-    createCSSClass(".remark_standard_sidebar_body", `
-        height: 80%;
-        overflow-x: hidden;
-        overflow-y: scroll;
-        scrollbar-width: none;    
-    `)
-
-    createCSSClass(".remark_standard_sidebar_body_full", `
-        height: 100%;
-        overflow: hidden;
-    `)
-
-    createCSSClass(".remark_form_fields", `
-        margin: 0rem 0rem 0rem 0rem;
-    `)
-
-    createCSSClass(".remark_form_input:focus", `
-        border: 0.5px solid var(--remark-color-primary);
-    `)
-
-    createCSSClass(".remark_form_label", `
-        font-family: var(--remark-default-sanserif-font);
-        font-size: 0.8rem;
-        color: var(--remark-color-grey-light-1);
-        font-weight: normal;
-    `);
-
-    createCSSClass("#remark_standard_modal_close_btn", `
-        transition: all 0.1s ease 0s;
-    `)
-
-    createCSSClass("#remark_standard_modal_close_btn:hover", `
-        transform: scale(1.1);
-    `)
+        createCSSClass("@keyframes remark_sidebar_animation", `
+            from {
+                width: 0px;
+            }
+            to {
+                width: 20rem;
+            }
+        `)
     
-    createCSSClass("#remark_standard_modal_close_btn:active", `
-        transform: scale(1.0);
-    `)
+        createCSSClass(".remark_sidebar_modal_header", `
+            padding: 1rem;
+            height: 2rem;
+            margin: 0rem -1rem 2rem 3rem;
+            width: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        `)
+          
+        createCSSClass(".remark_standard_sidebar_actions", `
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            width: 10%;
+        `)
+    
+        createCSSClass(".remark_standard_sidebar_title", `
+            display: flex;
+            flex-direction: row;
+            justify-content: start;
+            overflow-wrap: break-word;
+            margin: 0.4rem 0rem 0rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+        `)
+    
+        createCSSClass(".remark_close_btn", `
+            margin: 0.4rem 0rem 0rem 0rem;
+            cursor: pointer;
+        `) 
+        
+        createCSSClass(".remark_standard_sidebar_body", `
+            height: 80%;
+            overflow-x: hidden;
+            overflow-y: scroll;
+            scrollbar-width: none;    
+        `)
+    
+        createCSSClass(".remark_standard_sidebar_body_full", `
+            height: 100%;
+            overflow: hidden;
+        `)
+    
+        createCSSClass(".remark_form_fields", `
+            margin: 0rem 0rem 0rem 0rem;
+        `)
+    
+        createCSSClass(".remark_form_input:focus", `
+            border: 0.5px solid var(--remark-color-primary);
+        `)
+    
+        createCSSClass(".remark_form_label", `
+            font-family: var(--remark-default-sanserif-font);
+            font-size: 0.8rem;
+            color: var(--remark-color-grey-light-1);
+            font-weight: normal;
+        `);
+    
+        createCSSClass("#remark_standard_modal_close_btn", `
+            transition: all 0.1s ease 0s;
+        `)
+    
+        createCSSClass("#remark_standard_modal_close_btn:hover", `
+            transform: scale(1.1);
+        `)
+        
+        createCSSClass("#remark_standard_modal_close_btn:active", `
+            transform: scale(1.0);
+        `)
+    
+        createCSSClass(".remark_init_container", `
+            width: 20rem;
+            background: var(--remark-color-white);
+            padding: 1rem;
+            height: 4rem;
+            border-radius: 1.2rem;
+            position: fixed;
+            z-index: 10000000;
+            bottom: 3rem;
+            left: 36%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-content: center;
+            box-shadow: var(--remark-default-box-shadow);
+            transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+        `)
+    
+        createCSSClass(".remark_init_container_resize", `
+            left: 8%;
+            width: 20rem;
+        `)
+    
+        createCSSClass(".remark_init_button", `
+            color: var(--remark-color-white);
+            width: 60%;
+            font-size: 0.9rem;
+            padding: 1rem;
+            background-color: var(--remark-color-primary);
+            height: 3rem;
+            margin: -0.5rem -0.4rem 0rem 2rem;
+        `)
+    
+        createCSSClass(".remark_init_text", `
+            width: 30%;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--remark-color-grey-dark-1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `)
 
-    createCSSClass(".remark_init_container", `
-        width: 20rem;
-        background: var(--remark-color-white);
-        padding: 1rem;
-        height: 4rem;
-        border-radius: 1.2rem;
-        position: fixed;
-        z-index: 10000000;
-        bottom: 3rem;
-        left: 36%;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-        align-content: center;
-        box-shadow: var(--remark-default-box-shadow);
-        transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-    `)
+        createCSSClass(".remark_standard_minimodal ", `
+            width: 64rem;
+            height: 8rem;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+            background-color: var(--remark-color-white);
+            color: var(--remark-color-grey-light-1);
+            border: 1px solid var(--remark-color-grey-light-2);
+            border-radius: 1.2rem;
+            z-index: 10000000;
+        `)
+    
+        createCSSClass(".remark_standard_minimodal_input ", `
+            margin: 0.8rem 0rem 0rem 0rem;
+            height: 1.2rem;
+            width: 16rem;
+            border-radius: 1rem;
+            border: 1px solid var(--remark-color-grey-light-2);
+            outline: none;
+            padding: 1rem;
+            color: var(--remark-color-grey-light-1);
+        `)
+    
+        createCSSClass(".remark_standard_minimodal_button ", `
+            width: 8rem;
+            height: 3.2rem;
+            border-radius: 1rem;
+            background-color: var(--remark-color-grey-light-3);
+            color: var(--remark-color-grey);
+            border-left: 1px solid var(--remark-color-grey-light-2);
+            font-size: 1.2rem;
+            padding: 1rem;
+            margin: 2.4rem 1rem 0rem 1rem;
+            border: none;
+        `)
+    
+        createCSSClass(".remark_standard_minimodal_input_container ", `
+            height: 100%;
+            display: block;
+            width: 100%;
+            margin: 1rem 1rem 0rem 0rem;
+        `)
+    
+        createCSSClass(".remark_standard_minimodal_label ", `
+            font-size: 1rem;
+            color: var(--remark-color-grey);
+            margin: 0rem 0rem 1rem 0rem;
+        `)
+    
+        createCSSClass(".remark_standard_minimodal_body ", `
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+        `)
+    
+        createCSSClass(".remark_standard_minimodal_title ", `
+            width: 7%;
+            border-right: 1px solid var(--remark-color-grey-light-2);
+            margin: 0rem 0rem 0rem 0rem;
+            padding: 2.4rem;
+            font-size: 1.2rem;
+        `)
+    
+        createCSSClass(".remark_hide ", `
+            display: none;
+            opacity: 0;
+            visibility: hidden;
+        `)
+    
+        createCSSClass(".remark_show ", `
+            display: flex;
+            opacity: 1;
+            visibility: visible;
+        `)
+        
+    
+        createCSSClass(".remark_standard_menu_container ", `
+            height: 53rem;
+            width: 20rem;
+            border-radius: 1.2rem;
+            background-color: var(--remark-color-white);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            border: 1px solid var(--remark-color-grey-light-2);
+            z-index: 10000000;
+            position: fixed;
+        `)
 
-    createCSSClass(".remark_init_container_resize", `
-        left: 4%;
-        width: 20rem;
-    `)
+        
+        createCSSClass(".remark_standard_menu_header", `
+            padding: 0rem;
+            height: 2rem;
+            margin: 0rem 0rem 0rem 0rem;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        `)
+    
+        createCSSClass(".remark_main_heading ", `
+            font-size: 1.6rem;
+            color: var(--remark-color-grey-dark-2);
+            text-align: center;
+        `)
+    
+        createCSSClass(".remark_settings ", `
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            margin: -2rem 0rem 0rem 0rem;
+        `)
+    
+        createCSSClass(".remark_settings_subgroup ", `
+            height: auto;
+            border: 1px solid var(--remark-color-grey-light-2);
+            padding: 1rem;
+            border-radius: 1.2rem;
+            margin: 3rem 0rem -2rem 0rem;
+        `)
+    
+        createCSSClass(".remark_settings_subgroup_title ", `
+            color: var(--remark-color-grey-light-1);
+            margin: 0rem 0rem 1.2em 0rem;
+            font-weight: normal;
+        `)
+    
+        createCSSClass(".remark_setting_subgroup_item ", `
+            margin: 0.4rem 0rem 0rem;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        `)
+    
+        createCSSClass(".remark_toggle ", `
+            cursor: pointer;
+            display: inline-block;
+            margin: 0.4rem 0rem;
+        `)
+    
+        createCSSClass(".remark_toggle_switch ", `
+            display: inline-block;
+            background: #ccc;
+            border-radius: 16px;
+            width: 36px;
+            height: 20px;
+            position: relative;
+            vertical-align: middle;
+            transition: background 0.25s;
+        `)
+    
+        createCSSClass(".remark_toggle_switch:before,.remark_toggle_switch:after ", `
+            content: "";
+        `)
+    
+        createCSSClass(".remark_toggle_switch:before ", `
+            display: block;
+            background: linear-gradient(to bottom, #fff 0%, #eee 100%);
+            border-radius: 50%;
+            width: 12px;
+            height: 12px;
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            transition: left 0.25s;
+        `)
+    
+        createCSSClass(".remark_toggle_checkbox:checked + .remark_toggle_switch ", `
+            background: var(--remark-color-primary);
+        `)
+    
+        createCSSClass(".remark_toggle_checkbox:checked + .remark_toggle_switch:before ", `
+         left: 20px;
+        `)
+    
+        createCSSClass(".remark_toggle_checkbox ", `
+            position: absolute;
+            visibility: hidden;
+        `)
+    
+        createCSSClass(".remark_toggle_label ", `
+            margin: 0rem 0rem 0rem 1rem;
+            position: relative;
+            top: 1px;
+            font-size: 0.7rem;
+            color: var(--remark-color-grey-light-1);
+        `)
+    
+        createCSSClass(".remark_action_btn ", `
+            width: 100%;
+            margin: 0.2rem 1rem 0rem 0rem;
+            height: 2rem;
+            color: var(--remark-color-grey-dark-1);
+            padding: 0rem;
+            background-color: var(--remark-color-grey-light-3);
+            border-radius: 0.6rem;
+            border: 1px solid var(--remark-color-grey-light-2);
+        `)
+    
+        createCSSClass("input[type='number'] ", `
+            -webkit-appearance: textfield;
+            -moz-appearance: textfield;
+            appearance: textfield;
+            color: var(--remark-color-grey-light-1);
+        `)
+    
+        createCSSClass("input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button ", `
+            -webkit-appearance: none;
+        `)
+    
+        createCSSClass(".remark_number_input ", `
+            border: 1px solid var(--remark-color-grey-light-2);
+            border-radius: 0.4rem;
+            height: 1.6rem; 
+            display: inline-flex;
+        `)
+    
+        createCSSClass(".remark_number_input,.remark_number_input * ", `
+            box-sizing: border-box;
+        `)
+    
+        createCSSClass(".remark_number_input button ", `
+            outline: none;
+            appearance: none;
+            background-color: transparent;
+            border: none;
+            align-items: center;
+            justify-content: center;
+            width: 1rem;
+            height: 1.6rem;
+            cursor: pointer;
+            margin: 0px;
+            position: relative;
+        `)
+    
+        createCSSClass(".remark_number_input button:before,.remark_number_input button:after ", `
+            display: inline-block;
+            position: absolute;
+            content: "";
+            width: 0.7rem;
+            height: 1.7px;
+            background-color: var(--remark-color-grey-light-2);
+            transform: translate(-50%, -50%);
+            border-radius: 1rem;
+        `)
+    
+        createCSSClass(".remark_number_input button.plus:after ", `
+            transform: translate(-50%, -50%) rotate(90deg);
+        `)
+    
+        createCSSClass(".remark_number_input input[type=number] ", `
+            font-family: sans-serif;
+            max-width: 2.4rem;
+            font-size: 0.8rem;
+            height: 1.6rem;
+            text-align: center;
+            background: var(--remark-color-white);
+            border: 1px solid var(--remark-color-grey-light-2);
+            box-shadow: none;
+            outline: none;
+        `)
+    } catch(e) {
+        console.log("CSS error : ", e)
+    }
 
-    createCSSClass(".remark_init_button", `
-        color: var(--remark-color-white);
-        width: 60%;
-        font-size: 0.9rem;
-        padding: 1rem;
-        background-color: var(--remark-color-primary);
-        height: 3rem;
-        margin: -0.5rem -0.4rem 0rem 2rem;
-    `)
-
-    createCSSClass(".remark_init_text", `
-        width: 30%;
-        font-size: 1rem;
-        font-weight: 500;
-        color: var(--remark-color-grey-dark-1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    `)
-
-    createClass(".remark_standard_minimodal_input ", `
-        margin: 0.8rem 0rem 0rem 0rem;
-        height: 1.2rem;
-        width: 16rem;
-        border-radius: 1rem;
-        border: 1px solid var(--remark-color-grey-light-2);
-        outline: none;
-        padding: 1rem;
-        color: var(--remark-color-grey-light-1);
-    `)
-
-    createClass(".remark_standard_minimodal_button ", `
-        width: 8rem;
-        height: 3.2rem;
-        border-radius: 1rem;
-        background-color: var(--remark-color-grey-light-3);
-        color: var(--remark-color-grey);
-        border-left: 1px solid var(--remark-color-grey-light-2);
-        font-size: 1.2rem;
-        padding: 1rem;
-        margin: 2.4rem 1rem 0rem 1rem;
-        border: none;
-    `)
-
-    createClass(".remark_standard_minimodal_input_container ", `
-        height: 100%;
-        display: block;
-        width: 100%;
-        margin: 1rem 1rem 0rem 0rem;
-    `)
-
-    createClass(".remark_standard_minimodal_label ", `
-        font-size: 1rem;
-        color: var(--remark-color-grey);
-        margin: 0rem 0rem 1rem 0rem;
-    `)
-
-    createClass(".remark_standard_minimodal ", `
-        width: 64rem;
-        height: 8rem;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: flex-start;
-        background-color: var(--remark-color-white);
-        color: var(--remark-color-grey-light-1);
-        border: 1px solid var(--remark-color-grey-light-2);
-        border-radius: 1.2rem;
-    `)
-
-    createClass(".remark_standard_minimodal_body ", `
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        height: 100%;
-    `)
-
-    createClass(".remark_standard_minimodal_title ", `
-        width: 7%;
-        border-right: 1px solid var(--remark-color-grey-light-2);
-        margin: 0rem 0rem 0rem 0rem;
-        padding: 2.4rem;
-        font-size: 1.2rem;
-    `)
-
-    createClass(".remark_hide ", `
-        display: none;
-        opacity: 0;
-        visibility: hidden;
-    `)
-
-    createClass(".remark_show ", `
-        display: flex;
-        opacity: 1;
-        visibility: visible;
-    `)
-
-    createClass(".remark_standard_menu_container ", `
-        height: 72rem;
-        width: 24rem;
-        border-radius: 1.2rem;
-        background-color: var(--remark-color-white);
-        display: flex;
-        flex-direction: column;
-        padding: 2rem;
-        border: 1px solid var(--remark-color-grey-light-2);
-    `)
-
-    createClass(".remark_main_heading ", `
-        font-size: 1.6rem;
-        color: var(--remark-color-grey-dark-2);
-        text-align: center;
-    `)
-
-    createClass(".remark_settings ", `
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        margin: -2rem 0rem 0rem 0rem;
-    `)
-
-    createClass(".remark_settings_subgroup ", `
-        height: auto;
-        border: 1px solid var(--remark-color-grey-light-2);
-        padding: 2rem;
-        border-radius: 1.2rem;
-        margin: 2rem 0rem 0rem 0rem;
-    `)
-
-    createClass(".remark_settings_subgroup_title ", `
-        color: var(--remark-color-grey-light-1);
-        margin: 0rem 0rem 1.2em 0rem;
-        font-weight: normal;
-    `)
-
-    createClass(".setting_subgroup_item ", `
-        margin: 0.8rem 0rem 0rem 0rem;
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    `)
-
-    createClass(".remark_toggle ", `
-        cursor: pointer;
-        display: inline-block;
-        margin: 0.4rem 0rem;
-    `)
-
-    createClass(".remark_toggle_switch ", `
-        display: inline-block;
-        background: #ccc;
-        border-radius: 16px;
-        width: 36px;
-        height: 20px;
-        position: relative;
-        vertical-align: middle;
-        transition: background 0.25s;
-    `)
-
-    createClass(".remark_toggle_switch:before,.remark_toggle_switch:after ", `
-        content: "";
-    `)
-
-    createClass(".remark_toggle_switch:before ", `
-        display: block;
-        background: linear-gradient(to bottom, #fff 0%, #eee 100%);
-        border-radius: 50%;
-        width: 12px;
-        height: 12px;
-        position: absolute;
-        top: 4px;
-        left: 4px;
-        transition: left 0.25s;
-    `)
-
-    createClass(".remark_toggle_checkbox:checked + .remark_toggle_switch ", `
-        background: var(--remark-color-primary);
-    `)
-
-    createClass(".remark_toggle_checkbox:checked + .remark_toggle_switch:before ", `
-     left: 20px;
-    `)
-
-    createClass(".remark_toggle_checkbox ", `
-        position: absolute;
-        visibility: hidden;
-    `)
-
-    createClass(".remark_toggle_label ", `
-        margin-left: 5px;
-        position: relative;
-        top: 2px;
-        font-size: 1.2rem;
-        color: var(--remark-color-grey);
-    `)
-
-    createClass(".remark_action_btn ", `
-        width: 100%;
-        margin: 0.2rem 1rem 0rem 0rem;
-        height: 3.6rem;
-        color: var(--remark-color-grey-dark-1);
-        padding: 0.8rem;
-        background-color: var(--remark-color-grey-light-3);
-        border-radius: 1.2rem;
-        border: 1px solid var(--remark-color-grey-light-2);;
-    `)
-
-    createClass("input[type='number'] ", `
-        -webkit-appearance: textfield;
-        -moz-appearance: textfield;
-        appearance: textfield;
-        color: var(--remark-color-grey-light-1);
-    `)
-
-    createClass("input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button ", `
-        -webkit-appearance: none;
-    `)
-
-    createClass(".remark_number_input ", `
-        border: 1px solid var(--remark-color-grey-light-2);
-        border-radius: 1rem;
-        display: inline-flex;
-    `)
-
-    createClass(".remark_number_input,.remark_number_input * ", `
-        box-sizing: border-box;
-    `)
-
-    createClass(".remark_number_input button ", `
-        outline:none;
-        -webkit-appearance: none;
-        background-color: transparent;
-        border: none;
-        align-items: center;
-        justify-content: center;
-        width: 3rem;
-        height: 3rem;
-        cursor: pointer;
-        margin: 0;
-        position: relative;
-    `)
-
-    createClass(".remark_number_input button:before,.remark_number_input button:after ", `
-        display: inline-block;
-        position: absolute;
-        content: '';
-        width: 1rem;
-        height: 2px;
-        background-color: var(--remark-color-grey);
-        transform: translate(-50%, -50%);
-    `)
-
-    createClass(".remark_number_input button.plus:after ", `
-        transform: translate(-50%, -50%) rotate(90deg);
-    `)
-
-    createClass(".remark_number_input input[type=number] ", `
-        font-family: sans-serif;
-        max-width: 5rem;
-        padding: .5rem;
-        border: solid #ddd;
-        border-width: 0 2px;
-        font-size: 1.6rem;
-        height: 3rem;
-        font-weight: bold;
-        text-align: center;
-    `)
 
 }
 
