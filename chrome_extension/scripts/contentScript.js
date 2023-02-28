@@ -106,12 +106,7 @@ function clickListener(e) {
             annotations = handleDeleteLabel(t, annotations);
         }
         
-        if(t.classList.contains("highlight_element_light")) {
-            t.classList.remove("highlight_element_light");
-        }
         console.log("delete annotations : ", annotations);
-        t.classList.remove("highlight_element_light");
-        t.classList.remove("highlight_element_strong");
         
     } else {
         // Add label
@@ -280,10 +275,10 @@ function handleCreateLabel(targetHTMLElement, annotations) {
     annotations.push(d);
     targetHTMLElement.dataset.annotation_id = d["id"];
 
-    console.log("created : ", annotations.length, annotations);
+    // console.log("created : ", annotations.length, annotations);
     renderAllAnnotations(annotations);
 
-    return annotations
+    return annotations;
 }
 
 function handleEditLabel(targetHTMLElement, annotations) {
@@ -314,15 +309,23 @@ function handleEditLabel(targetHTMLElement, annotations) {
 }
 
 function handleDeleteLabel(targetHTMLElement, annotations) {
-
     const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
+    console.log("reached : ", annotation_id)
 
-    annotations = annotations.filter(function(ele) {
-        return ele.id != annotation_id;
-    });
+    let ind, annotation;
+
+    for(let i=0; i<annotations.length; i++) {
+        if(annotations[i]["id"] == annotation_id) {
+            ind = i;
+            annotation = annotations[i];
+            break;
+        }
+    }
     
+    annotations.splice(ind, 1);
+    removeAnnotation(annotation);
+
     delete targetHTMLElement.dataset.annotation_id;
-    renderAllAnnotations(annotations);
 
     return annotations;
 }
@@ -349,13 +352,8 @@ function handleBatchAction(action) {
             let className = document.getElementById("batchInputClassName").value;
             let tagName = document.getElementById("batchInputTagName").value.toLocaleLowerCase();
         
-            console.log("tagname, classname : ", tagName, className);
-        
-            // batchCreateLabels(className, tagName);
-
             const elements = document.getElementsByClassName(className);
 
-            console.log("elements : ", elements)
 
             for(let i=0; i<elements.length; i++) {
                 const ele = elements[i];
@@ -389,15 +387,23 @@ function handleBatchAction(action) {
         
             const className = document.getElementById("batchInputClassName").value;
             const tagName = document.getElementById("batchInputTagName").value;
-        
-            console.log("tagname, classname : ", tagName, className);
-        
-            // batchCreateLabels(className, tagName);
-        
-            removeHTMLElement(ele)
+                
+            const elements = document.getElementsByClassName(className);
+
+            for(let i=0; i<elements.length; i++) {
+                const ele = elements[i];
+                if(ele.tagName.toLowerCase() == tagName) {
+                    if(ele.className.includes("remark_") || ele.className.includes("highlight_element_light")) {
+                        continue;
+                    } else {
+                        handleDeleteLabel(ele, annotations);
+                    }
+                }    
+            }
+            
+            removeHTMLElement(ele);
         
         });
-
 
     }
 }
@@ -418,21 +424,28 @@ function handleRedo() {
 }
 
 function renderAllAnnotations(annotations) {
-
+    console.log("in render : ", annotations.length, annotations)
     for(let i=0; i<annotations.length; i++) {
         const ele = annotations[i];
         // console.log("ele target : ", ele["html_target"], ele["html_target"].className.includes("highlight_element_strong"), ele["html_target"].className.includes("remark_"))
         if(ele["html_target"]) {
             if(ele["html_target"].className.includes("remark_") || ele["html_target"].className.includes("highlight_element_strong")) {
                 continue;
-
             } else {
                 ele["html_target"].classList.remove("highlight_element_light");
                 ele["html_target"].classList.add("highlight_element_strong");
             }
         }
     }
+}
 
+function removeAnnotation(annotation) {
+    console.log("in remove : ", annotation)
+    const t = annotation["html_target"];
+    if(t && t.className.includes("highlight_element_strong")) {
+        t.classList.remove("highlight_element_strong");
+        t.classList.add("highlight_element_light");
+    }
 }
 
 
