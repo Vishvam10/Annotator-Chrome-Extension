@@ -20,109 +20,6 @@
 
 
 
-// function attachListeners() {
-
-//     const inps = document.querySelectorAll(".remark_settings_input");
-//     Array.from(inps).forEach((ele) => {
-//         ele.addEventListener("click", updateRemarkGlobalSettings.bind(ele))
-//     })
-
-//     const undoBtn = document.getElementById("remarkUndoBtn");
-//     undoBtn.addEventListener("click", handleUndo);
-
-//     const redoBtn = document.getElementById("remarkRedoBtn");
-//     redoBtn.addEventListener("click", handleRedo);
-
-//     const remarkBatchCreateBtn = document.getElementById("remarkBatchCreateBtn");
-//     remarkBatchCreateBtn.addEventListener("click", handleBatchCreate);
-    
-//     const remarkBatchUpdateBtn = document.getElementById("remarkBatchUpdateBtn");
-//     remarkBatchUpdateBtn.addEventListener("click", handleBatchUpdate);
-    
-//     const remarkBatchDeleteBtn = document.getElementById("remarkBatchDeleteBtn");
-//     remarkBatchDeleteBtn.addEventListener("click", handleBatchDelete);
-
-// }
-
-// function handleBatchCreate() {
-//     console.log("clicked : handleBatchCreate");
-
-//     const markup = BATCH_ACTION_MODAL("batchCreate");
-//     document.body.insertAdjacentHTML("afterbegin", markup);
-
-//     const goBtn = document.getElementById("remark_standard_minimodal_button");
-//     goBtn.addEventListener("click", (e) => {
-//         e.preventDefault();
-//         e.stopPropagation();
-
-//         const className = document.getElementById("batchInputClassName").value;
-//         const tagName = document.getElementById("batchInputTagName").value;
-
-//     })
-
-//     return;
-// }
-// function handleBatchUpdate() {
-//     console.log("clicked : handleBatchUpdate")
-//     return;
-// }
-// function handleBatchDelete() {
-//     console.log("clicked : handleBatchDelete")
-//     return;
-// }
-// function handleUndo() {
-//     console.log("clicked : handleUndo")
-//     return;
-// }
-// function handleRedo() {
-//     console.log("clicked : handleRedo")
-//     return;
-// }
-
-// const BATCH_ACTION_MODAL = (action) => {
-
-//     let title = "";
-
-//     if(action == "batchCreate") {
-//         title = "BATCH CREATE"
-//     } else if(action == "batchDelete") {
-//         title = "BATCH DELETE"
-//     }
-
-//     const markup = `
-//         <div class="remark_standard_minimodal">
-//             <h4 class="remark_standard_minimodal_title">${title}</h4>
-//             <div class="remark_standard_minimodal_body">
-//                 <span class="remark_standard_minimodal_input_container">
-//                     <label for="batchInputTagName" class="remark_standard_minimodal_label">TAGNAME</label>
-//                     <br>
-//                     <input id="batchInputTagName" class="remark_standard_minimodal_input" type="text">
-//                 </span>
-//                 <span class="remark_standard_minimodal_input_container">
-//                     <label for="batchInputClassName" class="remark_standard_minimodal_label">CLASSNAME</label>
-//                     <br>
-//                     <input id="batchInputClassName" class="remark_standard_minimodal_input" type="text">
-//                 </span>
-//             </div>
-//             <span style="height: 100%; border-left: 1px solid var(--remark-color-grey-light-2); margin: 0rem 0rem 0rem -2rem">
-//                 <button class="remark_standard_minimodal_button" id="remark_standard_minimodal_button">GO</button>
-//             </span>
-//         </div>
-//     `
-//     return markup;
-// }
-
-// function updateRemarkGlobalSettings(e) {
-//     const t = e.target;
-//     console.log("clicked : ", t, t.id, t.value, t.checked, t.name, typeof(t.checked));
-
-//     if(typeof(t.checked) == "boolean") {
-//         settings[t.name][t.id] = t.checked;
-//     } 
-
-// }
-
-// attachListeners()
 
 var REMARK_SETTINGS;
 var annotations = []
@@ -152,6 +49,7 @@ function remark_init(settings) {
             const markup = MENU();
             document.body.insertAdjacentHTML("afterbegin", markup);
             removeAllExistingModals();
+            attachListeners()
             startAnnotationProcess();
         }
         else if(e.target.innerText == "Stop Annotation") {
@@ -212,67 +110,12 @@ function clickListener(e) {
                 return;
             }
 
-            if(REMARK_SETTINGS["groupByClassName"]) {
-                console.log("REACHED")
-                if(REMARK_SETTINGS["confirmBeforeGrouping"]) {
-                    let cgm = CONFIRM_GROUPING_MARKUP();
-                    t.insertAdjacentHTML("afterbegin", cgm);
-                    cgm = document.querySelector(".remark_confirm_grouping");
+            console.log("REACHED 2")
 
-                    Array.from(document.querySelectorAll(".remark_grouping_options")).forEach((ele) => {
-                        console.log("REACHED 3")
-                        ele.addEventListener("click", (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            
-                            const val = e.target.innerText;
-                            console.log("VAL : ", val)
-                            if(val == "Yes") {
-                                
-                                const className = t.className.split(" ")[0];
-                                const nodes = document.querySelectorAll(`.${className}`);
-                                
-                                Array.from(nodes).forEach((ele) => {
-                                    annotations = handleCreateLabel(ele, annotations);
-                                    ele.classList.remove("highlight_element_light");
-                                    ele.classList.add("highlight_element_strong");
-                                });
-                                
-                                if(cgm) {
-                                    console.log("REACHED DEL 1")
-                                    removeHTMLElement(cgm);
-                                }
-                                
-                            } else {
-                                console.log("clicked no : ", cgm)
-                                annotations = handleCreateLabel(t, annotations);
-                                
-                                t.classList.remove("highlight_element_light");
-                                t.classList.add("highlight_element_strong");
-                                if(cgm) {
-                                    console.log("REACHED DEL 2")
-                                    removeHTMLElement(cgm);
-                                }
-                            } 
-    
-                        });
-                    })
-                    
-                } else {
-                    console.log("REACHED 1")
-                    annotations = handleCreateLabel(t, annotations);
-                    t.classList.remove("highlight_element_light");
-                    t.classList.add("highlight_element_strong");
-                }
-
-            } else {
-                console.log("REACHED 2")
-
-                annotations = handleCreateLabel(t, annotations);
-                
-                t.classList.remove("highlight_element_light");
-                t.classList.add("highlight_element_strong");
-            }
+            annotations = handleCreateLabel(t, annotations);
+            
+            t.classList.remove("highlight_element_light");
+            t.classList.add("highlight_element_strong");
             
             console.log("add annotations : ", annotations);
 
@@ -364,24 +207,45 @@ function keyPressListener(e) {
     }
 }
 
-function removeHTMLElement(ele) {
-    if(ele && ele.parentElement) {
-        ele.parentElement.removeChild(ele);
-    }
-    return;
+
+function attachListeners() {
+
+    const inps = document.querySelectorAll(".remark_settings_input");
+    Array.from(inps).forEach((ele) => {
+        ele.addEventListener("click", updateRemarkGlobalSettings.bind(ele))
+    })
+
+    const undoBtn = document.getElementById("remarkUndoBtn");
+    undoBtn.addEventListener("click", handleUndo);
+
+    const redoBtn = document.getElementById("remarkRedoBtn");
+    redoBtn.addEventListener("click", handleRedo);
+
+    const remarkBatchCreateBtn = document.getElementById("remarkBatchCreateBtn");
+    remarkBatchCreateBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleBatchAction("batchCreate")
+    });
+    
+    // const remarkBatchUpdateBtn = document.getElementById("remarkBatchUpdateBtn");
+    // remarkBatchUpdateBtn.addEventListener("click", handleBatchUpdate);
+    
+    const remarkBatchDeleteBtn = document.getElementById("remarkBatchDeleteBtn");
+    remarkBatchDeleteBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleBatchAction("batchDelete")
+    });
+
 }
 
-function repositionStart() {
-    const ele = document.querySelector(".remark_init_container");
-    ele.classList.add("remark_init_container_resize");
-}
 
 // ******************* Handlers ********************
 
 function handleCreateLabel(targetHTMLElement, annotations) {
-    const rect = targetHTMLElement.getBoundingClientRect();;
+    const rect = targetHTMLElement.getBoundingClientRect();
     const x = Math.round(rect.x), y = Math.round(rect.y), w = Math.round(rect.width), h = Math.round(rect.height);
-    console.log(x,y,w,h);
 
     const d = {
         "id" : Math.round(Math.random() * 10000),
@@ -391,11 +255,15 @@ function handleCreateLabel(targetHTMLElement, annotations) {
         "parent" : targetHTMLElement.parentNode.tagName.toLocaleLowerCase(),
         "html_id" : targetHTMLElement.id,
         "html_class" : targetHTMLElement.className,
-        "html_xpath" : getNodeXpath(targetHTMLElement)
+        "html_xpath" : getNodeXpath(targetHTMLElement),
+        "html_target" : targetHTMLElement
     }
 
     annotations.push(d);
-    targetHTMLElement.dataset.annotation_id = d["id"]
+    targetHTMLElement.dataset.annotation_id = d["id"];
+
+    console.log("created : ", annotations.length, annotations);
+    renderAllAnnotations(annotations);
 
     return annotations
 }
@@ -436,6 +304,7 @@ function handleDeleteLabel(targetHTMLElement, annotations) {
     });
     
     delete targetHTMLElement.dataset.annotation_id;
+    renderAllAnnotations(annotations);
 
     return annotations;
 }
@@ -459,14 +328,25 @@ function handleBatchAction(action) {
             e.preventDefault();
             e.stopPropagation();
         
-            const className = document.getElementById("batchInputClassName").value;
-            const tagName = document.getElementById("batchInputTagName").value;
+            let className = document.getElementById("batchInputClassName").value;
+            let tagName = document.getElementById("batchInputTagName").value.toLocaleLowerCase();
         
             console.log("tagname, classname : ", tagName, className);
         
             // batchCreateLabels(className, tagName);
+
+            const elements = document.getElementsByClassName(className);
+
+            console.log("elements : ", elements)
+
+            for(let ele of elements) {
+                if(ele.tagName.toLowerCase() == tagName) {
+                    handleCreateLabel(ele, annotations)
+                }
+
+            }
         
-            removeHTMLElement(ele)
+            removeHTMLElement(ele);
         
         });
         
@@ -498,6 +378,33 @@ function handleBatchAction(action) {
 
     }
 }
+
+function handleBatchUpdate() {
+    console.log("clicked : handleBatchUpdate")
+    return;
+}
+
+function handleUndo() {
+    console.log("clicked : handleUndo")
+    return;
+}
+function handleRedo() {
+    console.log("clicked : handleRedo")
+    return;
+}
+
+function renderAllAnnotations(annotations) {
+
+    for(let ele of annotations) {
+        console.log("ele target : ", ele["html_target"])
+        if(ele["html_target"]) {
+            ele["html_target"].classList.remove("highlight_element_light");
+            ele["html_target"].classList.add("highlight_element_strong");
+        }
+    }
+
+}
+
 
 // ************** Component functions **************
 
@@ -611,6 +518,39 @@ let MENU = () => {
         </div>
     `
 
+    return markup;
+}
+
+let BATCH_ACTION_MODAL = (action) => {
+
+    let title = "";
+
+    if(action == "batchCreate") {
+        title = "BATCH CREATE"
+    } else if(action == "batchDelete") {
+        title = "BATCH DELETE"
+    }
+
+    const markup = `
+        <div class="remark_standard_minimodal">
+            <h4 class="remark_standard_minimodal_title">${title}</h4>
+            <div class="remark_standard_minimodal_body">
+                <span class="remark_standard_minimodal_input_container">
+                    <label for="batchInputTagName" class="remark_standard_minimodal_label">TAGNAME</label>
+                    <br>
+                    <input id="batchInputTagName" class="remark_standard_minimodal_input" type="text">
+                </span>
+                <span class="remark_standard_minimodal_input_container">
+                    <label for="batchInputClassName" class="remark_standard_minimodal_label">CLASSNAME</label>
+                    <br>
+                    <input id="batchInputClassName" class="remark_standard_minimodal_input" type="text">
+                </span>
+            </div>
+            <span class="remark_" style="height: 100%; border-left: 1px solid var(--remark-color-grey-light-2); margin: 0rem 0rem 0rem -2rem">
+                <button class="remark_standard_minimodal_button" id="remark_standard_minimodal_button">GO</button>
+            </span>
+        </div>
+    `
     return markup;
 }
 
@@ -799,16 +739,16 @@ function addAllClasses() {
     
         createCSSClass(".remark_standard_button", `
             background-color: var(--remark-color-primary);
-            font-size: 1rem;
+            font-size: 0.8rem;
             color: var(--remark-color-white);
             font-family: inherit;
             font-weight: 500;
             border: none;
-            padding: 1.25rem 4.5rem;
+            padding: 1rem;
             border-radius: 0.8rem;
             cursor: pointer;
             transition: all 0.1s ease 0s;
-            margin: 1rem 0rem 0rem;
+            margin: 1rem 0rem 0rem 0rem;
             width: 100%;
             display: flex;
             flex-direction: row;
@@ -1034,7 +974,7 @@ function addAllClasses() {
         `)
     
         createCSSClass(".remark_init_container_resize", `
-            left: 8%;
+            left: 0%;
             width: 20rem;
         `)
     
@@ -1059,8 +999,8 @@ function addAllClasses() {
         `)
 
         createCSSClass(".remark_standard_minimodal ", `
-            width: 64rem;
-            height: 8rem;
+            width: 50rem;
+            height: 6rem;
             display: flex;
             flex-direction: row;
             justify-content: space-between;
@@ -1070,30 +1010,40 @@ function addAllClasses() {
             border: 1px solid var(--remark-color-grey-light-2);
             border-radius: 1.2rem;
             z-index: 10000000;
+            position: absolute;
+            bottom: 2rem;
+            left: 33%;
         `)
     
         createCSSClass(".remark_standard_minimodal_input ", `
-            margin: 0.8rem 0rem 0rem 0rem;
-            height: 1.2rem;
-            width: 16rem;
-            border-radius: 1rem;
+            margin: 0.2rem 0rem 0rem 0rem;
+            height: 2.6rem;
+            width: 15rem;
+            border-radius: 0.8rem;
             border: 1px solid var(--remark-color-grey-light-2);
             outline: none;
             padding: 1rem;
             color: var(--remark-color-grey-light-1);
+            background: var(--remark-color-white);
         `)
     
         createCSSClass(".remark_standard_minimodal_button ", `
-            width: 8rem;
-            height: 3.2rem;
-            border-radius: 1rem;
+            width: 6rem;
+            height: 2.4rem;
+            border-radius: 0.8rem;
             background-color: var(--remark-color-grey-light-3);
             color: var(--remark-color-grey);
-            border-left: 1px solid var(--remark-color-grey-light-2);
             font-size: 1.2rem;
-            padding: 1rem;
-            margin: 2.4rem 1rem 0rem 1rem;
-            border: none;
+            padding: 0rem;
+            margin: 2rem 1rem 0rem 1rem;
+            border: 1px solid var(--remark-color-grey-light-2);
+            transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+        `)
+        createCSSClass(".remark_standard_minimodal_button:hover ", `
+            transform: scale(1.1)
+        `)
+        createCSSClass(".remark_standard_minimodal_button:active ", `
+            transform: scale(1.0)
         `)
     
         createCSSClass(".remark_standard_minimodal_input_container ", `
@@ -1104,9 +1054,8 @@ function addAllClasses() {
         `)
     
         createCSSClass(".remark_standard_minimodal_label ", `
-            font-size: 1rem;
-            color: var(--remark-color-grey);
-            margin: 0rem 0rem 1rem 0rem;
+            font-size: 0.7rem;
+            color: var(--remark-color-grey-light-1);
         `)
     
         createCSSClass(".remark_standard_minimodal_body ", `
@@ -1118,11 +1067,17 @@ function addAllClasses() {
         `)
     
         createCSSClass(".remark_standard_minimodal_title ", `
-            width: 7%;
+            height: 100%;
             border-right: 1px solid var(--remark-color-grey-light-2);
             margin: 0rem 0rem 0rem 0rem;
-            padding: 2.4rem;
-            font-size: 1.2rem;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: center;
+            text-align: center;
+            width: 13%;
+            padding: 1rem;
+            font-size: 0.8rem;
         `)
     
         createCSSClass(".remark_hide ", `
@@ -1139,13 +1094,13 @@ function addAllClasses() {
         
     
         createCSSClass(".remark_standard_menu_container ", `
-            height: 53rem;
+            height: 44rem;
             width: 20rem;
             border-radius: 1.2rem;
             background-color: var(--remark-color-white);
             display: flex;
             flex-direction: column;
-            padding: 2rem;
+            padding: 1.6rem;
             border: 1px solid var(--remark-color-grey-light-2);
             z-index: 10000000;
             position: fixed;
@@ -1155,7 +1110,7 @@ function addAllClasses() {
         createCSSClass(".remark_standard_menu_header", `
             padding: 0rem;
             height: 2rem;
-            margin: 0rem 0rem 0rem 0rem;
+            margin: -1rem 0rem 2.4rem 0rem;
             width: 100%;
             display: flex;
             justify-content: space-between;
@@ -1176,17 +1131,14 @@ function addAllClasses() {
         `)
     
         createCSSClass(".remark_settings_subgroup ", `
-            height: auto;
-            border: 1px solid var(--remark-color-grey-light-2);
             padding: 1rem;
-            border-radius: 1.2rem;
-            margin: 3rem 0rem -2rem 0rem;
+            margin: 0rem 0rem 0rem -1rem;
         `)
     
         createCSSClass(".remark_settings_subgroup_title ", `
+            margin: 0.2rem 0rem 0.2rem 0rem;
+            font-size: 0.7rem;
             color: var(--remark-color-grey-light-1);
-            margin: 0rem 0rem 1.2em 0rem;
-            font-weight: normal;
         `)
     
         createCSSClass(".remark_setting_subgroup_item ", `
@@ -1256,11 +1208,21 @@ function addAllClasses() {
             margin: 0.2rem 1rem 0rem 0rem;
             height: 2rem;
             color: var(--remark-color-grey-dark-1);
-            padding: 0rem;
+            padding: 0.3rem;
             background-color: var(--remark-color-grey-light-3);
             border-radius: 0.6rem;
             border: 1px solid var(--remark-color-grey-light-2);
+            transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
+            font-size: 0.8rem;
         `)
+
+        createCSSClass(".remark_action_btn:hover ", `
+            transform: scale(1.1)
+        `)
+        createCSSClass(".remark_action_btn:active ", `
+            transform: scale(1.0)
+        `)
+
     
         createCSSClass("input[type='number'] ", `
             -webkit-appearance: textfield;
@@ -1328,6 +1290,16 @@ function addAllClasses() {
         console.log("CSS error : ", e)
     }
 
+
+}
+
+function updateRemarkGlobalSettings(e) {
+    const t = e.target;
+    console.log("clicked : ", t, t.id, t.value, t.checked, t.name, typeof(t.checked));
+
+    if(typeof(t.checked) == "boolean") {
+        settings[t.name][t.id] = t.checked;
+    } 
 
 }
 
@@ -1416,9 +1388,21 @@ function getNodeXpath(node) {
     return xpath;
 }
 
+function removeHTMLElement(ele) {
+    if(ele && ele.parentElement) {
+        ele.parentElement.removeChild(ele);
+    }
+    return;
+}
+
+function repositionStart() {
+    const ele = document.querySelector(".remark_init_container");
+    ele.classList.add("remark_init_container_resize");
+}
+
+
 
 // ****************** Chrome APIs ****************** 
-
 
 
 function setDataToStorage(key, value) {
