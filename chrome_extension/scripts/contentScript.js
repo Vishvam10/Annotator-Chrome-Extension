@@ -18,9 +18,6 @@
     remark_init(settings);
 })();
 
-
-
-
 var REMARK_SETTINGS;
 var annotations = []
 
@@ -48,7 +45,22 @@ function remark_init(settings) {
 
             const markup = MENU();
             document.body.insertAdjacentHTML("afterbegin", markup);
+
             removeAllExistingModals();
+            
+            const menuCloseBtn = document.getElementById("remark_standard_menu_close_btn");
+            menuCloseBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const menuContainer = document.querySelector(".remark_standard_menu_container");
+                const menuBody = document.querySelector(".remark_menu_body");
+                menuBody.classList.toggle("remark_hide");
+                menuContainer.classList.toggle("remark_menu_resize");
+
+
+            })
+            
             attachListeners()
             startAnnotationProcess();
         }
@@ -63,8 +75,6 @@ function remark_init(settings) {
     })
 
 }
-
-
 
 function startAnnotationProcess() {
     document.body.addEventListener("keypress", keyPressListener)
@@ -110,8 +120,6 @@ function clickListener(e) {
                 return;
             }
 
-            console.log("REACHED 2")
-
             annotations = handleCreateLabel(t, annotations);
             
             t.classList.remove("highlight_element_light");
@@ -134,14 +142,18 @@ function clickListener(e) {
             document.body.insertAdjacentHTML("afterbegin", sideBar);
 
             const editBtn = document.getElementById("remark_edit_annotation_button");
-            const modalCloseBtn = document.getElementById("remark_standard_modal_close_btn");
+            const sidebarCloseBtn = document.getElementById("remark_standard_sidebar_close_btn");
 
-            if(modalCloseBtn) {
-                modalCloseBtn.addEventListener("click", (e) => {
+            if(sidebarCloseBtn) {
+                sidebarCloseBtn.addEventListener("click", (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    const ele = document.getElementById("remark_annotations_sidebar");
-                    removeHTMLElement(ele);
+                    const sidebarBody = document.querySelector(".remark_standard_modal_body");
+                    sidebarBody.classList.toggle("remark_hide");
+
+                    document.getElementById("remark_annotations_sidebar").classList.toggle("remark_annotations_sidebar_resize");
+                    document.querySelector(".remark_sidebar_modal_header").classList.toggle("remark_sidebar_modal_header_resize");
+                    
                 })
             }
 
@@ -207,7 +219,6 @@ function keyPressListener(e) {
     }
 }
 
-
 function attachListeners() {
 
     const inps = document.querySelectorAll(".remark_settings_input");
@@ -237,6 +248,13 @@ function attachListeners() {
         e.stopPropagation();
         handleBatchAction("batchDelete")
     });
+
+    // const remarkScreenShotBtn = document.getElementById("remarkScreenShotBtn");
+    // remarkScreenShotBtn.addEventListener("click", (e) => {
+    //     e.preventDefault();
+    //     e.stopPropagation();
+    //     captureScreenshot()
+    // })
 
 }
 
@@ -393,6 +411,7 @@ function handleUndo() {
     console.log("clicked : handleUndo")
     return;
 }
+
 function handleRedo() {
     console.log("clicked : handleRedo")
     return;
@@ -427,105 +446,109 @@ let MENU = () => {
                 <h3 class="remark_standard_sidebar_title">MENU</h3>
                 <div class="remark_standard_sidebar_actions">
                     <span class="remark_close_btn" id="remark_standard_menu_close_btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn"><path fill="currentColor" d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z" class="remark_"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn">
+                            <path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4l-6 6Z" class="remark_"/>
+                        </svg>
                     </span>
                 </div>
             </div>
-            <div class="remark_settings">
-                <div class="remark_settings_subgroup">
-                    <h5 class="remark_settings_subgroup_title">ACTIONS </h5>      
-                    <span class="remark_setting_subgroup_item" style="width: 13rem">
-                        <button class="remark_action_btn" id="remarkUndoBtn" name="actions">
-                            UNDO
-                        </button>
-                        <button class="remark_action_btn" id="remarkRedoBtn" name="actions">
-                            REDO
-                        </button>
-                    </span>     
-                </div>  
-                <div class="remark_settings_subgroup">
-                    <h5 class="remark_settings_subgroup_title">BATCH ACTIONS</h5>      
-                    <span class="remark_setting_subgroup_item">
-                        <button class="remark_action_btn" id="remarkBatchCreateBtn" name="batchActions">
-                            CREATE
-                        </button>
-                        <button class="remark_action_btn" id="remarkBatchUpdateBtn" name="batchActions">
-                            UPDATE
-                        </button>
-                        <button class="remark_action_btn" id="remarkBatchDeleteBtn" name="batchActions">
-                            DELETE
-                        </button>
-                    </span>       
-                </div>  
-                <div class="remark_settings_subgroup">
-                    <h5 class="remark_settings_subgroup_title">APPEARANCE</h5>      
-                    <span class="remark_setting_subgroup_item">
-                        <label class="remark_toggle" for="highlightUsingSameColor">
-                            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="highlightUsingSameColor" name="appearance">
-                            <div class="remark_toggle_switch"></div>
-                            <span class="remark_toggle_label">UNIFORM COLOR</span>
-                        </label>
-                    </span>     
-        
-                    <span class="remark_setting_subgroup_item">
-                        <label for="highlightThickness" class="remark_">
-                            <div class="remark_number_input">
-                                <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
-                                <input id="highlightThickness" min="1" value="8" type="number" name="appearance">
-                                <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input" ></button>
-                            </div>       
-                            <span class="remark_toggle_label">THICKNESS</span>
-                        </label>
-                    </span>
-                    <span class="remark_setting_subgroup_item">
-                        <label for="highlightBorderRadius" class="remark_">
-                            <div class="remark_number_input">
-                                <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
-                                <input id="highlightBorderRadius" class="remark_remark_settings_input" min="0" value="24" type="number" name="appearance">
-                                <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input"></button>
-                            </div>       
-                            <span class="remark_toggle_label">RADIUS</span>
-                        </label>
-                    </span>
+            <div class="remark_menu_body">
+                <div class="remark_settings">
+                    <div class="remark_settings_subgroup">
+                        <h5 class="remark_settings_subgroup_title">ACTIONS </h5>      
+                        <span class="remark_setting_subgroup_item" style="width: 13rem">
+                            <button class="remark_action_btn" id="remarkUndoBtn" name="actions">
+                                UNDO
+                            </button>
+                            <button class="remark_action_btn" id="remarkRedoBtn" name="actions">
+                                REDO
+                            </button>
+                        </span>     
+                    </div>  
+                    <div class="remark_settings_subgroup">
+                        <h5 class="remark_settings_subgroup_title">BATCH ACTIONS</h5>      
+                        <span class="remark_setting_subgroup_item">
+                            <button class="remark_action_btn" id="remarkBatchCreateBtn" name="batchActions">
+                                CREATE
+                            </button>
+                            <button class="remark_action_btn" id="remarkBatchUpdateBtn" name="batchActions">
+                                UPDATE
+                            </button>
+                            <button class="remark_action_btn" id="remarkBatchDeleteBtn" name="batchActions">
+                                DELETE
+                            </button>
+                        </span>       
+                    </div>  
+                    <div class="remark_settings_subgroup">
+                        <h5 class="remark_settings_subgroup_title">APPEARANCE</h5>      
+                        <span class="remark_setting_subgroup_item">
+                            <label class="remark_toggle" for="highlightUsingSameColor">
+                                <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="highlightUsingSameColor" name="appearance">
+                                <div class="remark_toggle_switch"></div>
+                                <span class="remark_toggle_label">UNIFORM COLOR</span>
+                            </label>
+                        </span>     
+            
+                        <span class="remark_setting_subgroup_item">
+                            <label for="highlightThickness" class="remark_">
+                                <div class="remark_number_input">
+                                    <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
+                                    <input id="highlightThickness" min="1" value="8" type="number" name="appearance">
+                                    <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input" ></button>
+                                </div>       
+                                <span class="remark_toggle_label">THICKNESS</span>
+                            </label>
+                        </span>
+                        <span class="remark_setting_subgroup_item">
+                            <label for="highlightBorderRadius" class="remark_">
+                                <div class="remark_number_input">
+                                    <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
+                                    <input id="highlightBorderRadius" class="remark_remark_settings_input" min="0" value="24" type="number" name="appearance">
+                                    <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input"></button>
+                                </div>       
+                                <span class="remark_toggle_label">RADIUS</span>
+                            </label>
+                        </span>
+                    </div>
+                    <div class="remark_settings_subgroup">
+                        <h5 class="remark_settings_subgroup_title">CONFIGURATION</h5>      
+                        <span class="remark_setting_subgroup_item">
+                            <label for="probeDepth" class="remark_">
+                                <div class="remark_number_input">
+                                    <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
+                                    <input id="probeDepth" min="4" max="50" value="20" type="number" name="configuration">
+                                    <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input"></button>
+                                </div>       
+                                <span class="remark_toggle_label">PRODE DEPTH</span>
+                            </label>
+                        </span>
+                        <span class="remark_setting_subgroup_item">
+                            <label class="remark_toggle" for="includeXPath">
+                                <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="includeXPath" name="configuration">
+                                <div class="remark_toggle_switch"></div>
+                                <span class="remark_toggle_label">INCLUDE XPATH</span>
+                            </label>
+                        </span>     
+                        <span class="remark_setting_subgroup_item">
+                            <label class="remark_toggle" for="includeStyles">
+                                <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="includeStyles" name="configuration">
+                                <div class="remark_toggle_switch"></div>
+                                <span class="remark_toggle_label">INCLUDE CSS STYLES</span>
+                            </label>
+                        </span>     
+                        <span class="remark_setting_subgroup_item">
+                            <label class="remark_toggle" for="showToolTip">
+                                <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="showToolTip" name="configuration">
+                                <div class="remark_toggle_switch"></div>
+                                <span class="remark_toggle_label">SHOW TOOLTIP</span>
+                            </label>
+                        </span>     
+                    </div>
                 </div>
-                <div class="remark_settings_subgroup">
-                    <h5 class="remark_settings_subgroup_title">CONFIGURATION</h5>      
-                    <span class="remark_setting_subgroup_item">
-                        <label for="probeDepth" class="remark_">
-                            <div class="remark_number_input">
-                                <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
-                                <input id="probeDepth" min="4" max="50" value="20" type="number" name="configuration">
-                                <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input"></button>
-                            </div>       
-                            <span class="remark_toggle_label">PRODE DEPTH</span>
-                        </label>
-                    </span>
-                    <span class="remark_setting_subgroup_item">
-                        <label class="remark_toggle" for="includeXPath">
-                            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="includeXPath" name="configuration">
-                            <div class="remark_toggle_switch"></div>
-                            <span class="remark_toggle_label">INCLUDE XPATH</span>
-                        </label>
-                    </span>     
-                    <span class="remark_setting_subgroup_item">
-                        <label class="remark_toggle" for="includeStyles">
-                            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="includeStyles" name="configuration">
-                            <div class="remark_toggle_switch"></div>
-                            <span class="remark_toggle_label">INCLUDE CSS STYLES</span>
-                        </label>
-                    </span>     
-                    <span class="remark_setting_subgroup_item">
-                        <label class="remark_toggle" for="showToolTip">
-                            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="showToolTip" name="configuration">
-                            <div class="remark_toggle_switch"></div>
-                            <span class="remark_toggle_label">SHOW TOOLTIP</span>
-                        </label>
-                    </span>     
-                </div>
+                <button class="remark_standard_button" id="remarkPushToServer">
+                    PUSH TO SERVER
+                </button>
             </div>
-            <button class="remark_standard_button" id="remarkPushToServer">
-                PUSH TO SERVER
-            </button>
         </div>
     `
 
@@ -578,12 +601,14 @@ let SIDEBAR = (curAnnotation) => {
             <div class="remark_sidebar_modal_header">
                 <h3 class="remark_standard_sidebar_title">ANNOTATION DATA</h3>
                 <div class="remark_standard_sidebar_actions">
-                    <span class="remark_close_btn" id="remark_standard_modal_close_btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn"><path fill="currentColor" d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z" class="remark_"/></svg>
-                    </span>
+                <span class="remark_close_btn" id="remark_standard_sidebar_close_btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn">
+                        <path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4l-6 6Z" class="remark_"/>
+                    </svg>
+                </span>
                 </div>
             </div>
-            <div class="remark_standard_modal_body remark_standard_sidebar_body remark_standard_sidebar_body_full" id="remark_sidebar_body">
+            <div class="remark_standard_modal_body remark_standard_sidebar_body_full" id="remark_sidebar_body">
                 <div class="remark_form_fields">
                     <label for="annotation_id" class="remark_form_label">ID</label>
                     <input type="text" name="annotation_id" class="remark_form_input remark_fade" value="${curAnnotation['id']}" readonly disabled>
@@ -707,7 +732,7 @@ function addAllClasses() {
         `)
             
         createCSSClass(".highlight_element_strong", `
-            outline: solid 1px #ff28009c; 
+            outline: solid 1px #ff28009c !important; 
             border-radius: 0.4rem; 
             padding: 0.4rem; 
             cursor: crosshair;
@@ -870,19 +895,23 @@ function addAllClasses() {
     
         createCSSClass(".remark_standard_sidebar", `
             position: fixed;
-            top: 0px;
-            right: 0px;
+            top: 2.2rem;
+            right: 2rem;
             width: 20rem;
             background-color: var(--remark-color-white);
-            color: var(--remark-color-grey-dark-1);
-            border-radius: 1.2rem 0rem 0rem 1.2rem;
+            border-radius: 1.2rem;
             z-index: 100000000;
-            height: 100vh;
-            animation: 0.6s cubic-bezier(0.165, 0.84, 0.44, 1) 0s 1 normal forwards running remark_sidebar_animation;
+            height: 49rem;
+            transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
             display: flex;
             overflow: hidden;
             flex-direction: column;
             padding: 2rem;
+        `)
+
+        createCSSClass(".remark_annotations_sidebar_resize", `
+            height: 3.2rem;
+            padding: 0rem;
         `)
     
         createCSSClass("@keyframes remark_sidebar_animation", `
@@ -897,11 +926,15 @@ function addAllClasses() {
         createCSSClass(".remark_sidebar_modal_header", `
             padding: 1rem;
             height: 2rem;
-            margin: 0rem -1rem 2rem 3rem;
-            width: auto;
+            margin: -1.2rem 0rem 1rem -1rem;
+            width: 18.2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        `)
+
+        createCSSClass(".remark_sidebar_modal_header_resize", `
+            margin: 0.4rem 1rem 0rem 1rem;
         `)
           
         createCSSClass(".remark_standard_sidebar_actions", `
@@ -986,8 +1019,12 @@ function addAllClasses() {
     
         createCSSClass(".remark_init_container_resize", `
             left: 2%;
-            width: 15rem;
+            width: 16rem;
             bottom: 2.6%;
+        `)
+
+        createCSSClass(".remark_init_container_resize > .remark_init_button", `
+            font-size: 0.8rem;
         `)
     
         createCSSClass(".remark_init_button", `
@@ -1122,13 +1159,23 @@ function addAllClasses() {
             position: fixed;
             top: 2rem;
             left: 1.4rem;
+            transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
+        `)
+
+        createCSSClass(".remark_menu_body", `
+            height: 100%;
+            width: 100%;
+        `)
+        
+        createCSSClass(".remark_menu_resize", `
+            height: 3.2rem;
         `)
 
         
         createCSSClass(".remark_standard_menu_header", `
             padding: 0rem;
             height: 2rem;
-            margin: -1rem 0rem 2.4rem 0rem;
+            margin: -1.2rem 0rem 1rem 0rem;
             width: 100%;
             display: flex;
             justify-content: space-between;
@@ -1145,7 +1192,7 @@ function addAllClasses() {
             height: 100%;
             display: flex;
             flex-direction: column;
-            margin: -2rem 0rem 0rem 0rem;
+            margin: -1rem 0rem -3rem 0rem;
         `)
     
         createCSSClass(".remark_settings_subgroup ", `
