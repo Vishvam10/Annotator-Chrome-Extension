@@ -21,6 +21,25 @@
 var REMARK_SETTINGS;
 var annotations = []
 
+var eleColors = {
+    "div" : "highlight_red", 
+    "span" : "highlight_yellow", 
+    "button" : "highlight_green", 
+    "button" : "highlight_green", 
+    "main" : "highlight_teal", 
+    "section" : "highlight_teal", 
+    "nav" : "highlight_blue", 
+    "input" : "highlight_purple", 
+    "input" : "highlight_purple", 
+    "image" : "highlight_violet", 
+    "video" : "highlight_violet", 
+    "a" : "highlight_pink"
+}
+
+// const VALID_HTML_ELEMENTS = [
+//     "DIV", "SPAN", "BUTTON", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", "SVG", "NAV", "A", "TABLE", "INPUT", "LABEL", "FORM", "AUDIO", "VIDEO"
+// ]
+
 function remark_init(settings) {
     REMARK_SETTINGS = settings;
     console.log("DOM check and Settings check : ", document.body, REMARK_SETTINGS);
@@ -43,24 +62,9 @@ function remark_init(settings) {
             document.querySelector(".remark_init_container").classList.add("remark_init_container_resize");
             e.target.innerText = "Stop Annotation";
 
-            const markup = MENU();
-            document.body.insertAdjacentHTML("afterbegin", markup);
-
+            renderMenu();
+            
             removeAllExistingModals();
-            
-            const menuCloseBtn = document.getElementById("remark_standard_menu_close_btn");
-            menuCloseBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const menuContainer = document.querySelector(".remark_standard_menu_container");
-                const menuBody = document.querySelector(".remark_menu_body");
-                menuBody.classList.toggle("remark_hide");
-                menuContainer.classList.toggle("remark_menu_resize");
-
-
-            })
-            
             attachListeners()
             startAnnotationProcess();
         }
@@ -260,22 +264,24 @@ function handleCreateLabel(targetHTMLElement, annotations) {
     const rect = targetHTMLElement.getBoundingClientRect();
     const x = Math.round(rect.x), y = Math.round(rect.y), w = Math.round(rect.width), h = Math.round(rect.height);
 
+    const className = targetHTMLElement.className.replace("highlight_element_light", "");
+    console.log("debug : ", typeof(targetHTMLElement.innerText))
+
     const d = {
         "id" : Math.round(Math.random() * 10000),
         "type" : targetHTMLElement.tagName.toLowerCase(),
         "coordinates" : [x, y, w, h],
         "text" : targetHTMLElement.innerText,
-        "parent" : targetHTMLElement.parentNode.tagName.toLocaleLowerCase(),
+        "parent" : targetHTMLElement.parentNode.tagName.toLowerCase(),
         "html_id" : targetHTMLElement.id,
-        "html_class" : targetHTMLElement.className,
-        "html_xpath" : getNodeXpath(targetHTMLElement),
+        "html_class" : className,
+        "html_xpath" : getNodeXpath(targetHTMLElement).toLowerCase(),
         "html_target" : targetHTMLElement
     }
 
     annotations.push(d);
     targetHTMLElement.dataset.annotation_id = d["id"];
 
-    // console.log("created : ", annotations.length, annotations);
     renderAllAnnotations(annotations);
 
     return annotations;
@@ -323,7 +329,7 @@ function handleDeleteLabel(targetHTMLElement, annotations) {
     }
     
     annotations.splice(ind, 1);
-    removeAnnotation(annotation);
+    removeHighlight(annotation);
 
     delete targetHTMLElement.dataset.annotation_id;
 
@@ -423,26 +429,77 @@ function handleRedo() {
     return;
 }
 
+// *************** Render functions ****************
+
+
 function renderAllAnnotations(annotations) {
     console.log("in render : ", annotations.length, annotations)
     for(let i=0; i<annotations.length; i++) {
         const ele = annotations[i];
-        // console.log("ele target : ", ele["html_target"], ele["html_target"].className.includes("highlight_element_strong"), ele["html_target"].className.includes("remark_"))
         if(ele["html_target"]) {
             if(ele["html_target"].className.includes("remark_") || ele["html_target"].className.includes("highlight_element_strong")) {
                 continue;
             } else {
                 ele["html_target"].classList.remove("highlight_element_light");
+
+                const colClass = eleColors[ele["type"]];
+                ele["html_target"].classList.add(colClass);
                 ele["html_target"].classList.add("highlight_element_strong");
+
             }
         }
     }
 }
 
-function removeAnnotation(annotation) {
+function renderMenu() {
+    if(document.querySelector(".remark_standard_menu_container")) {
+        return;
+    }
+    
+    const markup = MENU();
+    document.body.insertAdjacentHTML("afterbegin", markup);
+
+    const inpStepDowns = document.querySelectorAll(".remark_input_step_down");
+    Array.from(inpStepDowns).forEach((ele) => {
+        ele.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            let inp = ele.parentNode.querySelector('input[type=number]');
+            inp.stepDown();
+
+            updateRemarkGlobalSettings(inp.name, inp.id, Number(inp.value));
+        })
+    })
+    
+    const inpStepUps = document.querySelectorAll(".remark_input_step_up");
+    Array.from(inpStepUps).forEach((ele) => {
+        ele.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            let inp = ele.parentNode.querySelector('input[type=number]');
+            inp.stepUp();
+            updateRemarkGlobalSettings(inp.name, inp.id, Number(inp.value));
+        })
+    })
+    
+    const menuCloseBtn = document.getElementById("remark_standard_menu_close_btn");
+    menuCloseBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const menuContainer = document.querySelector(".remark_standard_menu_container");
+        const menuBody = document.querySelector(".remark_menu_body");
+        menuBody.classList.toggle("remark_hide");
+        menuContainer.classList.toggle("remark_menu_resize");
+    });
+}
+
+function removeHighlight(annotation) {
     console.log("in remove : ", annotation)
     const t = annotation["html_target"];
+    const col = eleColors[annotation["type"]]
     if(t && t.className.includes("highlight_element_strong")) {
+        t.classList.remove(col);
         t.classList.remove("highlight_element_strong");
         t.classList.add("highlight_element_light");
     }
@@ -496,28 +553,29 @@ let MENU = () => {
                         <h5 class="remark_settings_subgroup_title">APPEARANCE</h5>      
                         <span class="remark_setting_subgroup_item">
                             <label class="remark_toggle" for="highlightUsingSameColor">
-                                <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="highlightUsingSameColor" name="appearance">
+                                <input class="remark_settings_input remark_toggle_checkbox" type="checkbox" id="highlightUsingSameColor" name="appearance">
                                 <div class="remark_toggle_switch"></div>
                                 <span class="remark_toggle_label">UNIFORM COLOR</span>
                             </label>
-                        </span>     
-            
+                        </span>           
+
                         <span class="remark_setting_subgroup_item">
                             <label for="highlightThickness" class="remark_">
                                 <div class="remark_number_input">
-                                    <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
-                                    <input id="highlightThickness" min="1" value="8" type="number" name="appearance">
-                                    <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input" ></button>
+                                    <button class="remark_settings_input remark_input_step_down"></button>
+                                    <input id="highlightThickness" class="remark_settings_input" min="1" value="8" type="number" name="appearance">
+                                    <button class="plus remark_settings_input remark_input_step_up" ></button>
                                 </div>       
                                 <span class="remark_toggle_label">THICKNESS</span>
                             </label>
                         </span>
+                        
                         <span class="remark_setting_subgroup_item">
                             <label for="highlightBorderRadius" class="remark_">
                                 <div class="remark_number_input">
-                                    <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
-                                    <input id="highlightBorderRadius" class="remark_remark_settings_input" min="0" value="24" type="number" name="appearance">
-                                    <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input"></button>
+                                    <button class="remark_settings_input remark_input_step_down"></button>
+                                    <input id="highlightBorderRadius" class="remark_settings_input" min="0" value="24" type="number" name="appearance">
+                                    <button class="plus remark_settings_input remark_input_step_up"></button>
                                 </div>       
                                 <span class="remark_toggle_label">RADIUS</span>
                             </label>
@@ -528,30 +586,30 @@ let MENU = () => {
                         <span class="remark_setting_subgroup_item">
                             <label for="probeDepth" class="remark_">
                                 <div class="remark_number_input">
-                                    <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
+                                    <button class="remark_settings_input remark_input_step_down"></button>
                                     <input id="probeDepth" min="4" max="50" value="20" type="number" name="configuration">
-                                    <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input"></button>
+                                    <button class="plus remark_settings_input remark_input_step_up"></button>
                                 </div>       
                                 <span class="remark_toggle_label">PRODE DEPTH</span>
                             </label>
                         </span>
                         <span class="remark_setting_subgroup_item">
                             <label class="remark_toggle" for="includeXPath">
-                                <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="includeXPath" name="configuration">
+                                <input class="remark_settings_input remark_toggle_checkbox" type="checkbox" id="includeXPath" name="configuration">
                                 <div class="remark_toggle_switch"></div>
                                 <span class="remark_toggle_label">INCLUDE XPATH</span>
                             </label>
                         </span>     
                         <span class="remark_setting_subgroup_item">
                             <label class="remark_toggle" for="includeStyles">
-                                <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="includeStyles" name="configuration">
+                                <input class="remark_settings_input remark_toggle_checkbox" type="checkbox" id="includeStyles" name="configuration">
                                 <div class="remark_toggle_switch"></div>
                                 <span class="remark_toggle_label">INCLUDE CSS STYLES</span>
                             </label>
                         </span>     
                         <span class="remark_setting_subgroup_item">
                             <label class="remark_toggle" for="showToolTip">
-                                <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="showToolTip" name="configuration">
+                                <input class="remark_settings_input remark_toggle_checkbox" type="checkbox" id="showToolTip" name="configuration">
                                 <div class="remark_toggle_switch"></div>
                                 <span class="remark_toggle_label">SHOW TOOLTIP</span>
                             </label>
@@ -750,6 +808,38 @@ function addAllClasses() {
             padding: 0.4rem; 
             cursor: crosshair;
             z-index: 100000;
+        `)
+
+        createCSSClass(".highlight_red", `
+            outline: solid 1px #ff4545 !important;
+        `)
+    
+        createCSSClass(".highlight_yellow", `
+            outline: solid 1px #ffcd45 !important;
+        `)
+    
+        createCSSClass(".highlight_green", `
+            outline: solid 1px #64ff45 !important;
+        `)
+        
+        createCSSClass(".highlight_teal", `
+            outline: solid 1px #45ffc7 !important;
+        `)
+        
+        createCSSClass(".highlight_blue", `
+            outline: solid 1px #45e0ff !important;
+        `)
+
+        createCSSClass(".highlight_purple", `
+            outline: solid 1px #6445ff !important;
+        `)
+
+        createCSSClass(".highlight_violet", `
+            outline: solid 1px #8f45ff !important;
+        `)
+
+        createCSSClass(".highlight_pink", `
+            outline: solid 1px #ff4596 !important;
         `)
     
         createCSSClass(".remark_standard_modal", `
@@ -1031,7 +1121,7 @@ function addAllClasses() {
         `)
     
         createCSSClass(".remark_init_container_resize", `
-            left: 2%;
+            left: 1.6%;
             width: 16rem;
             bottom: 2.6%;
         `)
@@ -1072,9 +1162,9 @@ function addAllClasses() {
             border: 1px solid var(--remark-color-grey-light-2);
             border-radius: 1.2rem;
             z-index: 10000000;
-            position: absolute;
-            bottom: 2rem;
-            left: 33%;
+            position: fixed;
+            bottom: 1rem;
+            left: 24%;
         `)
 
         createCSSClass("#remarkRedoBtn, #remarkUndoBtn", `
@@ -1105,9 +1195,11 @@ function addAllClasses() {
             border: 1px solid var(--remark-color-grey-light-2);
             transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
         `)
+
         createCSSClass(".remark_standard_minimodal_button:hover ", `
             transform: scale(1.1)
         `)
+
         createCSSClass(".remark_standard_minimodal_button:active ", `
             transform: scale(1.0)
         `)
@@ -1244,11 +1336,11 @@ function addAllClasses() {
             transition: background 0.25s;
         `)
     
-        createCSSClass(".remark_toggle_switch:before,.remark_toggle_switch:after ", `
+        createCSSClass(".remark_toggle_switch:before, .remark_toggle_switch:after", `
             content: "";
         `)
     
-        createCSSClass(".remark_toggle_switch:before ", `
+        createCSSClass(".remark_toggle_switch:before", `
             display: block;
             background: linear-gradient(to bottom, #fff 0%, #eee 100%);
             border-radius: 50%;
@@ -1371,14 +1463,14 @@ function addAllClasses() {
 
 }
 
-function updateRemarkGlobalSettings(e) {
-    const t = e.target;
-    console.log("clicked : ", t, t.id, t.value, t.checked, t.name, typeof(t.checked));
-
-    if(typeof(t.checked) == "boolean") {
-        settings[t.name][t.id] = t.checked;
-    } 
-
+function updateRemarkGlobalSettings(type, property, value) {
+    // console.log("remark settings before update : ", REMARK_SETTINGS)
+    if(type in REMARK_SETTINGS) {
+        if(property in REMARK_SETTINGS[type]) {
+            REMARK_SETTINGS[type][property] = value;
+            console.log("remark settings updated ! ", REMARK_SETTINGS)
+        }
+    }
 }
 
 function getAnnotationByID(annotation_id, annotations) {
@@ -1416,7 +1508,7 @@ function stopHighlightElements() {
 function getNodeXpath(node) {
     let comp, comps = [];
     let parent = null;
-    let xpath = '';
+    let xpath = "";
     let getPos = function(node) {
         let position = 1, curNode;
         if (node.nodeType == Node.ATTRIBUTE_NODE) {
@@ -1431,23 +1523,23 @@ function getNodeXpath(node) {
      }
 
     if (node instanceof Document) {
-        return '/';
+        return "/";
     }
 
     for (; node && !(node instanceof Document); node = node.nodeType == Node.ATTRIBUTE_NODE ? node.ownerElement : node.parentNode) {
         comp = comps[comps.length] = {};
         switch (node.nodeType) {
             case Node.TEXT_NODE:
-                comp.name = 'text()';
+                comp.name = "text()";
                 break;
             case Node.ATTRIBUTE_NODE:
-                comp.name = '@' + node.nodeName;
+                comp.name = "@" + node.nodeName;
                 break;
             case Node.PROCESSING_INSTRUCTION_NODE:
-                comp.name = 'processing-instruction()';
+                comp.name = "processing-instruction()";
                 break;
             case Node.COMMENT_NODE:
-                comp.name = 'comment()';
+                comp.name = "comment()";
                 break;
             case Node.ELEMENT_NODE:
                 comp.name = node.nodeName;
@@ -1458,9 +1550,9 @@ function getNodeXpath(node) {
 
     for (var i = comps.length - 1; i >= 0; i--) {
         comp = comps[i];
-        xpath += '/' + comp.name;
+        xpath += "/" + comp.name;
         if (comp.position != null) {
-            xpath += '[' + comp.position + ']';
+            xpath += "[" + comp.position + "]";
         }
     }
     return xpath;
@@ -1477,7 +1569,6 @@ function repositionStart() {
     const ele = document.querySelector(".remark_init_container");
     ele.classList.add("remark_init_container_resize");
 }
-
 
 
 // ****************** Chrome APIs ****************** 
