@@ -339,9 +339,14 @@ function handleBatchAction(action) {
 
             console.log("elements : ", elements)
 
-            for(let ele of elements) {
+            for(let i=0; i<elements.length; i++) {
+                const ele = elements[i];
                 if(ele.tagName.toLowerCase() == tagName) {
-                    handleCreateLabel(ele, annotations)
+                    if(ele.className.includes("remark_") || ele.className.includes("highlight_element_strong")) {
+                        continue;
+                    } else {
+                        handleCreateLabel(ele, annotations)
+                    }
                 }
 
             }
@@ -395,11 +400,17 @@ function handleRedo() {
 
 function renderAllAnnotations(annotations) {
 
-    for(let ele of annotations) {
-        console.log("ele target : ", ele["html_target"])
+    for(let i=0; i<annotations.length; i++) {
+        const ele = annotations[i];
+        // console.log("ele target : ", ele["html_target"], ele["html_target"].className.includes("highlight_element_strong"), ele["html_target"].className.includes("remark_"))
         if(ele["html_target"]) {
-            ele["html_target"].classList.remove("highlight_element_light");
-            ele["html_target"].classList.add("highlight_element_strong");
+            if(ele["html_target"].className.includes("remark_") || ele["html_target"].className.includes("highlight_element_strong")) {
+                continue;
+
+            } else {
+                ele["html_target"].classList.remove("highlight_element_light");
+                ele["html_target"].classList.add("highlight_element_strong");
+            }
         }
     }
 
@@ -423,7 +434,7 @@ let MENU = () => {
             <div class="remark_settings">
                 <div class="remark_settings_subgroup">
                     <h5 class="remark_settings_subgroup_title">ACTIONS </h5>      
-                    <span class="remark_setting_subgroup_item">
+                    <span class="remark_setting_subgroup_item" style="width: 13rem">
                         <button class="remark_action_btn" id="remarkUndoBtn" name="actions">
                             UNDO
                         </button>
@@ -974,8 +985,9 @@ function addAllClasses() {
         `)
     
         createCSSClass(".remark_init_container_resize", `
-            left: 0%;
-            width: 20rem;
+            left: 2%;
+            width: 15rem;
+            bottom: 2.6%;
         `)
     
         createCSSClass(".remark_init_button", `
@@ -1013,6 +1025,10 @@ function addAllClasses() {
             position: absolute;
             bottom: 2rem;
             left: 33%;
+        `)
+
+        createCSSClass("#remarkRedoBtn, #remarkUndoBtn", `
+            width: 6rem;
         `)
     
         createCSSClass(".remark_standard_minimodal_input ", `
@@ -1095,7 +1111,7 @@ function addAllClasses() {
     
         createCSSClass(".remark_standard_menu_container ", `
             height: 44rem;
-            width: 20rem;
+            width: 16rem;
             border-radius: 1.2rem;
             background-color: var(--remark-color-white);
             display: flex;
@@ -1104,6 +1120,8 @@ function addAllClasses() {
             border: 1px solid var(--remark-color-grey-light-2);
             z-index: 10000000;
             position: fixed;
+            top: 2rem;
+            left: 1.4rem;
         `)
 
         
