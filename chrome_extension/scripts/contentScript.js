@@ -1,4 +1,5 @@
 (async() => {    
+
     console.log("from foreground : init . . .");
 
     var settings = {
@@ -22,13 +23,12 @@ var REMARK_SETTINGS;
 var annotations = []
 
 var eleColors = {
-    "div" : "highlight_red", 
-    "span" : "highlight_yellow", 
-    "button" : "highlight_green", 
-    "button" : "highlight_green", 
+    "div" : "highlight_blue", 
+    "span" : "highlight_green", 
+    "button" : "highlight_yellow", 
     "main" : "highlight_teal", 
     "section" : "highlight_teal", 
-    "nav" : "highlight_blue", 
+    "nav" : "highlight_red", 
     "input" : "highlight_purple", 
     "input" : "highlight_purple", 
     "image" : "highlight_violet", 
@@ -492,6 +492,16 @@ function renderMenu() {
         menuBody.classList.toggle("remark_hide");
         menuContainer.classList.toggle("remark_menu_resize");
     });
+
+    const screenShotBtn = document.getElementById("remarkTakeScreenShot");
+    screenShotBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        takeScreenshot();
+
+    })
+
 }
 
 function removeHighlight(annotation) {
@@ -549,73 +559,9 @@ let MENU = () => {
                             </button>
                         </span>       
                     </div>  
-                    <div class="remark_settings_subgroup">
-                        <h5 class="remark_settings_subgroup_title">APPEARANCE</h5>      
-                        <span class="remark_setting_subgroup_item">
-                            <label class="remark_toggle" for="highlightUsingSameColor">
-                                <input class="remark_settings_input remark_toggle_checkbox" type="checkbox" id="highlightUsingSameColor" name="appearance">
-                                <div class="remark_toggle_switch"></div>
-                                <span class="remark_toggle_label">UNIFORM COLOR</span>
-                            </label>
-                        </span>           
-
-                        <span class="remark_setting_subgroup_item">
-                            <label for="highlightThickness" class="remark_">
-                                <div class="remark_number_input">
-                                    <button class="remark_settings_input remark_input_step_down"></button>
-                                    <input id="highlightThickness" class="remark_settings_input" min="1" value="8" type="number" name="appearance">
-                                    <button class="plus remark_settings_input remark_input_step_up" ></button>
-                                </div>       
-                                <span class="remark_toggle_label">THICKNESS</span>
-                            </label>
-                        </span>
-                        
-                        <span class="remark_setting_subgroup_item">
-                            <label for="highlightBorderRadius" class="remark_">
-                                <div class="remark_number_input">
-                                    <button class="remark_settings_input remark_input_step_down"></button>
-                                    <input id="highlightBorderRadius" class="remark_settings_input" min="0" value="24" type="number" name="appearance">
-                                    <button class="plus remark_settings_input remark_input_step_up"></button>
-                                </div>       
-                                <span class="remark_toggle_label">RADIUS</span>
-                            </label>
-                        </span>
-                    </div>
-                    <div class="remark_settings_subgroup">
-                        <h5 class="remark_settings_subgroup_title">CONFIGURATION</h5>      
-                        <span class="remark_setting_subgroup_item">
-                            <label for="probeDepth" class="remark_">
-                                <div class="remark_number_input">
-                                    <button class="remark_settings_input remark_input_step_down"></button>
-                                    <input id="probeDepth" min="4" max="50" value="20" type="number" name="configuration">
-                                    <button class="plus remark_settings_input remark_input_step_up"></button>
-                                </div>       
-                                <span class="remark_toggle_label">PRODE DEPTH</span>
-                            </label>
-                        </span>
-                        <span class="remark_setting_subgroup_item">
-                            <label class="remark_toggle" for="includeXPath">
-                                <input class="remark_settings_input remark_toggle_checkbox" type="checkbox" id="includeXPath" name="configuration">
-                                <div class="remark_toggle_switch"></div>
-                                <span class="remark_toggle_label">INCLUDE XPATH</span>
-                            </label>
-                        </span>     
-                        <span class="remark_setting_subgroup_item">
-                            <label class="remark_toggle" for="includeStyles">
-                                <input class="remark_settings_input remark_toggle_checkbox" type="checkbox" id="includeStyles" name="configuration">
-                                <div class="remark_toggle_switch"></div>
-                                <span class="remark_toggle_label">INCLUDE CSS STYLES</span>
-                            </label>
-                        </span>     
-                        <span class="remark_setting_subgroup_item">
-                            <label class="remark_toggle" for="showToolTip">
-                                <input class="remark_settings_input remark_toggle_checkbox" type="checkbox" id="showToolTip" name="configuration">
-                                <div class="remark_toggle_switch"></div>
-                                <span class="remark_toggle_label">SHOW TOOLTIP</span>
-                            </label>
-                        </span>     
-                    </div>
-                </div>
+                <button class="remark_standard_button" id="remarkTakeScreenShot">
+                    DOWNLOAD SCREENSHOT
+                </button>
                 <button class="remark_standard_button" id="remarkPushToServer">
                     PUSH TO SERVER
                 </button>
@@ -803,7 +749,7 @@ function addAllClasses() {
         `)
             
         createCSSClass(".highlight_element_strong", `
-            outline: solid 1px #ff28009c !important; 
+            background: #ff28009c !important; 
             border-radius: 0.4rem; 
             padding: 0.4rem; 
             cursor: crosshair;
@@ -811,35 +757,35 @@ function addAllClasses() {
         `)
 
         createCSSClass(".highlight_red", `
-            outline: solid 1px #ff4545 !important;
+            background: #ff45454d !important;
         `)
     
         createCSSClass(".highlight_yellow", `
-            outline: solid 1px #ffcd45 !important;
+            background: #ffcd454d !important;
         `)
     
         createCSSClass(".highlight_green", `
-            outline: solid 1px #64ff45 !important;
+            background: #64ff454d !important;
         `)
         
         createCSSClass(".highlight_teal", `
-            outline: solid 1px #45ffc7 !important;
+            background: #45ffc74d !important;
         `)
         
         createCSSClass(".highlight_blue", `
-            outline: solid 1px #45e0ff !important;
+            background: #45e0ff4d !important;
         `)
 
         createCSSClass(".highlight_purple", `
-            outline: solid 1px #6445ff !important;
+            background: #6445ff4d !important;
         `)
 
         createCSSClass(".highlight_violet", `
-            outline: solid 1px #8f45ff !important;
+            background: #8f45ff4d !important;
         `)
 
         createCSSClass(".highlight_pink", `
-            outline: solid 1px #ff4596 !important;
+            background: #ff45964d !important;
         `)
     
         createCSSClass(".remark_standard_modal", `
@@ -1593,4 +1539,90 @@ function getDataFromStorage(key) {
             })
         }
     )
+}
+
+async function getCurrentTab() {
+    let queryOptions = { active: true };
+    console.log(chrome)
+    let [tab] = await chrome.tabs.query(queryOptions);
+    return tab;
+}
+
+async function takeScreenshot() {
+    let tab = await getCurrentTab();
+    window.Screenshot = async function (tab) {
+        const windowId = tab.windowId;
+        return new Promise((res) => chrome.windows.get(windowId, { populate: true }, async function (window) {
+        const width = window.tabs[0].width;
+        const height = window.tabs[0].height;
+    
+        console.log("window", width, height);
+        
+        const [{ result }] = await chrome.scripting.executeScript({ 
+            target: { tabId: tab.id }, 
+            func: () => {
+                return document.body.scrollHeight;
+            }
+        });
+    
+        const canvas = document.createElement("canvas");
+        canvas.height = 0;
+        const context = canvas.getContext("2d");
+        const times = Math.ceil(result / height);
+        const Sleep = (n) => new Promise((res, rej) => setInterval(res, n))
+        const screenShots = [];
+        for(let i = 0, top = 0; i < times; i++, top += height) {
+            await chrome.scripting.executeScript({ 
+            target: { tabId: tab.id }, 
+            func: (top) => {
+                console.log('scrolltop', top);
+                document.documentElement.scrollTop = top;
+            },
+            args: [top]
+            });
+    
+            await Sleep(550);
+            await new Promise((res, rej) => {
+            chrome.tabs.captureVisibleTab(
+                windowId,
+                { format: "png" },
+                function (dataUrl) {
+                screenShots.push(dataUrl);
+                return res(true);
+                }
+            );
+            })
+        }
+
+        const getDataImageDIM = async (src) => {
+            const img = new Image();
+            img.src = src;
+            return new Promise((res) => img.onload = () => {
+            res([img.width, img.height]);
+            });
+        }
+    
+        const [screenshotWidth, screenshotHeight] = await getDataImageDIM(screenShots[0]);
+        const canvasHeight = (screenshotHeight * result) / height;
+    
+        canvas.height = canvasHeight;
+        canvas.width = screenshotWidth;
+    
+        for(let i = 0, top = 0; i < screenShots.length; i++, top += screenshotHeight) {
+            const img = document.createElement("img");
+            img.src = screenShots[i];
+    
+            if(i === screenShots.length - 1) top = canvasHeight - screenshotHeight;
+    
+            await new Promise((res) => {
+                img.onload = () => {
+                context.drawImage(img, 0, top);
+                res(true);
+                }
+            })
+        }
+        return res(canvas.toDataURL('image/png'));
+        }));
+    };
+
 }
