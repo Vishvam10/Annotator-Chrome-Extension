@@ -8,129 +8,13 @@
     <title>Annotations Control Panel</title>
 </head>
 <body>
-    <!-- <div class="remark_standard_minimodal">
-        <h4 class="remark_standard_minimodal_title">BATCH UPDATE</h4>
-        <div class="remark_standard_minimodal_body">
-            <span class="remark_standard_minimodal_input_container">
-                <label for="batchInputTagName" class="remark_standard_minimodal_label">TAGNAME</label>
-                <br>
-                <input id="batchInputTagName" class="remark_standard_minimodal_input" type="text">
-            </span>
-            <span class="remark_standard_minimodal_input_container">
-                <label for="batchInputTagName" class="remark_standard_minimodal_label">CLASSNAME</label>
-                <br>
-                <input id="batchInputTagName" class="remark_standard_minimodal_input" type="text">
-            </span>
-        </div>
-        <span style="height: 100%; border-left: 1px solid var(--remark-color-grey-light-2); margin: 0rem 0rem 0rem -2rem">
-            <button class="remark_standard_minimodal_button">GO</button>
-        </span>
-    </div> -->
-    <div class="remark_standard_menu_container">
-        <div class="remark_standard_modal_header">
-            <h3 class="remark_standard_sidebar_title">MENU</h3>
-            <div class="remark_standard_sidebar_actions">
-                <span class="remark_close_btn" id="remark_standard_menu_close_btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn"><path fill="currentColor" d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z" class="remark_"/></svg>
-                </span>
-            </div>
-        </div>
-        <div class="remark_settings">
-            <div class="remark_settings_subgroup">
-                <h5 class="remark_settings_subgroup_title">ACTIONS </h5>      
-                <span class="setting_subgroup_item">
-                    <button class="remark_action_btn" id="remarkUndoBtn" name="actions">
-                        UNDO
-                    </button>
-                    <button class="remark_action_btn" id="remarkRedoBtn" name="actions">
-                        REDO
-                    </button>
-                </span>     
-            </div>  
-            <div class="remark_settings_subgroup">
-                <h5 class="remark_settings_subgroup_title">BATCH ACTIONS</h5>      
-                <span class="setting_subgroup_item">
-                    <button class="remark_action_btn" id="remarkBatchCreateBtn" name="batchActions">
-                        CREATE
-                    </button>
-                    <button class="remark_action_btn" id="remarkBatchUpdateBtn" name="batchActions">
-                        UPDATE
-                    </button>
-                    <button class="remark_action_btn" id="remarkBatchDeleteBtn" name="batchActions">
-                        DELETE
-                    </button>
-                </span>       
-            </div>  
-            <div class="remark_settings_subgroup">
-                <h5 class="remark_settings_subgroup_title">APPEARANCE</h5>      
-                <span class="setting_subgroup_item">
-                    <label class="remark_toggle" for="highlightUsingSameColor">
-                        <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="highlightUsingSameColor" name="appearance">
-                        <div class="remark_toggle_switch"></div>
-                        <span class="remark_toggle_label">UNIFORM COLOR</span>
-                    </label>
-                </span>     
-      
-                <span class="setting_subgroup_item">
-                    <label for="highlightThickness">
-                        <div class="remark_number_input">
-                            <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
-                            <input id="highlightThickness" min="1" value="8" type="number" name="appearance">
-                            <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input" ></button>
-                        </div>       
-                        <span class="remark_toggle_label">THICKNESS</span>
-                    </label>
-                </span>
-                <span class="setting_subgroup_item">
-                    <label for="highlightBorderRadius">
-                        <div class="remark_number_input">
-                            <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
-                            <input id="highlightBorderRadius" class="remark_remark_settings_input" min="0" value="24" type="number" name="appearance">
-                            <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input"></button>
-                        </div>       
-                        <span class="remark_toggle_label">RADIUS</span>
-                    </label>
-                </span>
-            </div>
-            <div class="remark_settings_subgroup">
-                <h5 class="remark_settings_subgroup_title">CONFIGURATION</h5>      
-                <span class="setting_subgroup_item">
-                    <label for="probeDepth">
-                        <div class="remark_number_input">
-                            <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="remark_remark_settings_input"></button>
-                            <input id="probeDepth" min="4" max="50" value="20" type="number" name="configuration">
-                            <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus remark_remark_settings_input"></button>
-                        </div>       
-                        <span class="remark_toggle_label">PRODE DEPTH</span>
-                    </label>
-                </span>
-                <span class="setting_subgroup_item">
-                    <label class="remark_toggle" for="includeXPath">
-                        <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="includeXPath" name="configuration">
-                        <div class="remark_toggle_switch"></div>
-                        <span class="remark_toggle_label">INCLUDE XPATH</span>
-                    </label>
-                </span>     
-                <span class="setting_subgroup_item">
-                    <label class="remark_toggle" for="includeStyles">
-                        <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="includeStyles" name="configuration">
-                        <div class="remark_toggle_switch"></div>
-                        <span class="remark_toggle_label">INCLUDE CSS STYLES</span>
-                    </label>
-                </span>     
-                <span class="setting_subgroup_item">
-                    <label class="remark_toggle" for="showToolTip">
-                        <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" id="showToolTip" name="configuration">
-                        <div class="remark_toggle_switch"></div>
-                        <span class="remark_toggle_label">SHOW TOOLTIP</span>
-                    </label>
-                </span>     
-            </div>
-        </div>
-        <button class="remark_standard_button" id="remarkPushToServer">
-            PUSH TO SERVER
-        </button>
+    <div class="remark_init_container">
+        <span class="remark_init_text">REMARK</span>
+        <button type="button" class="remark_standard_button remark_init_button" id="remark_start">Start Annotation</button>
     </div>
+    <button class="remark_standard_button" id="remarkTakeScreenShot">
+        DOWNLOAD SCREENSHOT
+    </button>
     <script src="./popup.js"></script>
 </body>
 </html>
