@@ -2,17 +2,7 @@
 
     console.log("from foreground : init . . .");
 
-    chrome.runtime.onMessage.addListener(
-        function(request, sender, sendResponse) {
-            console.log("message listener reached : ", request, request.message)
-            if (request.message === "messageSent") {
-                console.log("reached : ", request.message)
-            }
-        }
-    );
-    
-
-    var settings = {
+    const settings = {
         appearance: {
             highlightUsingSameColor: true,
             highlightThickness: 2,
@@ -27,7 +17,10 @@
     }
     
     remark_init(settings);
+
 })();
+
+// ***************** Global Variables ****************
 
 var REMARK_SETTINGS;
 var annotations = []
@@ -46,9 +39,12 @@ var eleColors = {
     "a" : "highlight_pink"
 }
 
-// const VALID_HTML_ELEMENTS = [
-//     "DIV", "SPAN", "BUTTON", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", "SVG", "NAV", "A", "TABLE", "INPUT", "LABEL", "FORM", "AUDIO", "VIDEO"
-// ]
+var VALID_HTML_ELEMENTS = [
+    "DIV", "SPAN", "BUTTON", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", "SVG", "NAV", "A", "TABLE", "INPUT", "LABEL", "FORM", "AUDIO", "VIDEO", "UL", "LI"
+]
+
+// ***************** Initialization ******************
+
 
 function remark_init(settings) {
     REMARK_SETTINGS = settings;
@@ -76,7 +72,7 @@ function stopAnnotationProcess() {
     return;
 }
 
-// ******************* Listeners *******************
+// ******************* Listeners ********************
 
 function clickListener(e) {
     
@@ -150,10 +146,9 @@ function clickListener(e) {
 function mouseOverListener(e) {
     e.preventDefault();
     e.stopPropagation();
-    const VALID_HTML_ELEMENTS = [
-        "DIV", "SPAN", "BUTTON", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", "SVG", "NAV", "A", "TABLE", "INPUT", "LABEL", "FORM", "AUDIO", "VIDEO"
-    ]
-    const className = e.target.className;
+   
+    const className = String(e.target.className);
+    
     if(className) {
         if (className.includes("remark_") || className.includes("highlight_element_strong")) {
             return;
@@ -173,10 +168,8 @@ function mouseOverListener(e) {
 function mouseOutListener(e) {
     e.preventDefault();
     e.stopPropagation();
-    const VALID_HTML_ELEMENTS = [
-        "DIV", "SPAN", "BUTTON", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", "SVG", "NAV", "A", "TABLE", "INPUT", "LABEL", "FORM", "AUDIO", "VIDEO"
-    ]
-    const className = e.target.className;
+
+    const className = String(e.target.className);
     if(className) {
         if (className.includes("remark_") || className.includes("highlight_element_strong")) {
             return;
@@ -200,11 +193,6 @@ function keyPressListener(e) {
 }
 
 function attachListeners() {
-
-    const inps = document.querySelectorAll(".remark_settings_input");
-    Array.from(inps).forEach((ele) => {
-        ele.addEventListener("click", updateRemarkGlobalSettings.bind(ele))
-    })
 
     const undoBtn = document.getElementById("remarkUndoBtn");
     undoBtn.addEventListener("click", handleUndo);
@@ -239,12 +227,14 @@ function handleCreateLabel(targetHTMLElement, annotations) {
     const x = Math.round(rect.x), y = Math.round(rect.y), w = Math.round(rect.width), h = Math.round(rect.height);
 
     const className = targetHTMLElement.className.replace("highlight_element_light", "");
-    console.log("debug : ", typeof(targetHTMLElement.innerText))
 
     const d = {
         "id" : Math.round(Math.random() * 10000),
-        "type" : targetHTMLElement.tagName.toLowerCase(),
-        "coordinates" : [x, y, w, h],
+        "tag" : targetHTMLElement.tagName.toLowerCase(),
+        "x" : x,
+        "y" : y,
+        "width" : w,
+        "height" : h,
         "text" : targetHTMLElement.innerText,
         "parent" : targetHTMLElement.parentNode.tagName.toLowerCase(),
         "html_id" : targetHTMLElement.id,
@@ -255,7 +245,7 @@ function handleCreateLabel(targetHTMLElement, annotations) {
 
     annotations.push(d);
     targetHTMLElement.dataset.annotation_id = d["id"];
-
+    console.log("added : ", annotations)
     renderAllAnnotations(annotations);
 
     return annotations;
@@ -267,13 +257,21 @@ function handleEditLabel(targetHTMLElement, annotations) {
         const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
         const newType = document.querySelector("input[name='annotation_type']").value;
         const newText = document.querySelector("input[name='annotation_text']").value;
-        const newCoordinates = document.querySelector("input[name='annotation_coordinates']").value;
+        let newCoordinates = document.querySelector("input[name='annotation_coordinates']").value;
+
+        if(newCoordinates.length > 0) {
+            newCoordinates = newCoordinates.split(",")
+        }
 
         for(let ele of annotations) {
             if(ele["id"] == annotation_id) {
                 ele["text"] = newText;
-                ele["type"] = newType;
-                ele["coordinates"] = newCoordinates;
+                ele["tag"] = newType;
+                ele["x"] = Number(newCoordinates[0]);
+                ele["y"] = Number(newCoordinates[1]);
+                ele["width"] = Number(newCoordinates[2]);
+                ele["height"] = Number(newCoordinates[3]);
+                
                 console.log("changed : ", ele)
             }
         }
@@ -285,12 +283,11 @@ function handleEditLabel(targetHTMLElement, annotations) {
 
     }
 
-    console.log("edit annotations : ", annotations);
+    // console.log("edit annotations : ", annotations);
 }
 
 function handleDeleteLabel(targetHTMLElement, annotations) {
     const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
-    console.log("reached : ", annotation_id)
 
     let ind, annotation;
 
@@ -316,8 +313,6 @@ function handleBatchAction(action) {
         removeHTMLElement(ele);
     }
     if(action == "batchCreate") {
-
-        console.log("clicked : handleBatchCreate");
         
         const markup = BATCH_ACTION_MODAL("batchCreate");
         document.body.insertAdjacentHTML("afterbegin", markup);
@@ -352,9 +347,7 @@ function handleBatchAction(action) {
         });
         
     } else if(action == "batchDelete") {
-        
-        console.log("clicked : handleBatchDelete");
-        
+                
         const markup = BATCH_ACTION_MODAL("batchDelete");
         document.body.insertAdjacentHTML("afterbegin", markup);
         
@@ -389,17 +382,17 @@ function handleBatchAction(action) {
 }
 
 function handleBatchUpdate() {
-    console.log("clicked : handleBatchUpdate")
+    // console.log("clicked : handleBatchUpdate")
     return;
 }
 
 function handleUndo() {
-    console.log("clicked : handleUndo")
+    // console.log("clicked : handleUndo")
     return;
 }
 
 function handleRedo() {
-    console.log("clicked : handleRedo")
+    // console.log("clicked : handleRedo")
     return;
 }
 
@@ -407,7 +400,6 @@ function handleRedo() {
 
 
 function renderAllAnnotations(annotations) {
-    console.log("in render : ", annotations.length, annotations)
     for(let i=0; i<annotations.length; i++) {
         const ele = annotations[i];
         if(ele["html_target"]) {
@@ -416,7 +408,7 @@ function renderAllAnnotations(annotations) {
             } else {
                 ele["html_target"].classList.remove("highlight_element_light");
 
-                const colClass = eleColors[ele["type"]];
+                const colClass = eleColors[ele["tag"]];
                 ele["html_target"].classList.add(colClass);
                 ele["html_target"].classList.add("highlight_element_strong");
 
@@ -445,7 +437,7 @@ function renderMenu() {
             <div class="remark_menu_body">
                 <div class="remark_settings">
                     <div class="remark_settings_subgroup">
-                        <h5 class="remark_settings_subgroup_title">ACTIONS </h5>      
+                        <h5 class="remark_settings_subgroup_title">ACTIONS (TODO)</h5>      
                         <span class="remark_setting_subgroup_item" style="width: 13rem">
                             <button class="remark_action_btn" id="remarkUndoBtn" name="actions">
                                 UNDO
@@ -469,11 +461,8 @@ function renderMenu() {
                             </button>
                         </span>       
                     </div>  
-                <button class="remark_standard_button" id="remarkPushToServer">
-                    PUSH TO SERVER
-                </button>
+                </div>
             </div>
-        </div>
     `
     document.body.insertAdjacentHTML("afterbegin", markup);
 
@@ -492,9 +481,8 @@ function renderMenu() {
 }
 
 function removeHighlight(annotation) {
-    console.log("in remove : ", annotation)
     const t = annotation["html_target"];
-    const col = eleColors[annotation["type"]]
+    const col = eleColors[annotation["tag"]]
     if(t && t.className.includes("highlight_element_strong")) {
         t.classList.remove(col);
         t.classList.remove("highlight_element_strong");
@@ -542,6 +530,8 @@ let BATCH_ACTION_MODAL = (action) => {
 let SIDEBAR = (curAnnotation) => {
     
     let text = curAnnotation['text'];
+    let coordinates = curAnnotation["x"] + "," + curAnnotation["y"] + "," + curAnnotation["width"] + "," + curAnnotation["height"];
+    console.log(coordinates)
     if(text.length > 60) {
         text = text.substr(0, 60) + ". . ."
     }
@@ -569,24 +559,16 @@ let SIDEBAR = (curAnnotation) => {
                     <input type="text" name="annotation_parent" class="remark_form_input remark_fade" value="${curAnnotation['parent']}" readonly disabled>
                 </div>
                 <div class="remark_form_fields">
-                    <label for="annotation_parent" class="remark_form_label">HTML CLASS</label>
-                    <input type="text" name="annotation_parent" class="remark_form_input remark_fade" value="${curAnnotation['html_class']}" readonly disabled>
-                </div>
-                <div class="remark_form_fields">
-                    <label for="annotation_parent" class="remark_form_label">HTML XPATH</label>
-                    <input type="text" name="annotation_parent" class="remark_form_input remark_fade" value="${curAnnotation['html_xpath']}" readonly disabled>
-                </div>
-                <div class="remark_form_fields">
                     <label for="annotation_type" class="remark_form_label">TYPE</label>
-                    <input type="text" name="annotation_type" class="remark_form_input" value=${curAnnotation['type']}>
+                    <input type="text" name="annotation_type" class="remark_form_input" value=${curAnnotation['tag']}>
                 </div>
                 <div class="remark_form_fields">
                     <label for="annotation_text" class="remark_form_label">TEXT</label>
                     <input type="text" name="annotation_text" class="remark_form_input" value=${curAnnotation['text']}>
                 </div>
                 <div class="remark_form_fields">
-                    <label for="annotation_coordinates" class="remark_form_label">COORDINATES</label>
-                    <input type="text" name="annotation_coordinates" class="remark_form_input" value="${curAnnotation['coordinates']}">
+                    <label for="annotation_coordinates" class="remark_form_label">COORDINATES (x,y,w,h)</label>
+                    <input type="text" name="annotation_coordinates" class="remark_form_input" value="${coordinates}">
                 </div>
                 <div class="remark_form_fields">
                     <button type="button" class="remark_standard_button" id="remark_edit_annotation_button" style="position: absolute;
@@ -675,8 +657,8 @@ function addAllClasses() {
     
         createCSSClass(".highlight_element_light", `
             cursor: crosshair;
-            border-radius: 0.4rem;
-            padding: 0.4rem;
+            border-radius: 0.2rem;
+            padding: 0.2rem;
             background: rgba(13, 109, 253, 0.269);
             transition: background-color 125ms ease-in-out 0s;
             z-index: 100000;
@@ -684,8 +666,8 @@ function addAllClasses() {
             
         createCSSClass(".highlight_element_strong", `
             background: #ff28009c !important; 
-            border-radius: 0.4rem; 
-            padding: 0.4rem; 
+            border-radius: 0.2rem; 
+            padding: 0.2rem; 
             cursor: crosshair;
             z-index: 100000;
         `)
@@ -767,8 +749,6 @@ function addAllClasses() {
             border-radius: 0.8rem;
             cursor: pointer;
             transition: all 0.1s ease 0s;
-            margin: 1rem 0rem 3rem 0rem;
-            width: 100%;
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -884,7 +864,7 @@ function addAllClasses() {
             background-color: var(--remark-color-white);
             border-radius: 1.2rem;
             z-index: 100000000;
-            height: 49rem;
+            height: 36rem;
             transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
             display: flex;
             overflow: hidden;
@@ -1131,7 +1111,7 @@ function addAllClasses() {
         `)
         
         createCSSClass(".remark_standard_menu_container ", `
-            height: auto;
+            height: 15rem;
             width: 16rem;
             border-radius: 1.2rem;
             background-color: var(--remark-color-white);
@@ -1342,16 +1322,6 @@ function addAllClasses() {
 
 }
 
-function updateRemarkGlobalSettings(type, property, value) {
-    // console.log("remark settings before update : ", REMARK_SETTINGS)
-    if(type in REMARK_SETTINGS) {
-        if(property in REMARK_SETTINGS[type]) {
-            REMARK_SETTINGS[type][property] = value;
-            console.log("remark settings updated ! ", REMARK_SETTINGS)
-        }
-    }
-}
-
 function getAnnotationByID(annotation_id, annotations) {
     for(let ele of annotations) {
         if(Number(annotation_id) === ele["id"]) {
@@ -1442,11 +1412,6 @@ function removeHTMLElement(ele) {
         ele.parentElement.removeChild(ele);
     }
     return;
-}
-
-function repositionStart() {
-    const ele = document.querySelector(".remark_init_container");
-    ele.classList.add("remark_init_container_resize");
 }
 
 

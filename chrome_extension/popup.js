@@ -2,10 +2,7 @@ window.onload = async function () {
 
   const startStopBtn = document.getElementById("remark_start")
   startStopBtn.addEventListener("click", handleInit);
-  
-  const screenShotBtn = document.getElementById("remarkTakeScreenShot");
-  screenShotBtn.addEventListener("click", handleScreenshot);
-  
+
 }
   
 async function handleInit(e) {
@@ -14,13 +11,15 @@ async function handleInit(e) {
 
   // TODO :  Check if already running
 
-  document.querySelector(".remark_init_container").classList.add("remark_init_container_resize");
   e.target.innerText = "Stop Annotation";
   const tab = await getCurrentTab();
   chrome.scripting.executeScript({
       target: { tabId: tab.id },
       files: ["/scripts/injectedScript.js"],
   });
+
+  window.close();
+
 }
 
 async function handleScreenshot(e) {

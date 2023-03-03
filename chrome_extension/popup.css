@@ -46,16 +46,6 @@ body {
   font-size: 1.6rem;
 }
 
-/* ::-moz-selection {
-  color: var(--color-red);
-  background: var(--color-red-dark);
-}
-
-::selection {
-  color: var(--color-red);
-  background: var(--color-red-dark);
-} */
-
 a {
   text-decoration: none !important;
   list-style: none;
@@ -111,6 +101,7 @@ h1,h2,h3,h4,h5,h6 {
   justify-content: space-around;
   align-items: center;
   margin: 0.8rem 0rem 3rem 0rem;
+  font-weight: bold;
 }
 
 
@@ -130,13 +121,13 @@ h1,h2,h3,h4,h5,h6 {
 
 .remark_user_stat {
   width: 100%;
-  height: 2rem;
+  height: 1.6rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 1rem;
+  margin: 1rem 0rem 0rem 0rem;
   border: var(--remark-default-border);
-  border-radius: 1.2rem;
+  border-radius: 0.9rem;
   padding: 1rem;
   font-size: 1.2rem;
   font-weight: normal;
@@ -144,15 +135,14 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 .remark_username {
-  font-size: 1.6rem;
+  font-size: 2rem;
   margin: 0rem 1rem 0rem 2rem;
 }
 
 .remark_user_image {
-  width: 10rem;
-  height: 10rem;
-  margin: 1rem;
-  border-radius: 22rem;
+  width: 8rem;
+  height: 8rem;
+  border-radius: 20rem;
 }
 
 .remark_standard_button {
