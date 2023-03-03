@@ -98,33 +98,58 @@ ion-icon:active {
   transform: scale(1);
 }
 
+.remark_standard_button {
+  background-color: var(--remark-color-primary);
+  font-size: 1.6rem;
+  color: var(--remark-color-white);
+  font-family: inherit;
+  font-weight: 500;
+  border: none;
+  padding: 1.25rem 4.5rem;
+  border-radius: 1.2rem;
+  cursor: pointer;
+  transition: all 0.1s;
+  margin: 3rem 0rem 2rem 0rem;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.remark_standard_button:hover {
+  background-color: var(--remark-color-primary) !important;
+  transform: scale(1.04);
+}
+.remark_standard_button:active {
+  transform: scale(1) !important;
+}
+.remark_standard_button:focus {
+  background-color: var(--remark-color-primary) !important;
+  transform: scale(1);
+}
+
 .remark_init_container {
   width: 40rem;
   background: var(--remark-color-white);
   padding: 1rem;
-  height: 8rem;
   border-radius: 1.6rem;
-  position: fixed;
-  z-index: 10000000;
-  bottom: 3rem;
-  left: 36%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-around;
   align-content: center;
   box-shadow: var(--remark-default-box-shadow);
-  transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .remark_init_button {
-  width: 60% !important;
-  font-size: 1.6rem !important;
-  padding: 1rem !important;
-  background-color: var(--remark-color-primary) !important;
+  width: 60%;
+  font-size: 1.6rem;
+  padding: 1rem;
+  background-color: var(--remark-color-primary);
   color: var(--remark-color-white);
-  height: 5rem !important;
-  margin: 0.5rem 0rem 0rem 1rem !important;
+  height: 5rem;
+  margin: 0.5rem 0rem 0rem 1rem;
 }
+
 .remark_init_text {
   width: 30%;
   font-size: 1.6rem;
