@@ -4,9 +4,10 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
     try {
         if(req["dataURI"]) {
             downloadFile(req["dataURI"], "ss.png");
+            sendResponse({message: "Downloaded file !"});
         }
     } catch(e) {
-        console.log("connection error : ", e.message)
+        console.log("ERROR : ", e.message)
     }
 })
 
@@ -16,3 +17,7 @@ function downloadFile(dataURI, fileName) {
     downloadLink.download = fileName;
     downloadLink.click();
 }
+
+// function disableAllRemarkStyles() {
+//     console.log(first)
+// }

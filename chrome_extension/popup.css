@@ -24,6 +24,7 @@
   --gradient-secondary: linear-gradient(to top left, #ffb003, #ffcb03);
   --remark-default-box-shadow-light: rgba(120, 123, 127, 0.2) 0px 8px 16px;
   --remark-default-box-shadow: rgba(75, 77, 80, 0.2) 0px 8px 24px;
+  --remark-default-border: 1px solid var(--remark-color-grey-light-2);
   --remark-default-sanserif-font: Arial, Helvetica, sans-serif;
 }
 
@@ -98,6 +99,62 @@ ion-icon:active {
   transform: scale(1);
 }
 
+h1,h2,h3,h4,h5,h6 {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.remark_user_info {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  margin: 0.8rem 0rem 3rem 0rem;
+}
+
+
+.remark_popup_container {
+  width: 20rem;
+  height: auto;
+  padding: 2rem;
+  color: var(--remark-color-grey-dark-2);
+}
+
+.remark_user_stats {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.remark_user_stat {
+  width: 100%;
+  height: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem;
+  border: var(--remark-default-border);
+  border-radius: 1.2rem;
+  padding: 1rem;
+  font-size: 1.2rem;
+  font-weight: normal;
+  color: var(--remark-color-grey-light-1);
+}
+
+.remark_username {
+  font-size: 1.6rem;
+  margin: 0rem 1rem 0rem 2rem;
+}
+
+.remark_user_image {
+  width: 10rem;
+  height: 10rem;
+  margin: 1rem;
+  border-radius: 22rem;
+}
+
 .remark_standard_button {
   background-color: var(--remark-color-primary);
   font-size: 1.6rem;
@@ -116,38 +173,29 @@ ion-icon:active {
   align-items: center;
   justify-content: center;
 }
+
 .remark_standard_button:hover {
   background-color: var(--remark-color-primary) !important;
   transform: scale(1.04);
 }
+
 .remark_standard_button:active {
   transform: scale(1) !important;
 }
+
 .remark_standard_button:focus {
   background-color: var(--remark-color-primary) !important;
   transform: scale(1);
 }
 
-.remark_init_container {
-  width: 40rem;
-  background: var(--remark-color-white);
-  padding: 1rem;
-  border-radius: 1.6rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  align-content: center;
-  box-shadow: var(--remark-default-box-shadow);
-}
-
 .remark_init_button {
-  width: 60%;
+  width: 95%;
   font-size: 1.6rem;
   padding: 1rem;
   background-color: var(--remark-color-primary);
   color: var(--remark-color-white);
   height: 5rem;
-  margin: 0.5rem 0rem 0rem 1rem;
+  margin: 1rem 0rem 2rem 0.8rem;
 }
 
 .remark_init_text {
