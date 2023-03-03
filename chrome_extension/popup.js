@@ -99,8 +99,8 @@ window.onload = async function () {
         const dataURI = await Screenshot(tab);
         console.log(dataURI);
         
-        chrome.tabs.sendMessage(tab.id,{
-          message: dataURI
+        chrome.tabs.sendMessage(tab.id, {
+          dataURI: dataURI
         });
     })
 }
