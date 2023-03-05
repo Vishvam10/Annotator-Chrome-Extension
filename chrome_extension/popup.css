@@ -37,7 +37,6 @@ body {
   font-family: Inter var, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI,
     Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji,
     Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
-  font-feature-remark_settings: normal;
   font-smooth: always;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -95,6 +94,21 @@ h1,h2,h3,h4,h5,h6 {
   font-weight: inherit;
 }
 
+.remark_form_input {
+  margin: 1rem;
+  padding: 1rem 1rem 1rem 0.5rem;
+  font-size: 1.2rem;
+  color: var(--remark-color-grey-light-1);
+  height: 1rem;
+  border-radius: 0.8rem;
+  border: var(--remark-default-border);
+}
+
+#loginToSignupButton, #signupToLoginBtn {
+  color: var(--remark-color-primary);
+  cursor: pointer;
+}
+
 .remark_user_info {
   display: flex;
   flex-direction: row;
@@ -119,7 +133,7 @@ h1,h2,h3,h4,h5,h6 {
   align-items: center;
 }
 
-.remark_user_stat {
+.remark_field {
   width: 100%;
   height: 1.6rem;
   display: flex;
@@ -128,7 +142,7 @@ h1,h2,h3,h4,h5,h6 {
   margin: 1rem 0rem 0rem 0rem;
   border: var(--remark-default-border);
   border-radius: 0.9rem;
-  padding: 1rem;
+  padding: 1.6rem;
   font-size: 1.2rem;
   font-weight: normal;
   color: var(--remark-color-grey-light-1);
@@ -179,13 +193,17 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 .remark_init_button {
-  width: 95%;
+  width: 22rem;
   font-size: 1.6rem;
   padding: 1rem;
   background-color: var(--remark-color-primary);
   color: var(--remark-color-white);
   height: 5rem;
   margin: 1rem 0rem 2rem 0.8rem;
+}
+
+#loginBtn, #signupBtn {
+  width: 23.2rem;
 }
 
 .remark_init_text {
@@ -196,4 +214,19 @@ h1,h2,h3,h4,h5,h6 {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.remark_form_fields {
+  margin: 0rem 0rem 0rem 0rem;
+}
+    
+.remark_form_input:focus {
+  border: 0.5px solid var(--remark-color-primary);
+}   
+
+.remark_form_label {
+  font-family: var(--remark-default-sanserif-font);
+  font-size: 1.2rem;
+  color: var(--remark-color-grey-light-1);
+  font-weight: normal;
 }
