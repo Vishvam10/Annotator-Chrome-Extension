@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
     try {
         if(req["dataURI"]) {
             screenShotBlob = dataURIToBlob(res["dataURI"]);
-            sendImageToSrver(screenShotBlob)
+            sendImageToServer(screenShotBlob)
 
         }
     } catch(e) {
@@ -34,7 +34,7 @@ function downloadFile(dataURI, fileName) {
     downloadLink.click();
 }
 
-async function sendImageToSrver(imgBlob) {
+async function sendImageToServer(imgBlob) {
 
     const url = "http://ec2-3-93-77-238.compute-1.amazonaws.com:8000/send_to_s3_images"
     console.log("img blob : ", imgBlob)

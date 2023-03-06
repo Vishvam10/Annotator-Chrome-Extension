@@ -73,6 +73,21 @@ button:active {
   transform: scale(1);
 }
 
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: var(--remark-color-grey-light-3);
+}
+
 ion-icon {
   color: var(--color-grey-dark-2);
   font-size: 2rem;
@@ -95,13 +110,22 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 .remark_form_input {
-  margin: 1rem;
+  margin: 1rem 1rem 1rem 1.6rem;
   padding: 1rem 1rem 1rem 0.5rem;
   font-size: 1.2rem;
   color: var(--remark-color-grey-light-1);
   height: 1rem;
   border-radius: 0.8rem;
   border: var(--remark-default-border);
+  width: 15rem;
+}
+
+#userLoginForm, #userSignupForm {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 #loginToSignupButton, #signupToLoginBtn {
@@ -109,20 +133,32 @@ h1,h2,h3,h4,h5,h6 {
   cursor: pointer;
 }
 
+#signoutBtn {
+  background-color: var(--remark-color-white);
+  color: var(--remark-color-primary);
+  border: 1px solid var(--remark-color-primary);
+  border-radius: 1.2rem;
+}
+
+#signoutBtn:hover {
+  color: var(--remark-color-white);
+}
+
 .remark_user_info {
   display: flex;
   flex-direction: row;
   justify-content: space-around;
   align-items: center;
-  margin: 0.8rem 0rem 3rem 0rem;
-  font-weight: bold;
+  margin: 1.8rem -1rem 4rem -1rem;
+  font-weight: normal;
+  font-size: 1.2rem;
 }
 
 
 .remark_popup_container {
   width: 20rem;
   height: auto;
-  padding: 2rem;
+  padding: 1rem 4rem 2rem 4rem;
   color: var(--remark-color-grey-dark-2);
 }
 
@@ -161,7 +197,7 @@ h1,h2,h3,h4,h5,h6 {
 
 .remark_standard_button {
   background-color: var(--remark-color-primary);
-  font-size: 1.6rem;
+  font-size: 1.2rem;
   color: var(--remark-color-white);
   font-family: inherit;
   font-weight: 500;
@@ -193,13 +229,13 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 .remark_init_button {
-  width: 22rem;
+  width: 21.2rem;
   font-size: 1.6rem;
   padding: 1rem;
   background-color: var(--remark-color-primary);
   color: var(--remark-color-white);
   height: 5rem;
-  margin: 1rem 0rem 2rem 0.8rem;
+  margin: 3rem 0rem 1rem -0.2rem;
 }
 
 #loginBtn, #signupBtn {

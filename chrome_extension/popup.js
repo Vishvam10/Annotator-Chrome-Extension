@@ -1,50 +1,67 @@
 window.onload = async function () {
-
-
-  // Check if the user has logged in
   
+  const storageData = await getDataFromStorage(null);
+  const email = storageData["remark_email"];
 
-  // If so, display the startStopBtn
+  console.log("storage data  : ", storageData, email)
 
-
-  // Else, display the login form
-  renderLoginForm()
-
-
-  // const startStopBtn = document.getElementById("remark_start")
-  // startStopBtn.addEventListener("click", handleInit);
+  // Check if the user has signed in
+  if(email !== null) {
+    renderUserStats();
+  } else {
+    renderSignupForm();
+  }
+  
 
 }
   
-async function handleInit(e) {
-  e.preventDefault();
-  e.stopPropagation();
+async function handleInit() {
 
-  // TODO :  Check if already running
-
-  e.target.innerText = "Stop Annotation";
+  setDataToStorage("remark_running", true);
+  
   const tab = await getCurrentTab();
   chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ["/scripts/injectedScript.js"],
+    target: { tabId: tab.id },
+    files: ["/scripts/injectedScript.js"],
   });
 
-  window.close();
+  let dataURICheck = await getDataFromStorage("remark_screenshot_datauri");
+  dataURICheck = dataURICheck["remark_screenshot_datauri"];
+
+  if(!dataURICheck || dataURICheck === null) {
+    const dataURI = await handleScreenshot();
+    setDataToStorage("remark_screenshot_datauri", dataURI);
+  } 
+
+
+  // window.close();
 
 }
 
-async function handleScreenshot(e) {
-  e.preventDefault();
-  e.stopPropagation();
+async function handleSignout() {  
+  setDataToStorage("remark_email", null);
+  setDataToStorage("remark_running", false);
+  setDataToStorage("remark_screenshot_datauri", null);
 
+ 
+  const tab = await getCurrentTab();
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    files: ["/scripts/injectedScript.js"],
+  });
+
+  return;
+
+
+}
+
+async function handleScreenshot() {
+  
   const tab = await getCurrentTab();
   const dataURI = await takeScreenShot(tab);
   console.log(dataURI);
   
-  chrome.tabs.sendMessage(tab.id, { dataURI: dataURI }, (res) => {
-      console.log("response from content script in popup.js : ", res)
-    }
-  );
+  return dataURI;
 }
 
 async function takeScreenShot(tab) {
@@ -120,195 +137,283 @@ async function takeScreenShot(tab) {
   }));
 };
 
-async function getCurrentTab() {
-    let queryOptions = { active: true };
-    let [tab] = await chrome.tabs.query(queryOptions);
-    return tab;
-}
 
-function setDataToStorage(key, value) {
-  try {
-      // [k] is a computed property. 
-      // Without it, we can not set dynamic keys.
-      chrome.storage.local.set({
-          [key]: value 
-      });
-  } catch(e) {
-      console.log("chrome error : ", e.message)
-  }
-}
+// *************** Render functions ****************
 
-function getDataFromStorage(key) {
-  return new Promise((resolve) => {
-              chrome.storage.local.get([key], function(res) {
-              resolve(res);
-          })
-      }
-  )
-}
-
-function removeHTMLElement(ele) {
-  if(ele && ele.parentElement) {
-      ele.parentElement.removeChild(ele);
-  }
-  return;
-}
-
-
-function renderUserStats() {
-  const markup = `
-    <div class="remark_user_stats">
-      <img src="./assets/sample.jpg" alt="Sample Face" class="remark_user_image">
-      <span class="remark_user_info">
-          <h4 class="remark_username">John Doe</h4>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="#ebaf09" d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5c0 .538-.012 1.05-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.537.255L13.3 15.1a.5.5 0 0 1-.3.9H3a.5.5 0 0 1-.3-.9l1.838-1.379c.16-.12.343-.207.537-.255L6.5 13.11v-2.173c-.955-.234-2.043-1.146-2.833-3.012a3 3 0 1 1-1.132-5.89A33.076 33.076 0 0 1 2.5.5zm.099 2.54a2 2 0 0 0 .72 3.935c-.333-1.05-.588-2.346-.72-3.935zm10.083 3.935a2 2 0 0 0 .72-3.935c-.133 1.59-.388 2.885-.72 3.935zM3.504 1c.007.517.026 1.006.056 1.469c.13 2.028.457 3.546.87 4.667C5.294 9.48 6.484 10 7 10a.5.5 0 0 1 .5.5v2.61a1 1 0 0 1-.757.97l-1.426.356a.5.5 0 0 0-.179.085L4.5 15h7l-.638-.479a.501.501 0 0 0-.18-.085l-1.425-.356a1 1 0 0 1-.757-.97V10.5A.5.5 0 0 1 9 10c.516 0 1.706-.52 2.57-2.864c.413-1.12.74-2.64.87-4.667c.03-.463.049-.952.056-1.469H3.504z"/></svg>
-      </span>
-
-      <span class="remark_field">
-          <h4>Leaderboard Position</h4>
-          <h4>2</h4>
-      </span>
-      <span class="remark_field">
-          <h4>Current Status</h4>
-          <h4>Supreme</h4>
-      </span>
-      <span class="remark_field">
-          <h4>Number of websites annotated</h4>
-          <h4>24</h4>
-      </span>  
-    </div>
-  `
-
-  document.querySelector(".remark_popup_container").insertAdjacentHTML("afterbegin", markup);
-  return;
-
-}
-
-
-function renderLoginForm() {
-  const markup = `
-    <form id="userLoginForm">
-      <div class="remark_field">
-          <label for="username" class="remark_form_label">Username</label>
-          <input type="text" name="username" class="remark_form_input">
-      </div>
-      <div class="remark_field">
-          <label for="password" class="remark_form_label">Password</label>
-          <input type="password" name="password" class="remark_form_input">
-      </div>
-      <button type="button" class="remark_standard_button" id="loginBtn">Login</button>
-      <span style="font-size: 1.2rem;">
-          Don't have an account ? 
-          <span id="loginToSignupButton">Create One</span>
-      </span>
-    </form>
-  `;
-
-  document.querySelector(".remark_popup_container").insertAdjacentHTML("afterbegin", markup);
-  const loginForm = document.getElementById("userLoginForm");
-  const loginToSignupButton = document.getElementById("loginToSignupButton");
-  const loginBtn = document.getElementById("loginBtn");
-
-  if(loginForm) {
-    if(loginToSignupButton) {
-      loginToSignupButton.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-  
-        removeHTMLElement(loginForm);
-        renderSignupForm();
-        return;
-      })
-    }
-  
-    if(loginBtn) {
-      loginBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-  
-        const formData = new FormData(loginForm);
-        logFormData(formData);
-        const url = "127.0.0.1:8000/api/user"
-        
-        const res = POST(url, formData, "multipart/form");
-        console.log(res, res.status, typeof(res.status))
-        
-        if(res.status === 200) {
-          removeHTMLElement(loginForm);
-          renderUserStats();
-          return;
-        }
-  
-      })
-    }
-  }
-  return;
-}
 
 function renderSignupForm() {
   const markup =  `
     <form id="userSignupForm">
       <div class="remark_field">
-          <label for="username" class="remark_form_label">Username</label>
-          <input type="text" name="username" class="remark_form_input">
-      </div>
-      <div class="remark_field">
           <label for="email" class="remark_form_label">Email</label>
           <input type="email" name="email" class="remark_form_input" style="margin: 0rem -0.6rem 0rem 0rem;">
       </div>
-      <div class="remark_field">
-          <label for="password" class="remark_form_label">Password</label>
-          <input type="password" name="password" class="remark_form_input">
-      </div>
       <button type="button" class="remark_standard_button" id="signupBtn">Create Account</button>
-      <span style="font-size: 1.2rem;">
-          Already have an account ? 
-          <span id="signupToLoginBtn">Login here</span>
-      </span>
     </form>
   `
 
   document.querySelector(".remark_popup_container").insertAdjacentHTML("afterbegin", markup);
   const signupForm = document.getElementById("userSignupForm");
-  const signupToLoginBtn = document.getElementById("signupToLoginBtn");
   const signupBtn = document.getElementById("signupBtn");
 
   if(signupForm) {
-    if(signupToLoginBtn) {
-      signupToLoginBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-  
-        removeHTMLElement(signupForm);
-        renderLoginForm();
-        return;
-      })
-    }
-  
-    if(signupBtn) {
-      signupBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-  
-        const formData = new FormData(signupForm);
-        logFormData(formData);
-        const url = "127.0.0.1:8000/api/user"
+    signupBtn.addEventListener("click", async(e) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-        const res = POST(url, formData, "multipart/form");
-        
-        if(res.status === 200) {
-          removeHTMLElement(signupForm);
-          renderLoginForm();
-          return;
-        }      
-  
-      })
-    }
+      const formData = new FormData(signupForm);
+      logFormData(formData);
+      
+      const url = "http://localhost:3000/api/create-user"
+      const data = JSON.stringify(Object.fromEntries(formData));
+
+      // const res = await POST(url, data);
+      // console.log("result : ", res)
+      // if(res.status === 200 || res.msg === "This email is already registered.") {
+      removeHTMLElement(signupForm);
+      // setDataToStorage("remark_email", JSON.parse(data)["email"])
+      setDataToStorage("remark_email", "sample@gmail.com");
+      renderUserStats();
+        // return;
+      // }
+
+    })
   }
   return;
 
 }
 
+async function renderUserStats(data) {
+
+  
+  const dummyData = {
+    "users": [
+      {
+        "_id": "63fa3a398b9f0f6f3b27d574",
+        "email": "ravi.lamkoti@contentstack.com",
+        "count": 12,
+        "files": [
+          "6155b9a58f80c68fa8faace12",
+          "f6b1f7c26677bf9e9b4762b00"
+        ]
+      },
+      {
+        "_id": "63fa3aaf8b9f0f6f3b27d575",
+        "email": "ravi.lamkoti+1@contentstack.com",
+        "count": 8
+      },
+      {
+        "_id": "asdfasf",
+        "email": "asdad@contentstack.com",
+        "count": 4
+      },
+      {
+        "_id": "af2f[df",
+        "email": "manish@contentstack.com",
+        "count": 2
+      },
+      {
+        "_id": "asdfasf",
+        "email": "asdad@contentstack.com",
+        "count": 1
+      },
+      {
+        "_id": "6404d19233a54271711f2eae",
+        "username": "Test",
+        "password": "sample1234",
+        "email": "sample@gmail.com",
+        "count": 0,
+        "files": [
+          "b8587c1ba43398ce3dbb0ce02"
+        ]
+      }
+    ]
+  }
+
+  const users = dummyData["users"];
+  let curUserEmail, curUserPos=-1, curUserCount;
+
+  const storageData = await getDataFromStorage(null);
+  const email = storageData["remark_email"];
+  const running = storageData["remark_running"]
+
+
+  let markup = `
+    <span class="remark_user_info">
+      Signed in as <b>${email}</b>      
+    </span>
+    <table id="remark_scoreboard">
+      <tr style="background-color: var(--remark-color-primary); color: var(--remark-color-white);">
+        <th style="width: 10%">Pos.</th>
+        <th style="width: 80%">Name</th>
+        <th style="width: 10%">Points</th>
+      </tr>
+  `
+
+  for(let i=0; i<users.length; i++) {
+
+    if(i < 3) {
+      const em = users[i]["email"].split("@")[0].substring(0, 12)
+      markup += `
+        <tr>
+          <td>${i}</td>
+          <td>${em}</td>
+          <td>${users[i]["count"]}</td>
+        </tr>
+      `
+    }
+
+    if(users[i]["email"] === email) {
+      curUserPos = i+1;
+      curUserEmail = users[i]["email"].split("@")[0].substring(0, 12);
+      curUserCount = users[i]["count"];
+    }
+
+  }
+
+  if(curUserPos > 3) {
+    markup += `
+      <tr>
+        <td>...</td>
+        <td>...</td>
+        <td>...</td>
+      </tr>
+      <tr>
+        <td>${curUserPos}</td>
+        <td>${curUserEmail}</td>
+        <td>${curUserCount}</td>
+      </tr>
+    `
+
+  }
+
+  markup += `
+    </table>
+    <button type="button" class="remark_standard_button" id="signoutBtn">Sign Out</button>
+  `;
+    
+  console.log("in user stats : ", running, storageData)
+
+  if(running !== true) {
+    markup += `
+      <button type="button" class="remark_standard_button" id="remark_start">Start Annotation</button>
+    `
+  } else {
+    handleInit();
+  }
+  
+  document.querySelector(".remark_popup_container").insertAdjacentHTML("beforeend", markup);
+
+  const initBtn = document.getElementById("remark_start");
+  if(initBtn) {
+    initBtn.addEventListener("click", handleInit)
+  }
+
+  const signoutBtn = document.getElementById("signoutBtn");
+  signoutBtn.addEventListener("click", handleSignout)
+
+  return;
+
+}
+
+function renderErrorMessage(msg, pos, node) {
+  const markup = `
+    <p style="color: var(--remark-color-danger);">${msg}</p>
+  `
+  if(node) {
+    node.insertAdjacentHTML(pos, markup);
+  }
+}
+
+
+// ****************** HTTP methods *****************
+
+
+async function POST(url, data, contentType) {
+
+  try {
+    let res = await fetch(url, {
+      method: "POST",
+      headers : {
+        "Content-type" : contentType
+      },
+      body : data
+    })
+  
+    res = await res.json();
+    return res;
+  } catch(e) {
+    console.log("ERROR IN POST REQUEST : ", e.message);
+  }
+
+}
+
+
+// ****************** Chrome APIs ****************** 
+
+
+async function getCurrentTab() {
+  let queryOptions = { active: true };
+  let [tab] = await chrome.tabs.query(queryOptions);
+  return tab;
+}
+
+function setDataToStorage(key, value) {
+try {
+    // [k] is a computed property. 
+    // Without it, we can not set dynamic keys.
+    chrome.storage.local.set({
+        [key]: value 
+    });
+} catch(e) {
+    console.log("chrome error : ", e.message)
+}
+}
+
+function getDataFromStorage(key) {
+  let k = null;
+  if(key !== null) {
+    k = [key]
+  }
+  return new Promise((resolve) => {
+      chrome.storage.local.get(k, function(res) {
+      resolve(res);
+    })
+  }
+)
+}
+
+function clearDataFromStorage(keys=[], all=true) {
+
+  if(all === true) {
+    chrome.storage.local.clear(function() {
+      console.log("ASDASD")
+      var error = chrome.runtime.lastError;
+      if (error) {
+          console.error(error);
+      }
+    });
+  } else {
+    chrome.storage.local.remove(keys,function(){
+      var error = chrome.runtime.lastError;
+         if (error) {
+             console.error(error);
+         }
+     })
+  }
+
+
+}
+
+
+// *************** Utility functions *************** 
+
+
+function logFormData(formData) {
+  for(let e of Array.from(formData)) {
+    console.log(e[0], " : ", e[1])
+  }
+}
 
 function validateForm(formData) {
   let pattern;
@@ -345,35 +450,10 @@ function validateForm(formData) {
 
 }
 
-
-function POST(url, data, contentType="application/json") {
-
-  // try {
-  //   let res = await fetch(url, {
-  //     headers : {
-  //       "Content-Type" : contentType
-  //     },
-  //     body : data
-  //   })
-  
-  //   res = await res.json();
-  //   return res;
-  // } catch(e) {
-  //   console.log("ERROR IN POST REQUEST : ", e.message)
-  // }
-
-  console.log(data)
-
-  const res = {
-    status: 200,
-    message: "Success"
+function removeHTMLElement(ele) {
+  if(ele && ele.parentElement) {
+      ele.parentElement.removeChild(ele);
   }
-  return res;
-
+  return;
 }
 
-function logFormData(formData) {
-  for(let e of Array.from(formData)) {
-    console.log(e[0], " : ", e[1])
-  }
-}

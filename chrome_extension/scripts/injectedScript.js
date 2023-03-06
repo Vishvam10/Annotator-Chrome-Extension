@@ -1,28 +1,23 @@
 (async() => {    
 
-    console.log("from foreground : init . . .");
-
-    const settings = {
-        appearance: {
-            highlightUsingSameColor: true,
-            highlightThickness: 2,
-            highlightBorderRadius: 12
-        },
-        configuration: {
-            probeDepth: 24,
-            includeXPath: false,
-            includeStyles: false,
-            showToolTip: false            
-        }
-    }
+    const storageData = await getDataFromStorage("remark_running");
+    const running = storageData["remark_running"];
     
-    remark_init(settings);
+    console.log("from foreground : init . . .", running);
+
+    if(running === false) {
+        console.log("reached running");
+        remark_destroy();
+        return;
+    } else {
+        remark_init();
+    }
+
 
 })();
 
 // ***************** Global Variables ****************
 
-var REMARK_SETTINGS;
 var annotations = []
 
 var eleColors = {
@@ -46,14 +41,30 @@ var VALID_HTML_ELEMENTS = [
 // ***************** Initialization ******************
 
 
-function remark_init(settings) {
-    REMARK_SETTINGS = settings;
-    console.log("DOM check and Settings check : ", document.body, REMARK_SETTINGS);
+function remark_init() {
+    console.log("DOM check and Settings check : ", document.body);
     
     addAllClasses();    
     renderMenu();
-    attachListeners()
+    attachListeners();
+
+    loadAllAnnotations();
+
     startAnnotationProcess();
+
+    setDataToStorage("remark_running", true);
+    
+}
+
+function remark_destroy() {
+    console.log("in stop");
+    
+    removeAllExistingModals();
+    saveAllAnnotations();
+    stopHighlightElements();
+    stopAnnotationProcess();
+    
+    setDataToStorage("remark_running", false);
 
 }
 
@@ -65,10 +76,9 @@ function startAnnotationProcess() {
 }
 
 function stopAnnotationProcess() {
-    stopHighlightElements();
-    document.removeEventListener("click", clickListener);
-    document.removeEventListener("mouseover", mouseOverListener);
-    document.removeEventListener("mouseout", mouseOutListener);
+    document.body.removeEventListener("click", clickListener);
+    document.body.removeEventListener("mouseover", mouseOverListener);
+    document.body.removeEventListener("mouseout", mouseOutListener);
     return;
 }
 
@@ -157,10 +167,6 @@ function mouseOverListener(e) {
     const tag = e.target.tagName;
     if (VALID_HTML_ELEMENTS.includes(tag)) {
         const targetHTMLElement = e.target;
-        if(REMARK_SETTINGS["configuration"]["showToolTip"]) {
-            let tooltipMarkup = TOOLTIP(e.target);
-            targetHTMLElement.insertAdjacentHTML("afterbegin", tooltipMarkup);
-        }
         targetHTMLElement.classList.toggle("highlight_element_light");
     }
 }
@@ -178,10 +184,6 @@ function mouseOutListener(e) {
     const tag = e.target.tagName;
     const targetHTMLElement = e.target;
     if (VALID_HTML_ELEMENTS.includes(tag)) {
-        if(REMARK_SETTINGS["configuration"]["showToolTip"]) {
-            const tooltipNode = document.getElementById("remark_tooltip");
-            removeHTMLElement(tooltipNode);
-        }
         targetHTMLElement.classList.toggle("highlight_element_light");
     }
 }
@@ -219,7 +221,6 @@ function attachListeners() {
 
 }
 
-
 // ******************* Handlers ********************
 
 function handleCreateLabel(targetHTMLElement, annotations) {
@@ -246,7 +247,6 @@ function handleCreateLabel(targetHTMLElement, annotations) {
     annotations.push(d);
     targetHTMLElement.dataset.annotation_id = d["id"];
     console.log("added : ", annotations)
-    renderAllAnnotations(annotations);
 
     return annotations;
 }
@@ -386,6 +386,43 @@ function handleBatchUpdate() {
     return;
 }
 
+async function handlePushToServer() {
+    const storageData = await getDataFromStorage("remark_screenshot_datauri");
+    const dataURI = storageData["remark_screenshot_datauri"];
+    const email = storageData["remark_email"];
+    // console.log("in injected script : ", dataURI);
+
+    const imgBlob = dataURIToBlob(dataURI)
+    const labels = getAllAnnotations()
+
+    const formData = new FormData()
+    formData.append("image", imgBlob)
+    formData.append("label", JSON.stringify(labels));
+
+    logFormData(formData)
+
+    const url = "http://localhost:3000/api/submit"
+
+    try {
+
+        let res = await fetch(url, {
+          method: "POST",
+          mode: "no-cors",
+          headers : {
+            "Content-type" : "multipart/form-data; boundary=---011000010111000001101001",
+            "email": email
+          },
+          body : formData
+        })
+      
+        res = await res.json();
+        console.log("POST RESULT : ", res)
+
+    } catch(e) {
+        console.log("ERROR IN POST REQUEST : ", e.message);
+    }
+}
+
 function handleUndo() {
     // console.log("clicked : handleUndo")
     return;
@@ -396,21 +433,22 @@ function handleRedo() {
     return;
 }
 
-// *************** Render functions ****************
+// *************** Render functions ***************
 
 
 function renderAllAnnotations(annotations) {
     for(let i=0; i<annotations.length; i++) {
         const ele = annotations[i];
-        if(ele["html_target"]) {
-            if(ele["html_target"].className.includes("remark_") || ele["html_target"].className.includes("highlight_element_strong")) {
+        const node = getElementByXpath(ele["html_xpath"]);
+        console.log(node)
+        if(node) {
+            if(node.className.includes("remark_") || node.className.includes("highlight_element_strong")) {
                 continue;
             } else {
-                ele["html_target"].classList.remove("highlight_element_light");
-
-                const colClass = eleColors[ele["tag"]];
-                ele["html_target"].classList.add(colClass);
-                ele["html_target"].classList.add("highlight_element_strong");
+                node.classList.remove("highlight_element_light");
+                // const colClass = eleColors[ele["tag"]];
+                // node.classList.add(colClass);
+                node.classList.add("highlight_element_strong");
 
             }
         }
@@ -461,6 +499,8 @@ function renderMenu() {
                             </button>
                         </span>       
                     </div>  
+                    <button type="button" class="remark_standard_button" id="remarkStopBtn">Stop Annotation</button>
+                    <button type="button" class="remark_standard_button" id="pushToServerBtn">Push To Server</button>
                 </div>
             </div>
     `
@@ -477,6 +517,11 @@ function renderMenu() {
         menuContainer.classList.toggle("remark_menu_resize");
     });
 
+    const pushToServerBtn = document.getElementById("pushToServerBtn");
+    pushToServerBtn.addEventListener("click", handlePushToServer);
+
+    const remarkStopBtn = document.getElementById("remarkStopBtn");
+    remarkStopBtn.addEventListener("click", remark_destroy)
 
 }
 
@@ -494,7 +539,7 @@ function removeHighlight(annotation) {
 // ************** Component functions **************
 
 
-let BATCH_ACTION_MODAL = (action) => {
+var BATCH_ACTION_MODAL = (action) => {
 
     let title = "";
 
@@ -527,7 +572,7 @@ let BATCH_ACTION_MODAL = (action) => {
     return markup;
 }
 
-let SIDEBAR = (curAnnotation) => {
+var SIDEBAR = (curAnnotation) => {
     
     let text = curAnnotation['text'];
     let coordinates = curAnnotation["x"] + "," + curAnnotation["y"] + "," + curAnnotation["width"] + "," + curAnnotation["height"];
@@ -563,6 +608,10 @@ let SIDEBAR = (curAnnotation) => {
                     <input type="text" name="annotation_type" class="remark_form_input" value=${curAnnotation['tag']}>
                 </div>
                 <div class="remark_form_fields">
+                    <label for="annotation_type" class="remark_form_label">CLASSNAME</label>
+                    <input type="text" name="annotation_type" class="remark_form_input" value=${curAnnotation['html_class']}>
+                </div>
+                <div class="remark_form_fields">
                     <label for="annotation_text" class="remark_form_label">TEXT</label>
                     <input type="text" name="annotation_text" class="remark_form_input" value=${curAnnotation['text']}>
                 </div>
@@ -582,20 +631,7 @@ let SIDEBAR = (curAnnotation) => {
 
 }
 
-let TOOLTIP = (ele) => {
-    const rect = ele.getBoundingClientRect();;
-    const x = Math.round(rect.x), y = Math.round(rect.y), w = Math.round(rect.width), h = Math.round(rect.height);
-    const markup = `
-        <div id="remark_tooltip">
-            <h4>${ele.tagName}</h4>
-            <p style="margin: 0.1rem 0rem 0rem 0rem;">(${w} x ${h})</p>
-        </div>
-    
-    `;
-    return markup;
-}
-
-let CONFIRM_GROUPING_MARKUP = () => {
+var CONFIRM_GROUPING_MARKUP = () => {
     const markup = `
         <span class="remark_confirm_grouping">
             <span class="remark_grouping_options">Yes</span>
@@ -606,6 +642,75 @@ let CONFIRM_GROUPING_MARKUP = () => {
 }
 
 // *************** Utility functions *************** 
+
+
+// --------------- Annotations utils ----------------
+
+
+function getAnnotationByID(annotation_id, annotations) {
+    for(let ele of annotations) {
+        if(Number(annotation_id) === ele["id"]) {
+            return ele;
+        }
+    }
+    return;
+}
+
+function getAllAnnotations() {
+    let res = {};
+    res["item"] = [];
+    for(let a of annotations) {
+        res["item"].push({
+            x: a["x"],
+            y: a["y"],
+            width: a["width"],
+            height: a["height"],
+            tag: a["tag"],
+            text: a["text"]
+        })
+    }
+    return res;
+}
+
+// ----------------- Load and Save ------------------
+
+
+async function loadAllAnnotations() {
+    try {
+        const storageData = await getDataFromStorage("remark_annotations");
+        const data = storageData["remark_annotations"];
+        // console.log("LOAD DATA : ", data, JSON.parse(data)["data"])
+        annotations = JSON.parse(data)["data"];
+        renderAllAnnotations(annotations)
+        setDataToStorage("remark_annotations", null);
+    } catch(e) {
+        console.log("No annotations to load");
+    }
+
+
+    return;
+}
+
+function saveAllAnnotations() {
+    const d = JSON.stringify({data: annotations});
+    console.log("SAVE DATA : ", d)
+    setDataToStorage("remark_annotations", d);
+    return;
+}
+
+function dataURIToBlob(dataURI) {
+    const splitDataURI = dataURI.split(',')
+    const byteString = splitDataURI[0].indexOf('base64') >= 0 ? atob(splitDataURI[1]) : decodeURI(splitDataURI[1])
+    const mimeString = splitDataURI[0].split(':')[1].split(';')[0]
+
+    const ia = new Uint8Array(byteString.length)
+    for (let i = 0; i < byteString.length; i++)
+        ia[i] = byteString.charCodeAt(i)
+
+    return new Blob([ia], { type: mimeString })
+}
+
+// ---------------------- CSS ----------------------
 
 
 function createCSSClass(name,rules){
@@ -665,7 +770,7 @@ function addAllClasses() {
         `)
             
         createCSSClass(".highlight_element_strong", `
-            background: #ff28009c !important; 
+            border: 1px solid #ff28009c !important; 
             border-radius: 0.2rem; 
             padding: 0.2rem; 
             cursor: crosshair;
@@ -754,6 +859,7 @@ function addAllClasses() {
             align-items: center;
             justify-content: center;
             height: 3.2rem;
+            margin: 0rem 0rem 1rem 0rem;
         `)
     
         createCSSClass(".remark_standard_button:hover", `
@@ -765,11 +871,19 @@ function addAllClasses() {
             transform: scale(1.0) !important;
         `)
     
-        createCSSClass(".remark_standard_button:focus", `
-            background-color: var(--remark-color-primary) !important
-            transform: scale(1.0);
+        createCSSClass("#remarkStopBtn", `
+            color: var(--remark-color-primary);
+            background-color: var(--remark-color-white);
         `)
-    
+
+        createCSSClass("#remarkStopBtn:hover", `
+            color: var(--remark-color-white);
+        `)
+            
+        createCSSClass(".remark_standard_button:active", `
+            color: var(--remark-color-white);
+        `)
+       
         createCSSClass(".remark_standard_modal_title", `
             display: flex;
             flex-direction: row;
@@ -788,23 +902,6 @@ function addAllClasses() {
             font-size: 12px;
             color: var(--remark-color-grey-light-1);
         `)
-    
-        createCSSClass("#remark_tooltip", `
-            display: flex;
-            flex-direction: row;
-            padding: 1rem;
-            position: fixed;
-            top: 2rem;
-            left: 2rem;
-            border-radius: 0.8rem;
-            margin: 0rem 0rem 2rem;
-            background-color: var(--remark-color-black);
-            color: var(--remark-color-white);
-            width: 10rem;
-            height: 3.2rem;
-            gap: 0.8rem;
-            z-index: 10000;
-        `);
             
         createCSSClass(".remark_confirm_grouping", `
             display: flex;
@@ -864,7 +961,7 @@ function addAllClasses() {
             background-color: var(--remark-color-white);
             border-radius: 1.2rem;
             z-index: 100000000;
-            height: 36rem;
+            height: 42rem;
             transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
             display: flex;
             overflow: hidden;
@@ -1111,7 +1208,7 @@ function addAllClasses() {
         `)
         
         createCSSClass(".remark_standard_menu_container ", `
-            height: 15rem;
+            height: 23rem;
             width: 16rem;
             border-radius: 1.2rem;
             background-color: var(--remark-color-white);
@@ -1322,29 +1419,27 @@ function addAllClasses() {
 
 }
 
-function getAnnotationByID(annotation_id, annotations) {
-    for(let ele of annotations) {
-        if(Number(annotation_id) === ele["id"]) {
-            return ele;
-        }
-    }
-    return;
-}
+// ---------------- DOM Operations -----------------
+
 
 function removeAllExistingModals() {
-    // const create_modal_check = document.getElementById("remark_create_annotation_modal");
-    const edit_modal_check = document.getElementById("remark_edit_annotation_modal");
-    // const delete_modal_check = document.getElementById("remark_delete_annotation_modal");
+    const menu_check = document.querySelector(".remark_standard_menu_container");
+    const sidebar_check = document.getElementById("remark_annotations_sidebar");
 
-    // if (create_modal_check) {
-    //     removeHTMLElement(create_modal_check);
-    // }
-    if (edit_modal_check) {
-        removeHTMLElement(edit_modal_check);
+    const grouping_modal = document.querySelector(".remark_confirm_grouping");
+
+    if(menu_check) {
+        removeHTMLElement(menu_check);
     }
-    // if (delete_modal_check) {
-    //     removeHTMLElement(delete_modal_check);
-    // }
+
+    if(sidebar_check) {
+        removeHTMLElement(sidebar_check);
+    }
+
+    if(grouping_modal) {
+        removeHTMLElement(grouping_modal);
+    }
+
 }
 
 function stopHighlightElements() {
@@ -1407,6 +1502,16 @@ function getNodeXpath(node) {
     return xpath;
 }
 
+function getElementByXpath(path) {
+    let ele = null;
+    try {
+        ele = document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    } catch (error) {
+        return;
+    }
+    return ele;
+}
+
 function removeHTMLElement(ele) {
     if(ele && ele.parentElement) {
         ele.parentElement.removeChild(ele);
@@ -1444,3 +1549,10 @@ function sendMessage(message) {
         console.log("received  data", response);
     });
 }
+
+function logFormData(formData) {
+    for(let e of Array.from(formData)) {
+      console.log(e[0], " : ", e[1])
+    }
+}
+  
