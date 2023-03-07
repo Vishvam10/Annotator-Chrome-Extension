@@ -18,7 +18,10 @@
 
 // ***************** Global Variables ****************
 
+var REMARK_GROUP_ANNOTATIONS = true;
+
 var annotations = []
+
 
 var eleColors = {
     "div" : "highlight_blue", 
@@ -28,15 +31,18 @@ var eleColors = {
     "section" : "highlight_teal", 
     "nav" : "highlight_red", 
     "input" : "highlight_purple", 
-    "input" : "highlight_purple", 
     "image" : "highlight_violet", 
     "video" : "highlight_violet", 
     "a" : "highlight_pink"
 }
 
 var VALID_HTML_ELEMENTS = [
-    "DIV", "SPAN", "BUTTON", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", "SVG", "NAV", "A", "TABLE", "INPUT", "LABEL", "FORM", "AUDIO", "VIDEO", "UL", "LI"
+    "DIV", "SPAN", "BUTTON", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", 
+    "P", "PICTURE", "SVG", "NAV", "A", "TABLE", "INPUT", "LABEL", "FORM", 
+    "AUDIO", "VIDEO", "UL", "LI"
 ]
+
+var tempBuffer = []
 
 // ***************** Initialization ******************
 
@@ -46,12 +52,8 @@ function remark_init() {
     
     addAllClasses();    
     renderMenu();
-    attachListeners();
-
     loadAllAnnotations();
-
     startAnnotationProcess();
-
     setDataToStorage("remark_running", true);
     
 }
@@ -94,7 +96,7 @@ function clickListener(e) {
     if(e.altKey) {
         // Delete label
         if(t.classList.contains("highlight_element_strong")) {
-            annotations = handleDeleteLabel(t, annotations);
+            handleDeleteLabel(t);
         }
         
         console.log("delete annotations : ", annotations);
@@ -106,10 +108,20 @@ function clickListener(e) {
                 return;
             }
 
-            annotations = handleCreateLabel(t, annotations);
+            if(REMARK_GROUP_ANNOTATIONS) {
+                handleBatchAction(tempBuffer, "batchCreate");
+                for(let t of tempBuffer) {
+                    t.classList.remove("highlight_element_light");
+                    t.classList.add("highlight_element_strong");
+                }
+            } else {
+                handleCreateLabel(t);
+                t.classList.remove("highlight_element_light");
+                t.classList.add("highlight_element_strong");
+            }
             
-            t.classList.remove("highlight_element_light");
-            t.classList.add("highlight_element_strong");
+            // t.classList.remove("highlight_element_light");
+            // t.classList.add("highlight_element_strong");
             
             console.log("add annotations : ", annotations);
 
@@ -157,35 +169,53 @@ function mouseOverListener(e) {
     e.preventDefault();
     e.stopPropagation();
    
+    const menu = document.querySelector(".remark_standard_menu_container");
     const className = String(e.target.className);
     
-    if(className) {
-        if (className.includes("remark_") || className.includes("highlight_element_strong")) {
-            return;
+    const elements = document.getElementsByClassName(className);
+    Array.from(elements).forEach((ele) => { 
+        console.log("tag : ", ele.tagName)
+       
+        const tag = ele.tagName;
+        if (VALID_HTML_ELEMENTS.includes(tag)) {
+            if(ele.className) {
+                if (ele.className.includes("remark_") || ele.className.includes("highlight_element_strong")) {
+                    return;
+                }
+            }
+            if(menu.contains(ele)) {
+                console.log("REACHED DESCENDANT");
+                return;
+            }
+            tempBuffer.push(ele)
+            ele.classList.toggle("highlight_element_light");
         }
-    }
-    const tag = e.target.tagName;
-    if (VALID_HTML_ELEMENTS.includes(tag)) {
-        const targetHTMLElement = e.target;
-        targetHTMLElement.classList.toggle("highlight_element_light");
-    }
+
+    })
 }
 
 function mouseOutListener(e) {
     e.preventDefault();
     e.stopPropagation();
 
-    const className = String(e.target.className);
-    if(className) {
-        if (className.includes("remark_") || className.includes("highlight_element_strong")) {
-            return;
+    const menu = document.querySelector(".remark_standard_menu_container");
+
+    tempBuffer.forEach((ele) => { 
+        const tag = ele.tagName;
+        if (VALID_HTML_ELEMENTS.includes(tag)) {
+            if(ele.className) {
+                if (ele.className.includes("remark_") || ele.className.includes("highlight_element_strong")) {
+                    return;
+                }
+            }
+            if(menu.contains(ele)) {
+                console.log("REACHED DESCENDANT");
+                return;
+            }
+            ele.classList.toggle("highlight_element_light");
         }
-    }
-    const tag = e.target.tagName;
-    const targetHTMLElement = e.target;
-    if (VALID_HTML_ELEMENTS.includes(tag)) {
-        targetHTMLElement.classList.toggle("highlight_element_light");
-    }
+    })
+    tempBuffer = [];
 }
 
 function keyPressListener(e) {
@@ -223,7 +253,7 @@ function attachListeners() {
 
 // ******************* Handlers ********************
 
-function handleCreateLabel(targetHTMLElement, annotations) {
+function handleCreateLabel(targetHTMLElement) {
     const rect = targetHTMLElement.getBoundingClientRect();
     const x = Math.round(rect.x), y = Math.round(rect.y), w = Math.round(rect.width), h = Math.round(rect.height);
 
@@ -246,12 +276,10 @@ function handleCreateLabel(targetHTMLElement, annotations) {
 
     annotations.push(d);
     targetHTMLElement.dataset.annotation_id = d["id"];
-    console.log("added : ", annotations)
-
-    return annotations;
+    console.log("added : ", annotations);
 }
 
-function handleEditLabel(targetHTMLElement, annotations) {
+function handleEditLabel(targetHTMLElement) {
     if(targetHTMLElement.classList.contains("highlight_element_strong")) {
             
         const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
@@ -286,7 +314,7 @@ function handleEditLabel(targetHTMLElement, annotations) {
     // console.log("edit annotations : ", annotations);
 }
 
-function handleDeleteLabel(targetHTMLElement, annotations) {
+function handleDeleteLabel(targetHTMLElement) {
     const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
 
     let ind, annotation;
@@ -303,48 +331,16 @@ function handleDeleteLabel(targetHTMLElement, annotations) {
     removeHighlight(annotation);
 
     delete targetHTMLElement.dataset.annotation_id;
-
-    return annotations;
 }
 
-function handleBatchAction(action) {
-    const ele = document.querySelector(".remark_standard_minimodal");
-    if(ele) {
-        removeHTMLElement(ele);
-    }
+function handleBatchAction(targetHTMLElements, action) {
     if(action == "batchCreate") {
-        
-        const markup = BATCH_ACTION_MODAL("batchCreate");
-        document.body.insertAdjacentHTML("afterbegin", markup);
-        
-        const ele = document.querySelector(".remark_standard_minimodal");
-        
-        const goBtn = document.getElementById("remark_standard_minimodal_button");
-        goBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        
-            let className = document.getElementById("batchInputClassName").value;
-            let tagName = document.getElementById("batchInputTagName").value.toLocaleLowerCase();
-        
-            const elements = document.getElementsByClassName(className);
-
-
-            for(let i=0; i<elements.length; i++) {
-                const ele = elements[i];
-                if(ele.tagName.toLowerCase() == tagName) {
-                    if(ele.className.includes("remark_") || ele.className.includes("highlight_element_strong")) {
-                        continue;
-                    } else {
-                        handleCreateLabel(ele, annotations)
-                    }
-                }
-
-            }
-        
-            removeHTMLElement(ele);
-        
-        });
+        // console.log(targetHTMLElements)
+        for(let i=0; i<targetHTMLElements.length; i++) {
+            const ele = targetHTMLElements[i];
+            handleCreateLabel(ele, annotations)
+        }
+            
         
     } else if(action == "batchDelete") {
                 
@@ -369,7 +365,7 @@ function handleBatchAction(action) {
                     if(ele.className.includes("remark_") || ele.className.includes("highlight_element_light")) {
                         continue;
                     } else {
-                        handleDeleteLabel(ele, annotations);
+                        handleDeleteLabel(ele);
                     }
                 }    
             }
@@ -487,17 +483,8 @@ function renderMenu() {
                     </div>  
                     <div class="remark_settings_subgroup">
                         <h5 class="remark_settings_subgroup_title">BATCH ACTIONS</h5>      
-                        <span class="remark_setting_subgroup_item">
-                            <button class="remark_action_btn" id="remarkBatchCreateBtn" name="batchActions">
-                                CREATE
-                            </button>
-                            <button class="remark_action_btn" id="remarkBatchUpdateBtn" name="batchActions">
-                                UPDATE
-                            </button>
-                            <button class="remark_action_btn" id="remarkBatchDeleteBtn" name="batchActions">
-                                DELETE
-                            </button>
-                        </span>       
+                        <label for="groupActionsBtn" class="remark_form_field">Group Actions</label>  
+                        <input type="checkbox" id="groupActionsBtn" name="groupActionsBtn" checked>
                     </div>  
                     <button type="button" class="remark_standard_button" id="remarkStopBtn">Stop Annotation</button>
                     <button type="button" class="remark_standard_button" id="pushToServerBtn">Push To Server</button>
@@ -527,11 +514,8 @@ function renderMenu() {
 
 function removeHighlight(annotation) {
     const t = annotation["html_target"];
-    const col = eleColors[annotation["tag"]]
     if(t && t.className.includes("highlight_element_strong")) {
-        t.classList.remove(col);
         t.classList.remove("highlight_element_strong");
-        t.classList.add("highlight_element_light");
     }
 }
 
@@ -604,12 +588,12 @@ var SIDEBAR = (curAnnotation) => {
                     <input type="text" name="annotation_parent" class="remark_form_input remark_fade" value="${curAnnotation['parent']}" readonly disabled>
                 </div>
                 <div class="remark_form_fields">
-                    <label for="annotation_type" class="remark_form_label">TYPE</label>
-                    <input type="text" name="annotation_type" class="remark_form_input" value=${curAnnotation['tag']}>
+                    <label for="annotation_type" class="remark_form_label">CLASSNAME</label>
+                    <input type="text" name="annotation_type" class="remark_form_input" value=${curAnnotation['html_class']} readonly disabled>
                 </div>
                 <div class="remark_form_fields">
-                    <label for="annotation_type" class="remark_form_label">CLASSNAME</label>
-                    <input type="text" name="annotation_type" class="remark_form_input" value=${curAnnotation['html_class']}>
+                    <label for="annotation_type" class="remark_form_label">TYPE</label>
+                    <input type="text" name="annotation_type" class="remark_form_input" value=${curAnnotation['tag']}>
                 </div>
                 <div class="remark_form_fields">
                     <label for="annotation_text" class="remark_form_label">TEXT</label>
@@ -647,7 +631,7 @@ var CONFIRM_GROUPING_MARKUP = () => {
 // --------------- Annotations utils ----------------
 
 
-function getAnnotationByID(annotation_id, annotations) {
+function getAnnotationByID(annotation_id) {
     for(let ele of annotations) {
         if(Number(annotation_id) === ele["id"]) {
             return ele;
@@ -763,16 +747,16 @@ function addAllClasses() {
         createCSSClass(".highlight_element_light", `
             cursor: crosshair;
             border-radius: 0.2rem;
-            padding: 0.2rem;
-            background: rgba(13, 109, 253, 0.269);
+            outline: 1px solid #00b7ff !important; 
+            background: #00b7ff40;
             transition: background-color 125ms ease-in-out 0s;
             z-index: 100000;
         `)
             
         createCSSClass(".highlight_element_strong", `
-            border: 1px solid #ff28009c !important; 
+            outline: 1px solid #ff2800 !important; 
+            background: #ff280014 !important;
             border-radius: 0.2rem; 
-            padding: 0.2rem; 
             cursor: crosshair;
             z-index: 100000;
         `)
@@ -874,6 +858,7 @@ function addAllClasses() {
         createCSSClass("#remarkStopBtn", `
             color: var(--remark-color-primary);
             background-color: var(--remark-color-white);
+            border: 1px solid var(--remark-color-primary);
         `)
 
         createCSSClass("#remarkStopBtn:hover", `
@@ -1345,73 +1330,12 @@ function addAllClasses() {
         createCSSClass(".remark_action_btn:hover ", `
             transform: scale(1.1)
         `)
+
         createCSSClass(".remark_action_btn:active ", `
             transform: scale(1.0)
         `)
 
-    
-        createCSSClass("input[type='number'] ", `
-            -webkit-appearance: textfield;
-            -moz-appearance: textfield;
-            appearance: textfield;
-            color: var(--remark-color-grey-light-1);
-        `)
-    
-        createCSSClass("input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button ", `
-            -webkit-appearance: none;
-        `)
-    
-        createCSSClass(".remark_number_input ", `
-            border: 1px solid var(--remark-color-grey-light-2);
-            border-radius: 0.4rem;
-            height: 1.6rem; 
-            display: inline-flex;
-        `)
-    
-        createCSSClass(".remark_number_input,.remark_number_input * ", `
-            box-sizing: border-box;
-        `)
-    
-        createCSSClass(".remark_number_input button ", `
-            outline: none;
-            appearance: none;
-            background-color: transparent;
-            border: none;
-            align-items: center;
-            justify-content: center;
-            width: 1rem;
-            height: 1.6rem;
-            cursor: pointer;
-            margin: 0px;
-            position: relative;
-        `)
-    
-        createCSSClass(".remark_number_input button:before,.remark_number_input button:after ", `
-            display: inline-block;
-            position: absolute;
-            content: "";
-            width: 0.7rem;
-            height: 1.7px;
-            background-color: var(--remark-color-grey-light-2);
-            transform: translate(-50%, -50%);
-            border-radius: 1rem;
-        `)
-    
-        createCSSClass(".remark_number_input button.plus:after ", `
-            transform: translate(-50%, -50%) rotate(90deg);
-        `)
-    
-        createCSSClass(".remark_number_input input[type=number] ", `
-            font-family: sans-serif;
-            max-width: 2.4rem;
-            font-size: 0.8rem;
-            height: 1.6rem;
-            text-align: center;
-            background: var(--remark-color-white);
-            border: 1px solid var(--remark-color-grey-light-2);
-            box-shadow: none;
-            outline: none;
-        `)
+
     } catch(e) {
         console.log("CSS error : ", e)
     }

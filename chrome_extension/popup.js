@@ -34,7 +34,7 @@ async function handleInit() {
   } 
 
 
-  // window.close();
+  window.close();
 
 }
 
