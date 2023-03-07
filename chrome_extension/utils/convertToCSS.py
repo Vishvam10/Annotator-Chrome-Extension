@@ -664,21 +664,21 @@ res = ""
 
 def gen() :
 
-    for (i, s) in enumerate(classes.split("\`)")[:-1]) :
-        res = s.split("(")[1].split(",")
-        identifier = res[0].replace("\n", "").replace("\t", "").replace("\"", "")
-        rules = "".join(res[1][:-2]).replace("`", "")
+
+    for (i, s) in enumerate(classes.split("`)\n")[:-1]) :
+        res = s.split("`")
+        identifier = res[0].replace("\n", "").replace("\t", "").replace("\"", "").replace("createCSSClass(", "").replace(")", "")[:-2].strip()
+        rules = "".join(res[1])
 
         cssrule = str("{} {{ {} \n }}".format(identifier, rules))
         
         print(i, cssrule)
-        # yield cssrule
+        yield cssrule
     
     return
 
+f = open("s.css", "a")
+for x in gen() :
+    f.write(x)
 
-# f = open("s.css", "a")
-# for x in gen() :
-#     f.write(x)
-
-# f.close()
+f.close()

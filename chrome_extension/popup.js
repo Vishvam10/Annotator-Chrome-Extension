@@ -24,7 +24,11 @@ async function handleInit() {
     target: { tabId: tab.id },
     files: ["/scripts/injectedScript.js"],
   });
-
+  chrome.scripting.insertCSS({
+    target: { tabId: tab.id },
+    files: ["scripts/style.css"],
+  });
+  
   let dataURICheck = await getDataFromStorage("remark_screenshot_datauri");
   dataURICheck = dataURICheck["remark_screenshot_datauri"];
 
@@ -38,6 +42,26 @@ async function handleInit() {
 
 }
 
+async function handleSignup(signupForm) {
+
+  const formData = new FormData(signupForm);
+  logFormData(formData);
+  
+  const url = "http://localhost:3000/api/create-user"
+  const data = JSON.stringify(Object.fromEntries(formData));
+
+  // const res = await POST(url, data);
+  // console.log("result : ", res)
+  // if(res.status === 200 || res.msg === "This email is already registered.") {
+  removeHTMLElement(signupForm);
+  // setDataToStorage("remark_email", JSON.parse(data)["email"])
+  setDataToStorage("remark_email", "sample@gmail.com");
+  renderUserStats();
+    // return;
+  // }
+
+}
+
 async function handleSignout() {  
   setDataToStorage("remark_email", null);
   setDataToStorage("remark_running", false);
@@ -45,11 +69,16 @@ async function handleSignout() {
 
  
   const tab = await getCurrentTab();
+
   chrome.scripting.executeScript({
     target: { tabId: tab.id },
     files: ["/scripts/injectedScript.js"],
   });
-
+  chrome.scripting.insertCSS({
+    target: { tabId: tab.id },
+    files: ["scripts/style.css"],
+  });
+ 
   return;
 
 
@@ -160,23 +189,7 @@ function renderSignupForm() {
     signupBtn.addEventListener("click", async(e) => {
       e.preventDefault();
       e.stopPropagation();
-
-      const formData = new FormData(signupForm);
-      logFormData(formData);
-      
-      const url = "http://localhost:3000/api/create-user"
-      const data = JSON.stringify(Object.fromEntries(formData));
-
-      // const res = await POST(url, data);
-      // console.log("result : ", res)
-      // if(res.status === 200 || res.msg === "This email is already registered.") {
-      removeHTMLElement(signupForm);
-      // setDataToStorage("remark_email", JSON.parse(data)["email"])
-      setDataToStorage("remark_email", "sample@gmail.com");
-      renderUserStats();
-        // return;
-      // }
-
+      handleSignup(signupForm);
     })
   }
   return;

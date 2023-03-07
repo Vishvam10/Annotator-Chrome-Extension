@@ -18,7 +18,7 @@
 
 // ***************** Global Variables ****************
 
-var REMARK_GROUP_ANNOTATIONS = true;
+var REMARK_GROUP_ACTIONS = false;
 
 var annotations = []
 
@@ -49,8 +49,6 @@ var tempBuffer = []
 
 function remark_init() {
     console.log("DOM check and Settings check : ", document.body);
-    
-    addAllClasses();    
     renderMenu();
     loadAllAnnotations();
     startAnnotationProcess();
@@ -92,24 +90,40 @@ function clickListener(e) {
     e.stopPropagation();
     
     const t = e.target;
+    console.log("CLICKED : ", t)
 
     if(e.altKey) {
+
         // Delete label
         if(t.classList.contains("highlight_element_strong")) {
-            handleDeleteLabel(t);
+            if(REMARK_GROUP_ACTIONS) {
+                const className = String(e.target.className.replace("highlight_element_strong", ""));
+                const elements = document.getElementsByClassName(className);
+                handleBatchDelete(elements);
+                for(let ele of elements) {
+                    ele.classList.remove("highlight_element_strong");
+                }
+                
+            } else {
+                handleDeleteLabel(t);
+                console.log("reached")
+                t.classList.remove("highlight_element_strong");
+            }
         }
         
         console.log("delete annotations : ", annotations);
         
     } else {
+
         // Add label
         if(t.classList.contains("highlight_element_light")) {
             if(t.classList.contains("highlight_element_strong")) {
+                console.log("REACHED STRONG")
                 return;
             }
 
-            if(REMARK_GROUP_ANNOTATIONS) {
-                handleBatchAction(tempBuffer, "batchCreate");
+            if(REMARK_GROUP_ACTIONS) {
+                handleBatchCreate(tempBuffer);
                 for(let t of tempBuffer) {
                     t.classList.remove("highlight_element_light");
                     t.classList.add("highlight_element_strong");
@@ -119,9 +133,6 @@ function clickListener(e) {
                 t.classList.remove("highlight_element_light");
                 t.classList.add("highlight_element_strong");
             }
-            
-            // t.classList.remove("highlight_element_light");
-            // t.classList.add("highlight_element_strong");
             
             console.log("add annotations : ", annotations);
 
@@ -188,7 +199,7 @@ function mouseOverListener(e) {
                 return;
             }
             tempBuffer.push(ele)
-            ele.classList.toggle("highlight_element_light");
+            ele.classList.add("highlight_element_light");
         }
 
     })
@@ -212,7 +223,7 @@ function mouseOutListener(e) {
                 console.log("REACHED DESCENDANT");
                 return;
             }
-            ele.classList.toggle("highlight_element_light");
+            ele.classList.remove("highlight_element_light");
         }
     })
     tempBuffer = [];
@@ -283,7 +294,7 @@ function handleEditLabel(targetHTMLElement) {
     if(targetHTMLElement.classList.contains("highlight_element_strong")) {
             
         const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
-        const newType = document.querySelector("input[name='annotation_type']").value;
+        const newTag = document.querySelector("input[name='annotation_tag']").value;
         const newText = document.querySelector("input[name='annotation_text']").value;
         let newCoordinates = document.querySelector("input[name='annotation_coordinates']").value;
 
@@ -294,7 +305,7 @@ function handleEditLabel(targetHTMLElement) {
         for(let ele of annotations) {
             if(ele["id"] == annotation_id) {
                 ele["text"] = newText;
-                ele["tag"] = newType;
+                ele["tag"] = newTag;
                 ele["x"] = Number(newCoordinates[0]);
                 ele["y"] = Number(newCoordinates[1]);
                 ele["width"] = Number(newCoordinates[2]);
@@ -328,54 +339,26 @@ function handleDeleteLabel(targetHTMLElement) {
     }
     
     annotations.splice(ind, 1);
-    removeHighlight(annotation);
 
     delete targetHTMLElement.dataset.annotation_id;
 }
 
-function handleBatchAction(targetHTMLElements, action) {
-    if(action == "batchCreate") {
-        // console.log(targetHTMLElements)
-        for(let i=0; i<targetHTMLElements.length; i++) {
-            const ele = targetHTMLElements[i];
-            handleCreateLabel(ele, annotations)
-        }
-            
-        
-    } else if(action == "batchDelete") {
-                
-        const markup = BATCH_ACTION_MODAL("batchDelete");
-        document.body.insertAdjacentHTML("afterbegin", markup);
-        
-        const ele = document.querySelector(".remark_standard_minimodal");
-        
-        const goBtn = document.getElementById("remark_standard_minimodal_button");
-        goBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        
-            const className = document.getElementById("batchInputClassName").value;
-            const tagName = document.getElementById("batchInputTagName").value;
-                
-            const elements = document.getElementsByClassName(className);
-
-            for(let i=0; i<elements.length; i++) {
-                const ele = elements[i];
-                if(ele.tagName.toLowerCase() == tagName) {
-                    if(ele.className.includes("remark_") || ele.className.includes("highlight_element_light")) {
-                        continue;
-                    } else {
-                        handleDeleteLabel(ele);
-                    }
-                }    
-            }
-            
-            removeHTMLElement(ele);
-        
-        });
-
+function handleBatchCreate(targetHTMLElements) {
+    for(let i=0; i<targetHTMLElements.length; i++) {
+        const ele = targetHTMLElements[i];
+        handleCreateLabel(ele, annotations)
     }
+}        
+
+function handleBatchDelete(targetHTMLElements) {
+    
+    for(let i=0; i<targetHTMLElements.length; i++) {
+        const ele = targetHTMLElements[i];
+        handleDeleteLabel(ele);
+    }
+
 }
+
 
 function handleBatchUpdate() {
     // console.log("clicked : handleBatchUpdate")
@@ -558,12 +541,8 @@ var BATCH_ACTION_MODAL = (action) => {
 
 var SIDEBAR = (curAnnotation) => {
     
-    let text = curAnnotation['text'];
+    let text = curAnnotation['text'].substr(0, 60) + "...";
     let coordinates = curAnnotation["x"] + "," + curAnnotation["y"] + "," + curAnnotation["width"] + "," + curAnnotation["height"];
-    console.log(coordinates)
-    if(text.length > 60) {
-        text = text.substr(0, 60) + ". . ."
-    }
 
     const markup =
     `
@@ -588,24 +567,23 @@ var SIDEBAR = (curAnnotation) => {
                     <input type="text" name="annotation_parent" class="remark_form_input remark_fade" value="${curAnnotation['parent']}" readonly disabled>
                 </div>
                 <div class="remark_form_fields">
-                    <label for="annotation_type" class="remark_form_label">CLASSNAME</label>
-                    <input type="text" name="annotation_type" class="remark_form_input" value=${curAnnotation['html_class']} readonly disabled>
+                    <label for="annotation_html_class" class="remark_form_label">CLASSNAME</label>
+                    <input type="text" name="annotation_html_class" class="remark_form_input" value=${curAnnotation['html_class']} readonly disabled>
                 </div>
                 <div class="remark_form_fields">
-                    <label for="annotation_type" class="remark_form_label">TYPE</label>
-                    <input type="text" name="annotation_type" class="remark_form_input" value=${curAnnotation['tag']}>
+                    <label for="annotation_tag" class="remark_form_label">TYPE</label>
+                    <input type="text" name="annotation_tag" class="remark_form_input" value=${curAnnotation['tag']}>
                 </div>
                 <div class="remark_form_fields">
                     <label for="annotation_text" class="remark_form_label">TEXT</label>
-                    <input type="text" name="annotation_text" class="remark_form_input" value=${curAnnotation['text']}>
+                    <input type="text" name="annotation_text" class="remark_form_input" value=${text}>
                 </div>
                 <div class="remark_form_fields">
                     <label for="annotation_coordinates" class="remark_form_label">COORDINATES (x,y,w,h)</label>
                     <input type="text" name="annotation_coordinates" class="remark_form_input" value="${coordinates}">
                 </div>
                 <div class="remark_form_fields">
-                    <button type="button" class="remark_standard_button" id="remark_edit_annotation_button" style="position: absolute;
-                    bottom: 1.6rem; width: 16rem;">Edit</button>
+                    <button type="button" class="remark_standard_button" id="remark_edit_annotation_button">Edit</button>
                 </div>
             </div>
         </div>
@@ -694,654 +672,6 @@ function dataURIToBlob(dataURI) {
     return new Blob([ia], { type: mimeString })
 }
 
-// ---------------------- CSS ----------------------
-
-
-function createCSSClass(name,rules){
-    var style = document.createElement("style");
-    style.type = "text/css";
-    document.getElementsByTagName("head")[0].appendChild(style);
-    if(!(style.sheet||{}).insertRule) 
-    (style.styleSheet || style.sheet).addRule(name, rules);
-    else
-    style.sheet.insertRule(name+"{"+rules+"}",0);
-}
-
-function addAllClasses() {
-
-    try {
-
-        createCSSClass(":root", `
-            --remark-color-primary: #0d6efd;
-            --remark-color-primary-lighter: #5498ff;
-            --remark-color-primary-darker: #0b5dd7;
-            --remark-color-success: #5ec576;
-            --remark-color-success-darker: #399e66;
-            --remark-color-warning: #ffcb03;
-            --remark-color-warning-darker: #eaac00;
-            
-            --remark-color-danger: #ff585f;
-            --remark-color-danger-darker: #fd424b;
-            --remark-color-grey-light-3: #f2f2f2;
-            --remark-color-grey-light-2: #d0d0d0;
-            --remark-color-grey-light-1: #9c9c9c;
-            --remark-color-grey: #808080;
-            --remark-color-grey-dark-1: #6c6c6c;
-            --remark-color-grey-dark-2: #444444;
-            --remark-color-grey-dark-3: #2d2c2c;
-            --remark-color-grey-dark-4: #141313;
-            --remark-color-black: #000000;
-            --remark-color-white: #FFFFFF;
-            --remark-color-danger-opacity: #ff58602d;
-            --gradient-primary: linear-gradient(to top left, #39b385, #9be15d);
-            --gradient-secondary: linear-gradient(to top left, #ffb003, #ffcb03);
-            --remark-default-box-shadow-light: rgba(120, 123, 127, 0.2) 0px 8px 16px;
-            --remark-default-box-shadow: rgba(75, 77, 80, 0.2) 0px 8px 24px;
-            --remark-default-sanserif-font: Arial, Helvetica, sans-serif;
-        `)
-    
-        createCSSClass(".remark_fade", `
-            opacity: 0.5;
-        `)
-    
-        createCSSClass(".highlight_element_light", `
-            cursor: crosshair;
-            border-radius: 0.2rem;
-            outline: 1px solid #00b7ff !important; 
-            background: #00b7ff40;
-            transition: background-color 125ms ease-in-out 0s;
-            z-index: 100000;
-        `)
-            
-        createCSSClass(".highlight_element_strong", `
-            outline: 1px solid #ff2800 !important; 
-            background: #ff280014 !important;
-            border-radius: 0.2rem; 
-            cursor: crosshair;
-            z-index: 100000;
-        `)
-
-        createCSSClass(".highlight_red", `
-            background: #ff45454d !important;
-        `)
-    
-        createCSSClass(".highlight_yellow", `
-            background: #ffcd454d !important;
-        `)
-    
-        createCSSClass(".highlight_green", `
-            background: #64ff454d !important;
-        `)
-        
-        createCSSClass(".highlight_teal", `
-            background: #45ffc74d !important;
-        `)
-        
-        createCSSClass(".highlight_blue", `
-            background: #45e0ff4d !important;
-        `)
-
-        createCSSClass(".highlight_purple", `
-            background: #6445ff4d !important;
-        `)
-
-        createCSSClass(".highlight_violet", `
-            background: #8f45ff4d !important;
-        `)
-
-        createCSSClass(".highlight_pink", `
-            background: #ff45964d !important;
-        `)
-    
-        createCSSClass(".remark_standard_modal", `
-            display: flex;
-            flex-direction: column;
-            background: white;
-            color: black;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            border-radius: 1.2rem;
-            width: 22rem;
-            height: auto;
-            position: absolute;
-            top: 14%;
-            left: 40%;
-            box-shadow: rgb(149 157 165 / 20%) 0px 8px 24px;
-            z-index: 1000000;
-        `)
-    
-        createCSSClass(".remark_form_input", `        
-            padding: 1rem 2rem 1.2rem 1rem;
-            font-family: var(--remark-default-sanserif-font);
-            appearance: none;
-            height: 2.8rem;
-            width: 100%;
-            border-radius: 0.6rem;
-            background-color: var(--remark-color-white);
-            margin: 0.2rem 0rem 1rem 0rem;
-            transition: border 0.2s ease-in 0s;
-            border: 1px solid var(--remark-color-grey-light-1);
-            font-size: 0.8rem;
-            color: var(--remark-color-grey);
-            outline: 0px !important;        
-        `);
-    
-        createCSSClass(".remark_standard_button", `
-            background-color: var(--remark-color-primary);
-            font-size: 0.8rem;
-            color: var(--remark-color-white);
-            font-family: inherit;
-            font-weight: 500;
-            border: none;
-            padding: 1rem;
-            border-radius: 0.8rem;
-            cursor: pointer;
-            transition: all 0.1s ease 0s;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: center;
-            height: 3.2rem;
-            margin: 0rem 0rem 1rem 0rem;
-        `)
-    
-        createCSSClass(".remark_standard_button:hover", `
-            background-color: var(--remark-color-primary) !important;
-            transform: scale(1.04);
-        `)
-    
-        createCSSClass(".remark_standard_button:active", `
-            transform: scale(1.0) !important;
-        `)
-    
-        createCSSClass("#remarkStopBtn", `
-            color: var(--remark-color-primary);
-            background-color: var(--remark-color-white);
-            border: 1px solid var(--remark-color-primary);
-        `)
-
-        createCSSClass("#remarkStopBtn:hover", `
-            color: var(--remark-color-white);
-        `)
-            
-        createCSSClass(".remark_standard_button:active", `
-            color: var(--remark-color-white);
-        `)
-       
-        createCSSClass(".remark_standard_modal_title", `
-            display: flex;
-            flex-direction: row;
-            justify-content: start;
-            overflow-wrap: break-word;
-            padding: 0rem;
-            margin: 1rem 0rem 2rem 0rem;
-            font-size: 1.1rem;
-            height: inherit;
-            line-height: 0rem;
-            font-weight: bold;
-        `)
-    
-        createCSSClass(".remark_form_label", `
-            font-family: var(--remark-default-sanserif-font);
-            font-size: 12px;
-            color: var(--remark-color-grey-light-1);
-        `)
-            
-        createCSSClass(".remark_confirm_grouping", `
-            display: flex;
-            flex-direction: row;
-            gap: 1.2rem;
-            padding: 1rem;
-            position: inherit;
-            top: 0rem;
-            right: 0rem;
-            border-radius: 0.8rem;
-            margin: 0rem 0rem 0rem;
-            background-color: #000000;
-            color: var(--remark-color-white);
-            width: 9rem;
-            height: 3.2rem;
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 125ms ease-in-out 0s;
-        `);
-    
-        createCSSClass(".remark_confirm_grouping:hover", `
-            transform: scale(1.05);
-        `);
-    
-        createCSSClass(".remark_confirm_grouping:active", `
-            transform: scale(1.0);
-        `);
-    
-        createCSSClass(".remark_grouping_options", `
-            background: var(--remark-color-grey-dark-4);
-            padding: 1rem;
-            height: 1rem;
-            width: 10rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 0.5rem;
-            transition: all 125ms ease-in-out 0s;
-            cursor: pointer;
-        `)
-    
-        createCSSClass(".remark_grouping_options:hover", `
-            transform: scale(1.05);
-        `)
-    
-        createCSSClass(".remark_grouping_options", `
-            transform: scale(1.0);
-        `)
-    
-        createCSSClass(".remark_standard_sidebar", `
-            position: fixed;
-            top: 2.2rem;
-            right: 2rem;
-            width: 20rem;
-            background-color: var(--remark-color-white);
-            border-radius: 1.2rem;
-            z-index: 100000000;
-            height: 42rem;
-            transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
-            display: flex;
-            overflow: hidden;
-            flex-direction: column;
-            padding: 2rem;
-        `)
-
-        createCSSClass(".remark_annotations_sidebar_resize", `
-            height: 3.2rem;
-            padding: 0rem;
-        `)
-    
-        createCSSClass("@keyframes remark_sidebar_animation", `
-            from {
-                width: 0px;
-            }
-            to {
-                width: 20rem;
-            }
-        `)
-    
-        createCSSClass(".remark_sidebar_modal_header", `
-            padding: 1rem;
-            height: 2rem;
-            margin: -1.2rem 0rem 1rem -1rem;
-            width: 18.2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        `)
-
-        createCSSClass(".remark_sidebar_modal_header_resize", `
-            margin: 0.4rem 1rem 0rem 1rem;
-        `)
-          
-        createCSSClass(".remark_standard_sidebar_actions", `
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            width: 10%;
-        `)
-    
-        createCSSClass(".remark_standard_sidebar_title", `
-            display: flex;
-            flex-direction: row;
-            justify-content: start;
-            overflow-wrap: break-word;
-            margin: 0.4rem 0rem 0rem;
-            font-size: 0.8rem;
-            font-weight: bold;
-        `)
-    
-        createCSSClass(".remark_close_btn", `
-            margin: 0.4rem 0rem 0rem 0rem;
-            cursor: pointer;
-        `) 
-        
-        createCSSClass(".remark_standard_sidebar_body", `
-            height: 80%;
-            overflow-x: hidden;
-            overflow-y: scroll;
-            scrollbar-width: none;    
-        `)
-    
-        createCSSClass(".remark_standard_sidebar_body_full", `
-            height: 100%;
-            overflow: hidden;
-        `)
-    
-        createCSSClass(".remark_form_fields", `
-            margin: 0rem 0rem 0rem 0rem;
-        `)
-    
-        createCSSClass(".remark_form_input:focus", `
-            border: 0.5px solid var(--remark-color-primary);
-        `)
-    
-        createCSSClass(".remark_form_label", `
-            font-family: var(--remark-default-sanserif-font);
-            font-size: 0.8rem;
-            color: var(--remark-color-grey-light-1);
-            font-weight: normal;
-        `);
-    
-        createCSSClass("#remark_standard_modal_close_btn", `
-            transition: all 0.1s ease 0s;
-        `)
-    
-        createCSSClass("#remark_standard_modal_close_btn:hover", `
-            transform: scale(1.1);
-        `)
-        
-        createCSSClass("#remark_standard_modal_close_btn:active", `
-            transform: scale(1.0);
-        `)
-    
-        createCSSClass(".remark_init_container", `
-            width: 20rem;
-            background: var(--remark-color-white);
-            padding: 1rem;
-            height: 4rem;
-            border-radius: 1.2rem;
-            position: fixed;
-            z-index: 10000000;
-            bottom: 3rem;
-            left: 36%;
-            display: flex;
-            flex-direction: row;
-            justify-content: space-around;
-            align-content: center;
-            box-shadow: var(--remark-default-box-shadow);
-            transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-        `)
-    
-        createCSSClass(".remark_init_container_resize", `
-            left: 1.6%;
-            width: 16rem;
-            bottom: 2.6%;
-        `)
-
-        createCSSClass(".remark_init_container_resize > .remark_init_button", `
-            font-size: 0.8rem;
-        `)
-    
-        createCSSClass(".remark_init_button", `
-            color: var(--remark-color-white);
-            width: 60%;
-            font-size: 0.9rem;
-            padding: 1rem;
-            background-color: var(--remark-color-primary);
-            height: 3rem;
-            margin: -0.5rem -0.4rem 0rem 2rem;
-        `)
-    
-        createCSSClass(".remark_init_text", `
-            width: 30%;
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--remark-color-grey-dark-1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        `)
-
-        createCSSClass(".remark_standard_minimodal ", `
-            width: 50rem;
-            height: 6rem;
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: flex-start;
-            background-color: var(--remark-color-white);
-            color: var(--remark-color-grey-light-1);
-            border: 1px solid var(--remark-color-grey-light-2);
-            border-radius: 1.2rem;
-            z-index: 10000000;
-            position: fixed;
-            bottom: 1rem;
-            left: 24%;
-        `)
-
-        createCSSClass("#remarkRedoBtn, #remarkUndoBtn", `
-            width: 6rem;
-        `)
-    
-        createCSSClass(".remark_standard_minimodal_input ", `
-            margin: 0.2rem 0rem 0rem 0rem;
-            height: 2.6rem;
-            width: 15rem;
-            border-radius: 0.8rem;
-            border: 1px solid var(--remark-color-grey-light-2);
-            outline: none;
-            padding: 1rem;
-            color: var(--remark-color-grey-light-1);
-            background: var(--remark-color-white);
-        `)
-    
-        createCSSClass(".remark_standard_minimodal_button ", `
-            width: 6rem;
-            height: 2.4rem;
-            border-radius: 0.8rem;
-            background-color: var(--remark-color-grey-light-3);
-            color: var(--remark-color-grey);
-            font-size: 1.2rem;
-            padding: 0rem;
-            margin: 2rem 1rem 0rem 1rem;
-            border: 1px solid var(--remark-color-grey-light-2);
-            transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
-        `)
-
-        createCSSClass(".remark_standard_minimodal_button:hover ", `
-            transform: scale(1.1)
-        `)
-
-        createCSSClass(".remark_standard_minimodal_button:active ", `
-            transform: scale(1.0)
-        `)
-    
-        createCSSClass(".remark_standard_minimodal_input_container ", `
-            height: 100%;
-            display: block;
-            width: 100%;
-            margin: 1rem 1rem 0rem 0rem;
-        `)
-    
-        createCSSClass(".remark_standard_minimodal_label ", `
-            font-size: 0.7rem;
-            color: var(--remark-color-grey-light-1);
-        `)
-    
-        createCSSClass(".remark_standard_minimodal_body ", `
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            height: 100%;
-        `)
-    
-        createCSSClass(".remark_standard_minimodal_title ", `
-            height: 100%;
-            border-right: 1px solid var(--remark-color-grey-light-2);
-            margin: 0rem 0rem 0rem 0rem;
-            display: flex;
-            flex-direction: row;
-            justify-content: flex-start;
-            align-items: center;
-            text-align: center;
-            width: 13%;
-            padding: 1rem;
-            font-size: 0.8rem;
-        `)
-    
-        createCSSClass(".remark_hide ", `
-            display: none;
-            opacity: 0;
-            visibility: hidden;
-        `)
-    
-        createCSSClass(".remark_show ", `
-            display: flex;
-            opacity: 1;
-            visibility: visible;
-        `)
-        
-        createCSSClass(".remark_standard_menu_container ", `
-            height: 23rem;
-            width: 16rem;
-            border-radius: 1.2rem;
-            background-color: var(--remark-color-white);
-            display: flex;
-            flex-direction: column;
-            padding: 1.6rem;
-            border: 1px solid var(--remark-color-grey-light-2);
-            z-index: 10000000;
-            position: fixed;
-            top: 2rem;
-            left: 1.4rem;
-            transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
-        `)
-
-        createCSSClass(".remark_menu_body", `
-            height: 100%;
-            width: 100%;
-        `)
-        
-        createCSSClass(".remark_menu_resize", `
-            height: 3.2rem;
-        `)
-
-        
-        createCSSClass(".remark_standard_menu_header", `
-            padding: 0rem;
-            height: 2rem;
-            margin: -1.2rem 0rem 1rem 0rem;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        `)
-    
-        createCSSClass(".remark_main_heading ", `
-            font-size: 1.6rem;
-            color: var(--remark-color-grey-dark-2);
-            text-align: center;
-        `)
-    
-        createCSSClass(".remark_settings ", `
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            margin: -1rem 0rem -3rem 0rem;
-        `)
-    
-        createCSSClass(".remark_settings_subgroup ", `
-            padding: 1rem;
-            margin: 0rem 0rem 0rem -1rem;
-        `)
-    
-        createCSSClass(".remark_settings_subgroup_title ", `
-            margin: 0.2rem 0rem 0.2rem 0rem;
-            font-size: 0.7rem;
-            color: var(--remark-color-grey-light-1);
-        `)
-    
-        createCSSClass(".remark_setting_subgroup_item ", `
-            margin: 0.4rem 0rem 0rem;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        `)
-    
-        createCSSClass(".remark_toggle ", `
-            cursor: pointer;
-            display: inline-block;
-            margin: 0.4rem 0rem;
-        `)
-    
-        createCSSClass(".remark_toggle_switch ", `
-            display: inline-block;
-            background: #ccc;
-            border-radius: 16px;
-            width: 36px;
-            height: 20px;
-            position: relative;
-            vertical-align: middle;
-            transition: background 0.25s;
-        `)
-    
-        createCSSClass(".remark_toggle_switch:before, .remark_toggle_switch:after", `
-            content: "";
-        `)
-    
-        createCSSClass(".remark_toggle_switch:before", `
-            display: block;
-            background: linear-gradient(to bottom, #fff 0%, #eee 100%);
-            border-radius: 50%;
-            width: 12px;
-            height: 12px;
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            transition: left 0.25s;
-        `)
-    
-        createCSSClass(".remark_toggle_checkbox:checked + .remark_toggle_switch ", `
-            background: var(--remark-color-primary);
-        `)
-    
-        createCSSClass(".remark_toggle_checkbox:checked + .remark_toggle_switch:before ", `
-         left: 20px;
-        `)
-    
-        createCSSClass(".remark_toggle_checkbox ", `
-            position: absolute;
-            visibility: hidden;
-        `)
-    
-        createCSSClass(".remark_toggle_label ", `
-            margin: 0rem 0rem 0rem 1rem;
-            position: relative;
-            top: 1px;
-            font-size: 0.7rem;
-            color: var(--remark-color-grey-light-1);
-        `)
-    
-        createCSSClass(".remark_action_btn ", `
-            width: 100%;
-            margin: 0.2rem 1rem 0rem 0rem;
-            height: 2rem;
-            color: var(--remark-color-grey-dark-1);
-            padding: 0.3rem;
-            background-color: var(--remark-color-grey-light-3);
-            border-radius: 0.6rem;
-            border: 1px solid var(--remark-color-grey-light-2);
-            transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
-            font-size: 0.8rem;
-        `)
-
-        createCSSClass(".remark_action_btn:hover ", `
-            transform: scale(1.1)
-        `)
-
-        createCSSClass(".remark_action_btn:active ", `
-            transform: scale(1.0)
-        `)
-
-
-    } catch(e) {
-        console.log("CSS error : ", e)
-    }
-
-
-}
 
 // ---------------- DOM Operations -----------------
 
@@ -1480,3 +810,15 @@ function logFormData(formData) {
     }
 }
   
+// ---------------------- CSS ----------------------
+
+
+// function createCSSClass(name,rules){
+//     var style = document.createElement("style");
+//     style.type = "text/css";
+//     document.getElementsByTagName("head")[0].appendChild(style);
+//     if(!(style.sheet||{}).insertRule) 
+//     (style.styleSheet || style.sheet).addRule(name, rules);
+//     else
+//     style.sheet.insertRule(name+"{"+rules+"}",0);
+// }
