@@ -463,7 +463,7 @@ async function renderMenu() {
                             <label for="createNewTag" class="remark_form_label">CREATE NEW TAG</label>
                             <input type="text" name="createNewTag" id="createNewTag" class="remark_form_input" placeholder="Enter a new label">
                         </div>
-                        <button type="button" class="remark_standard_button" id="createNewTagBtn">Create New Label</button>
+                        <button type="button" class="remark_" id="createNewTagBtn">Create New Label</button>
                         <label class="remark_toggle" id="groupActionsBtn">
                         <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
                         <div class="remark_toggle_switch"></div>
