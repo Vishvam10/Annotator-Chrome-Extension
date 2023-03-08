@@ -19,9 +19,11 @@
 // ***************** Global Variables ****************
 
 var REMARK_GROUP_ACTIONS = false;
+var REMARK_ADDITIONAL_STYLES = null;
 
 var annotations = []
-
+var tempBuffer = []
+var curNode;
 
 var eleColors = {
     "div" : "highlight_blue", 
@@ -42,13 +44,14 @@ var VALID_HTML_ELEMENTS = [
     "AUDIO", "VIDEO", "UL", "LI"
 ]
 
-var tempBuffer = []
-
 // ***************** Initialization ******************
 
 
 function remark_init() {
     console.log("DOM check and Settings check : ", document.body);
+    const style = document.createElement("style");
+    REMARK_ADDITIONAL_STYLES = style;
+    document.body.appendChild(style);
     renderMenu();
     loadAllAnnotations();
     startAnnotationProcess();
@@ -69,16 +72,17 @@ function remark_destroy() {
 }
 
 function startAnnotationProcess() {
-    document.body.addEventListener("keypress", keyPressListener)
-    document.body.addEventListener("click", clickListener);
-    document.body.addEventListener("mouseover", mouseOverListener);
-    document.body.addEventListener("mouseout", mouseOutListener);    
+    document.body.addEventListener("keypress", keyPressListener, false)
+    document.body.addEventListener("click", clickListener, false);
+    document.body.addEventListener("mouseover", mouseOverListener, false);
+    document.body.addEventListener("mouseout", mouseOutListener, false);    
 }
 
 function stopAnnotationProcess() {
-    document.body.removeEventListener("click", clickListener);
-    document.body.removeEventListener("mouseover", mouseOverListener);
-    document.body.removeEventListener("mouseout", mouseOutListener);
+    document.body.removeEventListener("keypress", keyPressListener, false)
+    document.body.removeEventListener("click", clickListener, false);
+    document.body.removeEventListener("mouseover", mouseOverListener, false);
+    document.body.removeEventListener("mouseout", mouseOutListener, false);
     return;
 }
 
@@ -90,7 +94,6 @@ function clickListener(e) {
     e.stopPropagation();
     
     const t = e.target;
-    console.log("CLICKED : ", t)
 
     if(e.altKey) {
 
@@ -110,8 +113,6 @@ function clickListener(e) {
                 t.classList.remove("highlight_element_strong");
             }
         }
-        
-        console.log("delete annotations : ", annotations);
         
     } else {
 
@@ -137,40 +138,10 @@ function clickListener(e) {
             console.log("add annotations : ", annotations);
 
         } else if(t.classList.contains("highlight_element_strong")) {
-
+            curNode = t;
             const id = t.dataset.annotation_id;
-            const curAnnotation = getAnnotationByID(id, annotations);
-            let sideBar = SIDEBAR(curAnnotation);
-
-            const check = document.getElementById("remark_annotations_sidebar");    
-            
-            if (check) {
-                removeHTMLElement(check);
-            }
-            
-            document.body.insertAdjacentHTML("afterbegin", sideBar);
-
-            const editBtn = document.getElementById("remark_edit_annotation_button");
-            const sidebarCloseBtn = document.getElementById("remark_standard_sidebar_close_btn");
-
-            if(sidebarCloseBtn) {
-                sidebarCloseBtn.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const sidebarBody = document.querySelector(".remark_standard_modal_body");
-                    sidebarBody.classList.toggle("remark_hide");
-
-                    document.getElementById("remark_annotations_sidebar").classList.toggle("remark_annotations_sidebar_resize");
-                    document.querySelector(".remark_sidebar_modal_header").classList.toggle("remark_sidebar_modal_header_resize");
-                    
-                })
-            }
-
-            editBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleEditLabel(t, annotations)
-            })
+            const ann = getAnnotationByID(id);
+            setCurrentLabelAsOption(ann.tag);
         }
 
     }
@@ -180,23 +151,16 @@ function mouseOverListener(e) {
     e.preventDefault();
     e.stopPropagation();
    
-    const menu = document.querySelector(".remark_standard_menu_container");
     const className = String(e.target.className);
     
     const elements = document.getElementsByClassName(className);
-    Array.from(elements).forEach((ele) => { 
-        console.log("tag : ", ele.tagName)
-       
+    Array.from(elements).forEach((ele) => {        
         const tag = ele.tagName;
         if (VALID_HTML_ELEMENTS.includes(tag)) {
             if(ele.className) {
                 if (ele.className.includes("remark_") || ele.className.includes("highlight_element_strong")) {
                     return;
                 }
-            }
-            if(menu.contains(ele)) {
-                console.log("REACHED DESCENDANT");
-                return;
             }
             tempBuffer.push(ele)
             ele.classList.add("highlight_element_light");
@@ -209,8 +173,6 @@ function mouseOutListener(e) {
     e.preventDefault();
     e.stopPropagation();
 
-    const menu = document.querySelector(".remark_standard_menu_container");
-
     tempBuffer.forEach((ele) => { 
         const tag = ele.tagName;
         if (VALID_HTML_ELEMENTS.includes(tag)) {
@@ -218,10 +180,6 @@ function mouseOutListener(e) {
                 if (ele.className.includes("remark_") || ele.className.includes("highlight_element_strong")) {
                     return;
                 }
-            }
-            if(menu.contains(ele)) {
-                console.log("REACHED DESCENDANT");
-                return;
             }
             ele.classList.remove("highlight_element_light");
         }
@@ -237,21 +195,12 @@ function keyPressListener(e) {
 
 function attachListeners() {
 
-    const undoBtn = document.getElementById("remarkUndoBtn");
-    undoBtn.addEventListener("click", handleUndo);
-
-    const redoBtn = document.getElementById("remarkRedoBtn");
-    redoBtn.addEventListener("click", handleRedo);
-
     const remarkBatchCreateBtn = document.getElementById("remarkBatchCreateBtn");
     remarkBatchCreateBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
         handleBatchAction("batchCreate")
     });
-    
-    // const remarkBatchUpdateBtn = document.getElementById("remarkBatchUpdateBtn");
-    // remarkBatchUpdateBtn.addEventListener("click", handleBatchUpdate);
     
     const remarkBatchDeleteBtn = document.getElementById("remarkBatchDeleteBtn");
     remarkBatchDeleteBtn.addEventListener("click", (e) => {
@@ -269,6 +218,26 @@ function handleCreateLabel(targetHTMLElement) {
     const x = Math.round(rect.x), y = Math.round(rect.y), w = Math.round(rect.width), h = Math.round(rect.height);
 
     const className = targetHTMLElement.className.replace("highlight_element_light", "");
+    curNode = targetHTMLElement;
+
+    // let c = getDOMClassName(targetHTMLElement);
+
+    // REMARK_ADDITIONAL_STYLES.innerHTML = `
+    //     ${c} {
+    //         position: relative;
+    //     }
+        
+    //     ${c}::before {
+    //         content: '${targetHTMLElement.tagName.toLowerCase()}';
+    //         position: absolute;
+    //         top: 0;
+    //         left: 0;
+    //         width: 100%;
+    //         height: 100%;
+    //         z-index: 999999;
+    //         pointer-events: none;
+    //     }
+    // `;
 
     const d = {
         "id" : Math.round(Math.random() * 10000),
@@ -287,46 +256,30 @@ function handleCreateLabel(targetHTMLElement) {
 
     annotations.push(d);
     targetHTMLElement.dataset.annotation_id = d["id"];
-    console.log("added : ", annotations);
 }
 
-function handleEditLabel(targetHTMLElement) {
-    if(targetHTMLElement.classList.contains("highlight_element_strong")) {
-            
-        const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
-        const newTag = document.querySelector("input[name='annotation_tag']").value;
-        const newText = document.querySelector("input[name='annotation_text']").value;
-        let newCoordinates = document.querySelector("input[name='annotation_coordinates']").value;
-
-        if(newCoordinates.length > 0) {
-            newCoordinates = newCoordinates.split(",")
-        }
-
-        for(let ele of annotations) {
-            if(ele["id"] == annotation_id) {
-                ele["text"] = newText;
-                ele["tag"] = newTag;
-                ele["x"] = Number(newCoordinates[0]);
-                ele["y"] = Number(newCoordinates[1]);
-                ele["width"] = Number(newCoordinates[2]);
-                ele["height"] = Number(newCoordinates[3]);
-                
-                console.log("changed : ", ele)
+function handleEditLabel(targetHTMLElement, newTag) {
+    if(targetHTMLElement) {
+        if(targetHTMLElement.classList.contains("highlight_element_strong")) {
+            const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
+            for(let ele of annotations) {
+                if(ele["id"] == annotation_id) {
+                    ele["tag"] = newTag;
+                    console.log("changed : ", ele);
+                    break;
+                }
             }
+            
         }
-        
-        const edit_modal_check = document.getElementById("remark_edit_annotation_modal");
-        if(edit_modal_check) {
-            removeHTMLElement(edit_modal_check);
-        }
-
+        return;
     }
+    return;
 
-    // console.log("edit annotations : ", annotations);
 }
 
 function handleDeleteLabel(targetHTMLElement) {
     const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
+    console.log("delete : ", targetHTMLElement, annotation_id)
 
     let ind, annotation;
 
@@ -339,8 +292,10 @@ function handleDeleteLabel(targetHTMLElement) {
     }
     
     annotations.splice(ind, 1);
-
     delete targetHTMLElement.dataset.annotation_id;
+    setCurrentLabelAsOption("span");
+    console.log("delete annotations : ", annotations);
+
 }
 
 function handleBatchCreate(targetHTMLElements) {
@@ -356,26 +311,27 @@ function handleBatchDelete(targetHTMLElements) {
         const ele = targetHTMLElements[i];
         handleDeleteLabel(ele);
     }
-
+    
 }
 
-
-function handleBatchUpdate() {
-    // console.log("clicked : handleBatchUpdate")
-    return;
+function handleBatchEdit(targetHTMLElements, val) {
+    
+    for(let i=0; i<targetHTMLElements.length; i++) {
+        const ele = targetHTMLElements[i];
+        handleEditLabel(ele, val);
+    }
 }
 
 async function handlePushToServer() {
     const storageData = await getDataFromStorage("remark_screenshot_datauri");
     const dataURI = storageData["remark_screenshot_datauri"];
     const email = storageData["remark_email"];
-    // console.log("in injected script : ", dataURI);
 
     const imgBlob = dataURIToBlob(dataURI)
     const labels = getAllAnnotations()
 
     const formData = new FormData()
-    formData.append("image", imgBlob)
+    formData.append("image", imgBlob, "image.jpg")
     formData.append("label", JSON.stringify(labels));
 
     logFormData(formData)
@@ -384,51 +340,47 @@ async function handlePushToServer() {
 
     try {
 
-        let res = await fetch(url, {
-          method: "POST",
-          mode: "no-cors",
-          headers : {
-            "Content-type" : "multipart/form-data; boundary=---011000010111000001101001",
-            "email": email
-          },
-          body : formData
-        })
+        const options = {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+                "Content-Type": "multipart/form-data",
+                "Access-Control-Allow-Origin": "*",
+                email: email
+            },
+            body: formData
+        };
       
+        res = await fetch(url, options);
         res = await res.json();
-        console.log("POST RESULT : ", res)
+
+        console.log("POST RESULT : ", res);
+
+        if(res.msg === "Submitted") {
+            console.log("SUCCESSFUL !")
+            remark_destroy(); 
+        } else {
+            console.log("FAILED : ", res)
+        }
 
     } catch(e) {
-        console.log("ERROR IN POST REQUEST : ", e.message);
+        console.log("ERROR IN POST REQUEST : ", e);
     }
 }
 
-function handleUndo() {
-    // console.log("clicked : handleUndo")
-    return;
-}
-
-function handleRedo() {
-    // console.log("clicked : handleRedo")
-    return;
-}
 
 // *************** Render functions ***************
-
 
 function renderAllAnnotations(annotations) {
     for(let i=0; i<annotations.length; i++) {
         const ele = annotations[i];
         const node = getElementByXpath(ele["html_xpath"]);
-        console.log(node)
         if(node) {
             if(node.className.includes("remark_") || node.className.includes("highlight_element_strong")) {
                 continue;
             } else {
                 node.classList.remove("highlight_element_light");
-                // const colClass = eleColors[ele["tag"]];
-                // node.classList.add(colClass);
                 node.classList.add("highlight_element_strong");
-
             }
         }
     }
@@ -454,25 +406,29 @@ function renderMenu() {
             <div class="remark_menu_body">
                 <div class="remark_settings">
                     <div class="remark_settings_subgroup">
-                        <h5 class="remark_settings_subgroup_title">ACTIONS (TODO)</h5>      
-                        <span class="remark_setting_subgroup_item" style="width: 13rem">
-                            <button class="remark_action_btn" id="remarkUndoBtn" name="actions">
-                                UNDO
-                            </button>
-                            <button class="remark_action_btn" id="remarkRedoBtn" name="actions">
-                                REDO
-                            </button>
-                        </span>     
+                        <label for="labelType" class="remark_">Choose a label type : </label>
+                        
+                        <select name="labelType" id="labelTypeBtn" class="remark_">
+                            <option value="parapgraph" class="remark_">Paragraph</option>
+                            <option value="heading" class="remark_">Heading</option>
+                            <option value="link" class="remark_">Link</option>
+                            <option value="button" class="remark_">Button</option>
+                            <option value="span" class="remark_">Span</option>
+                            <option value="image" class="remark_">Image</option>
+                            <option value="remove_label" class="remark_">Remove Label</option>
+                        </select>
+
+                        <label class="remark_toggle" id="groupActionsBtn">
+                            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
+                            <div class="remark_toggle_switch"></div>
+                            <span class="remark_toggle_label">Group elements by class and tag</span>
+                        </label>
+
                     </div>  
-                    <div class="remark_settings_subgroup">
-                        <h5 class="remark_settings_subgroup_title">BATCH ACTIONS</h5>      
-                        <label for="groupActionsBtn" class="remark_form_field">Group Actions</label>  
-                        <input type="checkbox" id="groupActionsBtn" name="groupActionsBtn" checked>
-                    </div>  
-                    <button type="button" class="remark_standard_button" id="remarkStopBtn">Stop Annotation</button>
-                    <button type="button" class="remark_standard_button" id="pushToServerBtn">Push To Server</button>
+                    <button type="button" class="remark_standard_button" id="pushToServerBtn">Save Annotations</button>
                 </div>
             </div>
+        </div>
     `
     document.body.insertAdjacentHTML("afterbegin", markup);
 
@@ -487,11 +443,50 @@ function renderMenu() {
         menuContainer.classList.toggle("remark_menu_resize");
     });
 
+    const labelTypeBtn = document.getElementById("labelTypeBtn");
+    labelTypeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const val = String(e.target.value);
+        console.log("val : ", val)
+        if(val != "remove_label") {
+            if(REMARK_GROUP_ACTIONS) {
+                const className = String(curNode.className.replace("highlight_element_strong", ""));
+                const elements = document.getElementsByClassName(className);
+                handleBatchEdit(elements, val);
+            } else {
+                handleEditLabel(curNode, val);
+            }
+        } else {
+            if(REMARK_GROUP_ACTIONS) {  
+                const className = String(curNode.className.replace("highlight_element_strong", ""));
+                const elements = document.getElementsByClassName(className);
+                handleBatchDelete(elements);
+                for(let ele of elements) {
+                    ele.classList.remove("highlight_element_strong");
+                }
+            } else {
+                handleDeleteLabel(curNode);
+                curNode.classList.remove("highlight_element_strong");
+            }
+        }
+    })
+    
+    const groupActionsBtn = document.getElementById("groupActionsBtn");
+    groupActionsBtn.addEventListener("click", (e) => {
+        const inp = document.getElementsByName("groupAnnotationCheckbox")[0];
+        if(inp.checked === true) {
+            inp.checked = false;
+            REMARK_GROUP_ACTIONS = false;
+        } else {
+            inp.checked = true;
+            REMARK_GROUP_ACTIONS = true;
+        }
+        console.log("CLICKED GROUP : ", REMARK_GROUP_ACTIONS, inp, inp.checked)
+    })
+    
     const pushToServerBtn = document.getElementById("pushToServerBtn");
     pushToServerBtn.addEventListener("click", handlePushToServer);
-
-    const remarkStopBtn = document.getElementById("remarkStopBtn");
-    remarkStopBtn.addEventListener("click", remark_destroy)
 
 }
 
@@ -539,60 +534,6 @@ var BATCH_ACTION_MODAL = (action) => {
     return markup;
 }
 
-var SIDEBAR = (curAnnotation) => {
-    
-    let text = curAnnotation['text'].substr(0, 60) + "...";
-    let coordinates = curAnnotation["x"] + "," + curAnnotation["y"] + "," + curAnnotation["width"] + "," + curAnnotation["height"];
-
-    const markup =
-    `
-        <div class="remark_standard_sidebar" id="remark_annotations_sidebar">
-            <div class="remark_sidebar_modal_header">
-                <h3 class="remark_standard_sidebar_title">ANNOTATION DATA</h3>
-                <div class="remark_standard_sidebar_actions">
-                <span class="remark_close_btn" id="remark_standard_sidebar_close_btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn">
-                        <path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4l-6 6Z" class="remark_"/>
-                    </svg>
-                </span>
-                </div>
-            </div>
-            <div class="remark_standard_modal_body remark_standard_sidebar_body_full" id="remark_sidebar_body">
-                <div class="remark_form_fields">
-                    <label for="annotation_id" class="remark_form_label">ID</label>
-                    <input type="text" name="annotation_id" class="remark_form_input remark_fade" value="${curAnnotation['id']}" readonly disabled>
-                </div>
-                <div class="remark_form_fields">
-                    <label for="annotation_parent" class="remark_form_label">PARENT</label>
-                    <input type="text" name="annotation_parent" class="remark_form_input remark_fade" value="${curAnnotation['parent']}" readonly disabled>
-                </div>
-                <div class="remark_form_fields">
-                    <label for="annotation_html_class" class="remark_form_label">CLASSNAME</label>
-                    <input type="text" name="annotation_html_class" class="remark_form_input" value=${curAnnotation['html_class']} readonly disabled>
-                </div>
-                <div class="remark_form_fields">
-                    <label for="annotation_tag" class="remark_form_label">TYPE</label>
-                    <input type="text" name="annotation_tag" class="remark_form_input" value=${curAnnotation['tag']}>
-                </div>
-                <div class="remark_form_fields">
-                    <label for="annotation_text" class="remark_form_label">TEXT</label>
-                    <input type="text" name="annotation_text" class="remark_form_input" value=${text}>
-                </div>
-                <div class="remark_form_fields">
-                    <label for="annotation_coordinates" class="remark_form_label">COORDINATES (x,y,w,h)</label>
-                    <input type="text" name="annotation_coordinates" class="remark_form_input" value="${coordinates}">
-                </div>
-                <div class="remark_form_fields">
-                    <button type="button" class="remark_standard_button" id="remark_edit_annotation_button">Edit</button>
-                </div>
-            </div>
-        </div>
-    `
-
-    return markup;
-
-}
-
 var CONFIRM_GROUPING_MARKUP = () => {
     const markup = `
         <span class="remark_confirm_grouping">
@@ -634,16 +575,38 @@ function getAllAnnotations() {
     return res;
 }
 
+function setCurrentLabelAsOption(val) {
+    const labelTypeBtn = document.getElementById("labelTypeBtn");
+    const n = labelTypeBtn.length;
+
+    let ind = -2;
+
+    for(let i=0; i<n; i++) {
+        if(labelTypeBtn[i].value == val) {
+            ind = i;
+            break;
+        } 
+    }
+
+    if(ind != -2) {
+        labelTypeBtn.selectedIndex = String(ind);
+    }
+ 
+}
+
 // ----------------- Load and Save ------------------
 
 
 async function loadAllAnnotations() {
     try {
+        console.log("IN LOAD DATA . . .")
         const storageData = await getDataFromStorage("remark_annotations");
         const data = storageData["remark_annotations"];
+        console.log("IN LOAD DATA : ", data)
         // console.log("LOAD DATA : ", data, JSON.parse(data)["data"])
         annotations = JSON.parse(data)["data"];
         renderAllAnnotations(annotations)
+        console.log("in load data : ", annotations)
         setDataToStorage("remark_annotations", null);
     } catch(e) {
         console.log("No annotations to load");
@@ -773,6 +736,14 @@ function removeHTMLElement(ele) {
     return;
 }
 
+function getDOMClassName(dom) {
+    let classes = dom.getAttribute("class");
+    classes = classes.replace("highlight_element_light", "").replace("highlight_element_strong", "");
+    classes = classes ? classes.split(" ").slice(0, -1) : [];
+    classes.unshift(dom.tagName.toLowerCase());
+    return classes.join(".");
+}
+  
 
 // ****************** Chrome APIs ****************** 
 
@@ -798,27 +769,8 @@ function getDataFromStorage(key) {
     )
 }
 
-function sendMessage(message) {
-    chrome.runtime.sendMessage(message, (response) => {
-        console.log("received  data", response);
-    });
-}
-
 function logFormData(formData) {
     for(let e of Array.from(formData)) {
       console.log(e[0], " : ", e[1])
     }
 }
-  
-// ---------------------- CSS ----------------------
-
-
-// function createCSSClass(name,rules){
-//     var style = document.createElement("style");
-//     style.type = "text/css";
-//     document.getElementsByTagName("head")[0].appendChild(style);
-//     if(!(style.sheet||{}).insertRule) 
-//     (style.styleSheet || style.sheet).addRule(name, rules);
-//     else
-//     style.sheet.insertRule(name+"{"+rules+"}",0);
-// }

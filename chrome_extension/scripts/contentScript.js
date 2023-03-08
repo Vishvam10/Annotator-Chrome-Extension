@@ -6,8 +6,6 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
     try {
         if(req["dataURI"]) {
             screenShotBlob = dataURIToBlob(res["dataURI"]);
-            sendImageToServer(screenShotBlob)
-
         }
     } catch(e) {
         console.log("ERROR : ", e.message)
@@ -32,32 +30,6 @@ function downloadFile(dataURI, fileName) {
     downloadLink.href = dataURI;
     downloadLink.download = fileName;
     downloadLink.click();
-}
-
-async function sendImageToServer(imgBlob) {
-
-    const url = "http://ec2-3-93-77-238.compute-1.amazonaws.com:8000/send_to_s3_images"
-    console.log("img blob : ", imgBlob)
-
-    const formData = new FormData()
-    formData.append("img", imgBlob)
-
-    let data = await fetch(url, {
-        mode: "cors",
-        body: formData,
-        method: "POST"
-    });
-
-    if(data.status == 200) { 
-        data = await data.json();
-        data = JSON.parse(data);
-        console.log("data : ", data);
-
-        // Store the ID in localStorage so that the injected script can access it
-        
-        // setDataToStorage("screenshot_id", data["id"])
-    }
-
 }
 
 function setDataToStorage(key, value) {

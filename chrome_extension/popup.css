@@ -60,6 +60,10 @@ a:active {
   transform: scale(1);
 }
 
+input::-webkit-input-placeholder {
+  color: var(--remark-color-grey-light-1);
+}
+
 button {
   transition: all 0.1s cubic-bezier(0.445, 0.05, 0.55, 0.95);
   cursor: pointer;
@@ -77,9 +81,11 @@ table {
   font-family: arial, sans-serif;
   border-collapse: collapse;
   width: 100%;
+  font-size: 1.2rem;
 }
 
-td, th {
+td,
+th {
   text-align: left;
   padding: 8px;
 }
@@ -103,24 +109,54 @@ ion-icon:active {
   transform: scale(1);
 }
 
-h1,h2,h3,h4,h5,h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: inherit;
   font-size: inherit;
   font-weight: inherit;
 }
 
-.remark_form_input {
-  margin: 1rem 1rem 1rem 1.6rem;
-  padding: 1rem 1rem 1rem 0.5rem;
-  font-size: 1.2rem;
-  color: var(--remark-color-grey-light-1);
-  height: 1rem;
-  border-radius: 0.8rem;
-  border: var(--remark-default-border);
-  width: 15rem;
+.remark_header {
+  font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0rem 0.6rem 0.2rem 0rem;
 }
 
-#userLoginForm, #userSignupForm {
+.remark_title {
+  margin: 1rem 1rem -0.8rem 1rem;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+#remark_scoreboard {
+  margin: 0rem 0rem 3rem 0rem;
+}
+
+.remark_form_input {
+  padding: 1rem 1rem 1.2rem 1rem;
+  font-family: var(--remark-default-sanserif-font);
+  appearance: none;
+  height: 1.8rem;
+  width: 100%;
+  border-radius: 0.6rem;
+  background-color: var(--remark-color-white);
+  margin: 0.7rem 0rem 1rem 0rem;
+  transition: border 0.2s ease-in 0s;
+  border: 1px solid var(--remark-color-grey-light-1);
+  font-size: 1.6rem;
+  color: var(--remark-color-grey);
+  outline: 0px !important;
+}
+
+#userLoginForm,
+#userSignupForm {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -128,7 +164,8 @@ h1,h2,h3,h4,h5,h6 {
   align-items: center;
 }
 
-#loginToSignupButton, #signupToLoginBtn {
+#loginToSignupButton,
+#signupToLoginBtn {
   color: var(--remark-color-primary);
   cursor: pointer;
 }
@@ -146,14 +183,19 @@ h1,h2,h3,h4,h5,h6 {
 
 .remark_user_info {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-around;
   align-items: center;
-  margin: 1.8rem -1rem 4rem -1rem;
+  margin: 0rem -1rem 1rem -1rem;
   font-weight: normal;
   font-size: 1.2rem;
 }
 
+.remark_user_email {
+  margin: -1rem 1rem 2rem 1rem;
+  font-size: 1.6rem;
+  font-weight: bold;
+}
 
 .remark_popup_container {
   width: 20rem;
@@ -175,7 +217,7 @@ h1,h2,h3,h4,h5,h6 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 1rem 0rem 0rem 0rem;
+  margin: 1.2rem 0rem 0.8rem 0rem;
   border: var(--remark-default-border);
   border-radius: 0.9rem;
   padding: 1.6rem;
@@ -206,7 +248,7 @@ h1,h2,h3,h4,h5,h6 {
   border-radius: 1.2rem;
   cursor: pointer;
   transition: all 0.1s;
-  margin: 3rem 0rem 2rem 0rem;
+  margin: 2.2rem -1rem 0rem 0rem;
   width: 100%;
   display: flex;
   flex-direction: row;
@@ -238,7 +280,8 @@ h1,h2,h3,h4,h5,h6 {
   margin: 3rem 0rem 1rem -0.2rem;
 }
 
-#loginBtn, #signupBtn {
+#loginBtn,
+#signupBtn {
   width: 23.2rem;
 }
 
@@ -255,14 +298,68 @@ h1,h2,h3,h4,h5,h6 {
 .remark_form_fields {
   margin: 0rem 0rem 0rem 0rem;
 }
-    
+
 .remark_form_input:focus {
   border: 0.5px solid var(--remark-color-primary);
-}   
+}
 
 .remark_form_label {
   font-family: var(--remark-default-sanserif-font);
-  font-size: 1.2rem;
+  font-size: 12px;
   color: var(--remark-color-grey-light-1);
-  font-weight: normal;
 }
+
+.remark_toggle {
+  cursor: pointer;
+  display: inline-block;
+  margin: 0.4rem 0rem;
+}
+
+.remark_toggle_switch {
+  display: inline-block;
+  background: #ccc;
+  border-radius: 16px;
+  width: 36px;
+  height: 20px;
+  position: relative;
+  vertical-align: middle;
+  transition: background 0.25s;
+}
+
+.remark_toggle_switch:before,
+.remark_toggle_switch:after {
+  content: "";
+}
+
+.remark_toggle_switch:before {
+  display: block;
+  background: linear-gradient(to bottom, #fff 0%, #eee 100%);
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  transition: left 0.25s;
+}
+
+.remark_toggle_checkbox:checked + .remark_toggle_switch {
+  background: var(--remark-color-primary);
+}
+
+.remark_toggle_checkbox:checked + .remark_toggle_switch:before {
+  left: 20px;
+}
+
+.remark_toggle_checkbox {
+  position: absolute;
+  visibility: hidden;
+}
+
+.remark_toggle_label {
+  margin: 0rem 0rem 0rem 1rem;
+  position: relative;
+  top: 1px;
+  font-size: 0.7rem;
+  color: var(--remark-color-grey-light-1);
+} 
