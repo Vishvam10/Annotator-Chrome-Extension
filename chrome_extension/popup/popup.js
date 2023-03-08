@@ -2,15 +2,16 @@ window.onload = async function () {
   const storageData = await getDataFromStorage(null);
   const email = storageData["remark_email"];
 
-  console.log("storage data  : ", storageData, email);
- 
   // Check if the user has signed in
   if (email !== null) {
     renderUserStats();
   } else {
     renderSignupForm();
   }
+  
 };
+
+var BACKEND_URL = "http://localhost:3000/api"
 
 async function handleInit() {
   setDataToStorage("remark_running", true);
@@ -54,12 +55,11 @@ async function handleSignup(signupForm) {
   const formData = new FormData(signupForm);
   logFormData(formData);
 
-  const url = "http://localhost:3000/api/create-user";
+  const url = `${BACKEND_URL}/create-user`;
+  console.log("URL : ", url)
   const data = JSON.stringify(Object.fromEntries(formData));
 
   const res = await POST(url, data);
-
-  console.log("result : ", res);
   if (
     res.status === 200 ||
     res.msg === "User is registered." ||
@@ -119,13 +119,11 @@ async function takeScreenShot(tab) {
               ["fixed", "sticky"].includes(el.style["position"])
             ) {
               const position = el.style["position"];
-              console.log("in if", position)
               el.style.setProperty("position", positionTo[position], "important");
               el.setAttribute("data-position", position);
             } else {
               const styles = getComputedStyle(el);
               const position = styles.getPropertyValue("position");
-              console.log("in else", position)
               if (position && ["fixed", "sticky"].includes(position)) {
                 el.style.setProperty("position", positionTo[position], "important");
                 el.setAttribute("data-position", position);
@@ -154,7 +152,7 @@ async function takeScreenShot(tab) {
         await chrome.scripting.executeScript({
           target: { tabId: tab.id },
           func: (top) => {
-            console.log("scrolltop", top);
+            // console.log("scrolltop", top);
             document.documentElement.scrollTop = top;
           },
           args: [top],
@@ -262,9 +260,8 @@ function renderSignupForm() {
 }
 
 async function renderUserStats() {
-  const url = "http://localhost:3000/api/scoreboard";
+  const url = `${BACKEND_URL}/scoreboard`;
   const data = await GET(url);
-  console.log("DATA : ", data, data["users"]);
   const users = data["users"];
   let curUserEmail,
     curUserPos = -1,
@@ -324,9 +321,7 @@ async function renderUserStats() {
   markup += `
       </table>
     `;
-    
-    console.log("in user stats : ", running, storageData);
-    
+        
     if (running !== true) {
       markup += `
         <button type="button" class="remark_standard_button" id="remark_start">Start Annotation</button>
@@ -410,7 +405,7 @@ function setDataToStorage(key, value) {
       [key]: value,
     });
   } catch (e) {
-    console.log("chrome error : ", e.message);
+    console.log("CHROME ERROR : ", e.message);
   }
 }
 
@@ -429,7 +424,6 @@ function getDataFromStorage(key) {
 function clearDataFromStorage(keys = [], all = true) {
   if (all === true) {
     chrome.storage.local.clear(function () {
-      console.log("ASDASD");
       var error = chrome.runtime.lastError;
       if (error) {
         console.error(error);

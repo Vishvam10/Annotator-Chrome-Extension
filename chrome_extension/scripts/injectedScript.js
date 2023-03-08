@@ -1,445 +1,450 @@
-(async() => {    
+(async () => {
+  const storageData = await getDataFromStorage("remark_running");
+  const running = storageData["remark_running"];
 
-    const storageData = await getDataFromStorage("remark_running");
-    const running = storageData["remark_running"];
-    
-    console.log("from foreground : init . . .", running);
+  console.log("INIT ...", running);
 
-    if(running === false) {
-        remark_destroy();
-        return;
-    } else {
-        remark_init();
-    }
-
-
+  if (running === false) {
+    remark_destroy();
+    return;
+  } else {
+    remark_init();
+  }
 })();
 
 // ***************** Global Variables ****************
 
 
+var BACKEND_URL = "http://localhost:3000/api"
 var REMARK_GROUP_ACTIONS = false;
 var REMARK_ADDITIONAL_STYLES = null;
 
-var annotations = []
-var tempBuffer = []
+var annotations = [];
+var tempBuffer = [];
 var curNode;
 
-
 var VALID_HTML_ELEMENTS = [
-    "DIV", "SPAN", "BUTTON", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", 
-    "P", "PICTURE", "SVG", "NAV", "A", "TABLE", "INPUT", "LABEL", "FORM", 
-    "AUDIO", "VIDEO", "UL", "LI"
-]
+  "DIV",
+  "SPAN",
+  "BUTTON",
+  "H1",
+  "H2",
+  "H3",
+  "H4",
+  "H5",
+  "H6",
+  "IMG",
+  "P",
+  "PICTURE",
+  "SVG",
+  "NAV",
+  "A",
+  "TABLE",
+  "INPUT",
+  "LABEL",
+  "FORM",
+  "AUDIO",
+  "VIDEO",
+  "UL",
+  "LI",
+];
 
 // ***************** Initialization ******************
 
-
 function remark_init() {
-    console.log("DOM check and Settings check : ", document.body);
-    const style = document.createElement("style");
-    REMARK_ADDITIONAL_STYLES = style;
-    document.body.appendChild(style);
-    disableAllCickableElements();
-    renderMenu();
-    loadAllAnnotations();
-    startAnnotationProcess();
-    setDataToStorage("remark_running", true);
-    
+  console.log("DOM CHECK : ", document.body);
+  const style = document.createElement("style");
+  REMARK_ADDITIONAL_STYLES = style;
+  document.body.appendChild(style);
+  disableAllCickableElements();
+  renderMenu();
+  loadAllAnnotations();
+  startAnnotationProcess();
+  setDataToStorage("remark_running", true);
 }
 
 function remark_destroy() {
-    
-    removeAllExistingModals();
-    saveAllAnnotations();
-    stopHighlightElements();
-    stopAnnotationProcess();
-    
-    setDataToStorage("remark_running", false);
+  removeAllExistingModals();
+  saveAllAnnotations();
+  stopHighlightElements();
+  stopAnnotationProcess();
 
+  setDataToStorage("remark_running", false);
 }
 
 function dummy(e) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    e.stopPropagation();
-    return false;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  e.stopPropagation();
+  return false;
 }
 
 function startAnnotationProcess() {
-    document.body.addEventListener("keypress", keyPressListener, false)
-    document.body.addEventListener("click", clickListener, false);
-    document.body.addEventListener("mouseover", mouseOverListener, false);
-    document.body.addEventListener("mouseout", mouseOutListener, false); 
+  document.body.addEventListener("keypress", keyPressListener, false);
+  document.body.addEventListener("click", clickListener, false);
+  document.body.addEventListener("mouseover", mouseOverListener, false);
+  document.body.addEventListener("mouseout", mouseOutListener, false);
 }
 
 function stopAnnotationProcess() {
-    document.body.addEventListener("keypress", keyPressListener, false)
-    document.body.addEventListener("click", clickListener, false);
-    document.body.addEventListener("mouseover", mouseOverListener, false);
-    document.body.addEventListener("mouseout", mouseOutListener, false); 
-    return;
+  document.body.addEventListener("keypress", keyPressListener, false);
+  document.body.addEventListener("click", clickListener, false);
+  document.body.addEventListener("mouseover", mouseOverListener, false);
+  document.body.addEventListener("mouseout", mouseOutListener, false);
+  return;
 }
 
 // ******************* Listeners ********************
 
-
 function clickListener(e) {
-    
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    e.stopPropagation();
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  e.stopPropagation();
 
-    
-    const t = e.target;
-    if(t.tagName == "BUTTON") {
-        return false;
-    }
+  const t = e.target;
+  if (t.tagName == "BUTTON") {
+    return false;
+  }
 
-    if(e.altKey) {
-
-        // Delete label
-        if(t.classList.contains("highlight_element_strong")) {
-            if(REMARK_GROUP_ACTIONS) {
-                const className = String(e.target.className.replace("highlight_element_strong", ""));
-                const elements = document.getElementsByClassName(className);
-                handleBatchDelete(elements);
-                for(let ele of elements) {
-                    ele.classList.remove("highlight_element_strong");
-                }
-                
-            } else {
-                handleDeleteLabel(t);
-                t.classList.remove("highlight_element_strong");
-            }
+  if (e.altKey) {
+    // Delete label
+    if (t.classList.contains("highlight_element_strong")) {
+      if (REMARK_GROUP_ACTIONS) {
+        const className = String(
+          e.target.className.replace("highlight_element_strong", "")
+        );
+        const elements = document.getElementsByClassName(className);
+        handleBatchDelete(elements);
+        for (let ele of elements) {
+          ele.classList.remove("highlight_element_strong");
         }
-        
-    } else {
-
-        // Add label
-        if(t.classList.contains("highlight_element_light")) {
-            if(t.classList.contains("highlight_element_strong")) {
-                return;
-            }
-
-            if(REMARK_GROUP_ACTIONS) {
-                const className = String(e.target.className.replace("highlight_element_strong", ""));
-                const nodes = document.getElementsByClassName(className);
-
-
-                let elements = [];
-                
-                Array.from(nodes).forEach((ele) => {
-                    if(ele.tag == e.target.tag) {
-                        elements.push(ele);
-                    }
-                });
-
-                handleBatchCreate(elements);
-                
-                for(let ele of elements) {
-                    ele.classList.remove("highlight_element_light");
-                    ele.classList.add("highlight_element_strong");
-                }
-
-            } else {
-                handleCreateLabel(t);
-                t.classList.remove("highlight_element_light");
-                t.classList.add("highlight_element_strong");
-            }
-            
-            console.log("add annotations : ", annotations);
-
-        } else if(t.classList.contains("highlight_element_strong")) {
-            curNode = t;
-            const id = t.dataset.annotation_id;
-            const ann = getAnnotationByID(id);
-            setCurrentLabelAsOption(ann.tag);
-        }
-
+      } else {
+        handleDeleteLabel(t);
+        t.classList.remove("highlight_element_strong");
+      }
     }
+  } else {
+    // Add label
+    if (t.classList.contains("highlight_element_light")) {
+      if (t.classList.contains("highlight_element_strong")) {
+        return;
+      }
+
+      if (REMARK_GROUP_ACTIONS) {
+        const className = String(
+          e.target.className.replace("highlight_element_strong", "")
+        );
+        const nodes = document.getElementsByClassName(className);
+
+        let elements = [];
+
+        Array.from(nodes).forEach((ele) => {
+          if (ele.tag == e.target.tag) {
+            elements.push(ele);
+          }
+        });
+
+        handleBatchCreate(elements);
+
+        for (let ele of elements) {
+          ele.classList.remove("highlight_element_light");
+          ele.classList.add("highlight_element_strong");
+        }
+      } else {
+        handleCreateLabel(t);
+        t.classList.remove("highlight_element_light");
+        t.classList.add("highlight_element_strong");
+      }
+
+      console.log("ADD ANNOTATIONS : ", annotations);
+    } else if (t.classList.contains("highlight_element_strong")) {
+      curNode = t;
+      const id = t.dataset.annotation_id;
+      const ann = getAnnotationByID(id);
+      setCurrentLabelAsOption(ann.tag);
+    }
+  }
 }
 
 function mouseOverListener(e) {
-    e.preventDefault();
-    e.stopPropagation();
-   
-    const className = String(e.target.className);
-    
-    const elements = document.getElementsByClassName(className);
-    Array.from(elements).forEach((ele) => {        
-        const tag = ele.tagName;
-        if (VALID_HTML_ELEMENTS.includes(tag)) {
-            if(ele.className) {
-                if (ele.className.includes("remark_") || ele.className.includes("highlight_element_strong")) {
-                    return;
-                }
-            }
-            tempBuffer.push(ele)
-            ele.classList.add("highlight_element_light");
-        }
+  e.preventDefault();
+  e.stopPropagation();
 
-    })
+  const className = String(e.target.className);
+
+  const elements = document.getElementsByClassName(className);
+  Array.from(elements).forEach((ele) => {
+    const tag = ele.tagName;
+    if (VALID_HTML_ELEMENTS.includes(tag)) {
+      if (ele.className) {
+        if (
+          ele.className.includes("remark_") ||
+          ele.className.includes("highlight_element_strong")
+        ) {
+          return;
+        }
+      }
+      tempBuffer.push(ele);
+      ele.classList.add("highlight_element_light");
+    }
+  });
 }
 
 function mouseOutListener(e) {
-    e.preventDefault();
-    e.stopPropagation();
+  e.preventDefault();
+  e.stopPropagation();
 
-    tempBuffer.forEach((ele) => { 
-        const tag = ele.tagName;
-        if (VALID_HTML_ELEMENTS.includes(tag)) {
-            if(ele.className) {
-                if (ele.className.includes("remark_") || ele.className.includes("highlight_element_strong")) {
-                    return;
-                }
-            }
-            ele.classList.remove("highlight_element_light");
+  tempBuffer.forEach((ele) => {
+    const tag = ele.tagName;
+    if (VALID_HTML_ELEMENTS.includes(tag)) {
+      if (ele.className) {
+        if (
+          ele.className.includes("remark_") ||
+          ele.className.includes("highlight_element_strong")
+        ) {
+          return;
         }
-    })
-    tempBuffer = [];
+      }
+      ele.classList.remove("highlight_element_light");
+    }
+  });
+  tempBuffer = [];
 }
 
 function keyPressListener(e) {
-    if(e.key === "Escape") {
-        removeAllExistingModals();
-    }
+  if (e.key === "Escape") {
+    removeAllExistingModals();
+  }
 }
 
 function attachListeners() {
+  const remarkBatchCreateBtn = document.getElementById("remarkBatchCreateBtn");
+  remarkBatchCreateBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleBatchAction("batchCreate");
+  });
 
-    const remarkBatchCreateBtn = document.getElementById("remarkBatchCreateBtn");
-    remarkBatchCreateBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleBatchAction("batchCreate")
-    });
-    
-    const remarkBatchDeleteBtn = document.getElementById("remarkBatchDeleteBtn");
-    remarkBatchDeleteBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleBatchAction("batchDelete")
-    });
-
+  const remarkBatchDeleteBtn = document.getElementById("remarkBatchDeleteBtn");
+  remarkBatchDeleteBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleBatchAction("batchDelete");
+  });
 }
 
 // ******************* Handlers ********************
 
-
 function handleCreateLabel(targetHTMLElement) {
-    const rect = targetHTMLElement.getBoundingClientRect();
-    const x = Math.round(rect.x), y = Math.round(rect.y), w = Math.round(rect.width), h = Math.round(rect.height);
+  const rect = targetHTMLElement.getBoundingClientRect();
+  const x = Math.round(rect.x),
+    y = Math.round(rect.y),
+    w = Math.round(rect.width),
+    h = Math.round(rect.height);
 
-    const className = targetHTMLElement.className.replace("highlight_element_light", "");
-    curNode = targetHTMLElement;
+  const className = targetHTMLElement.className.replace(
+    "highlight_element_light",
+    ""
+  );
+  curNode = targetHTMLElement;
 
-    // let c = getDOMClassName(targetHTMLElement);
+  // let c = getDOMClassName(targetHTMLElement);
 
-    // REMARK_ADDITIONAL_STYLES.innerHTML = `
-    //     ${c} {
-    //         position: relative;
-    //     }
-        
-    //     ${c}::before {
-    //         content: '${targetHTMLElement.tagName.toLowerCase()}';
-    //         position: absolute;
-    //         top: 0;
-    //         left: 0;
-    //         width: 100%;
-    //         height: 100%;
-    //         z-index: 999999;
-    //         pointer-events: none;
-    //     }
-    // `;
+  // REMARK_ADDITIONAL_STYLES.innerHTML = `
+  //     ${c} {
+  //         position: relative;
+  //     }
 
-    const d = {
-        "id" : Math.round(Math.random() * 10000),
-        "tag" : targetHTMLElement.tagName.toLowerCase(),
-        "x" : x,
-        "y" : y,
-        "width" : w,
-        "height" : h,
-        "text" : targetHTMLElement.innerText,
-        "parent" : targetHTMLElement.parentNode.tagName.toLowerCase(),
-        "html_id" : targetHTMLElement.id,
-        "html_class" : className,
-        "html_xpath" : getNodeXpath(targetHTMLElement).toLowerCase(),
-        "html_target" : targetHTMLElement
-    }
+  //     ${c}::before {
+  //         content: '${targetHTMLElement.tagName.toLowerCase()}';
+  //         position: absolute;
+  //         top: 0;
+  //         left: 0;
+  //         width: 100%;
+  //         height: 100%;
+  //         z-index: 999999;
+  //         pointer-events: none;
+  //     }
+  // `;
 
-    if(isValidAnnotation(d)) {
-        annotations.push(d);
-        targetHTMLElement.dataset.annotation_id = d["id"];
-        return;
-    }
+  const d = {
+    id: Math.round(Math.random() * 10000),
+    tag: targetHTMLElement.tagName.toLowerCase(),
+    x: x,
+    y: y,
+    width: w,
+    height: h,
+    text: targetHTMLElement.innerText,
+    parent: targetHTMLElement.parentNode.tagName.toLowerCase(),
+    html_id: targetHTMLElement.id,
+    html_class: className,
+    html_xpath: getNodeXpath(targetHTMLElement).toLowerCase(),
+    html_target: targetHTMLElement,
+  };
 
+  if (isValidAnnotation(d)) {
+    annotations.push(d);
+    targetHTMLElement.dataset.annotation_id = d["id"];
     return;
+  }
 
+  return;
 }
 
 function handleEditLabel(targetHTMLElement, newTag) {
-    if(targetHTMLElement) {
-        if(targetHTMLElement.classList.contains("highlight_element_strong")) {
-            const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
-            for(let ele of annotations) {
-                if(ele["id"] == annotation_id) {
-                    ele["tag"] = newTag;
-                    console.log("changed : ", ele);
-                    break;
-                }
-            }
-            
+  if (targetHTMLElement) {
+    if (targetHTMLElement.classList.contains("highlight_element_strong")) {
+      const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
+      for (let ele of annotations) {
+        if (ele["id"] == annotation_id) {
+          ele["tag"] = newTag;
+          break;
         }
-        return;
+      }
     }
     return;
-
+  }
+  return;
 }
 
 function handleDeleteLabel(targetHTMLElement) {
-    const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
+  const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
 
-    let ind, annotation;
+  let ind, annotation;
 
-    for(let i=0; i<annotations.length; i++) {
-        if(annotations[i]["id"] == annotation_id) {
-            ind = i;
-            annotation = annotations[i];
-            break;
-        }
+  for (let i = 0; i < annotations.length; i++) {
+    if (annotations[i]["id"] == annotation_id) {
+      ind = i;
+      annotation = annotations[i];
+      break;
     }
-    
-    annotations.splice(ind, 1);
-    delete targetHTMLElement.dataset.annotation_id;
-    setCurrentLabelAsOption("span");
-    console.log("delete annotations : ", annotations);
+  }
 
+  annotations.splice(ind, 1);
+  delete targetHTMLElement.dataset.annotation_id;
+  setCurrentLabelAsOption("span");
+  console.log("DELETE ANNOTATIONS : ", annotations);
 }
 
 function handleBatchCreate(targetHTMLElements) {
-    for(let i=0; i<targetHTMLElements.length; i++) {
-        const ele = targetHTMLElements[i];
-        handleCreateLabel(ele)
-    }
-}        
+  for (let i = 0; i < targetHTMLElements.length; i++) {
+    const ele = targetHTMLElements[i];
+    handleCreateLabel(ele);
+  }
+}
 
 function handleBatchDelete(targetHTMLElements) {
-    
-    for(let i=0; i<targetHTMLElements.length; i++) {
-        const ele = targetHTMLElements[i];
-        handleDeleteLabel(ele);
-    }
-    
+  for (let i = 0; i < targetHTMLElements.length; i++) {
+    const ele = targetHTMLElements[i];
+    handleDeleteLabel(ele);
+  }
 }
 
 function handleBatchEdit(targetHTMLElements, val) {
-    
-    for(let i=0; i<targetHTMLElements.length; i++) {
-        const ele = targetHTMLElements[i];
-        handleEditLabel(ele, val);
-    }
+  for (let i = 0; i < targetHTMLElements.length; i++) {
+    const ele = targetHTMLElements[i];
+    handleEditLabel(ele, val);
+  }
 }
 
 async function handleCreateNewTag() {
-    const inp = document.getElementById("createNewTag");
-    const val = inp.value.trim().toLowerCase();
-    if(val && val.length > 0) {
-        const data = {
-            "title" : val
-        }
-        const res = await POST("http://localhost:3000/api/labels", data);
-        if(res.msg == "Label created successfully!") {
-            console.log("SUCCESS")
-            renderMenu();
-            return;
-        } else {
-            console.log(res)
-        }
-    }    
+  const inp = document.getElementById("createNewTag");
+  const val = inp.value.trim().toLowerCase();
+  if (val && val.length > 0) {
+    const data = {
+      title: val,
+    };
+    const res = await POST(`${BACKEND_URL}/labels`, data);
+    if (res.msg == "Label created successfully!") {
+      console.log("SUCCESS");
+      renderMenu();
+      return;
+    } else {
+      console.log(res);
+    }
+  }
 }
 
 async function handlePushToServer() {
-    const dataURIStorageData = await getDataFromStorage("remark_screenshot_datauri");
-    const dataURI = dataURIStorageData["remark_screenshot_datauri"];
-    const emailStorageData = await getDataFromStorage("remark_email");
-    const email = emailStorageData["remark_email"];
+  const dataURIStorageData = await getDataFromStorage(
+    "remark_screenshot_datauri"
+  );
+  const dataURI = dataURIStorageData["remark_screenshot_datauri"];
+  const emailStorageData = await getDataFromStorage("remark_email");
+  const email = emailStorageData["remark_email"];
 
-    const imgBlob = dataURIToBlob(dataURI)
-    const labels = getAllAnnotations()
+  const imgBlob = dataURIToBlob(dataURI);
+  const labels = getAllAnnotations();
 
-    const formData = new FormData()
-    formData.append("image", imgBlob, "image.jpg")
-    formData.append("label", JSON.stringify(labels));
+  const formData = new FormData();
+  formData.append("image", imgBlob, "image.jpg");
+  formData.append("label", JSON.stringify(labels));
 
-    logFormData(formData)
-    const url = "http://localhost:3000/api/submit"
+  logFormData(formData);
+  const url = `${BACKEND_URL}/submit`;
 
-    try {
-        const options = {
-            method: "POST",
-            headers: {
-                "Content-Type" : "multipart/form-data",
-                "email": email
-            },
-            body: formData
-        };
-      
-        res = await fetch(url, options);
-        res = await res.json();
+  try {
+    const options = {
+      method: "POST",
+      headers: {
+        "Content-Type": "multipart/form-data",
+        email: email,
+      },
+      body: formData,
+    };
 
-        console.log("POST RESULT : ", res);
+    res = await fetch(url, options);
+    res = await res.json();
 
-        if(res.msg === "Submitted") {
-            console.log("SUCCESSFUL !")
-            remark_destroy(); 
-        } else {
-            console.log("FAILED : ", res)
-        }
+    console.log("POST RESULT : ", res);
 
-    } catch(e) {
-        console.log("ERROR IN POST REQUEST : ", e);
+    if (res.msg === "Submitted") {
+      console.log("SUCCESSFUL !");
+      remark_destroy();
+    } else {
+      console.log("FAILED : ", res);
     }
+  } catch (e) {
+    console.log("ERROR IN POST REQUEST : ", e);
+  }
 }
-
 
 // *************** Render functions ***************
 
-
 function renderAllAnnotations(annotations) {
-    for(let i=0; i<annotations.length; i++) {
-        const ele = annotations[i];
-        const node = getElementByXpath(ele["html_xpath"]);
-        if(node) {
-            if(node.className.includes("remark_") || node.className.includes("highlight_element_strong")) {
-                continue;
-            } else {
-                node.classList.remove("highlight_element_light");
-                node.classList.add("highlight_element_strong");
-            }
-        }
+  for (let i = 0; i < annotations.length; i++) {
+    const ele = annotations[i];
+    const node = getElementByXpath(ele["html_xpath"]);
+    if (node) {
+      if (
+        node.className.includes("remark_") ||
+        node.className.includes("highlight_element_strong")
+      ) {
+        continue;
+      } else {
+        node.classList.remove("highlight_element_light");
+        node.classList.add("highlight_element_strong");
+      }
     }
+  }
 }
 
 async function renderMenu() {
-    console.log("render menu")
-    if(document.querySelector(".remark_standard_menu_container")) {
-        return;
-    }
-    let labelMarkup = ""
-    const data = await GET("http://localhost:3000/api/labels");
-    const labels = data["labels"];
-    console.log("labels : ", labels)
-    
-    for(let i=0; i<labels.length; i++) {
-        const val = labels[i]
-        labelMarkup += `
+  if (document.querySelector(".remark_standard_menu_container")) {
+    return;
+  }
+  let labelMarkup = "";
+  const data = await GET(`${BACKEND_URL}/labels`);
+  const labels = data["labels"];
+
+  for (let i = 0; i < labels.length; i++) {
+    const val = labels[i];
+    labelMarkup += `
             <option value="${val}" class="remark_">${val}</option>
-        `
-    }
-    
-    
-    const markup = `
+        `;
+  }
+
+  const markup = `
         <div class="remark_standard_menu_container" id="remarkMainMenu" draggable=true>
             <div class="remark_standard_menu_header">
                 <h3 class="remark_standard_sidebar_title">MENU</h3>
@@ -475,312 +480,327 @@ async function renderMenu() {
                 </div>
             </div>
         </div>
-    `
-    document.body.insertAdjacentHTML("afterbegin", markup);
+    `;
+  document.body.insertAdjacentHTML("afterbegin", markup);
 
-    const menuCloseBtn = document.getElementById("remark_standard_menu_close_btn");
-    menuCloseBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const menuContainer = document.querySelector(".remark_standard_menu_container");
-        const menuBody = document.querySelector(".remark_menu_body");
-        menuBody.classList.toggle("remark_hide");
-        menuContainer.classList.toggle("remark_menu_resize");
-    });
+  const menuCloseBtn = document.getElementById(
+    "remark_standard_menu_close_btn"
+  );
+  menuCloseBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-    const labelTypeBtn = document.getElementById("labelTypeBtn");
-    labelTypeBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const val = String(e.target.value);
-        if(val != "remove_label") {
-            if(REMARK_GROUP_ACTIONS) {
-                const className = String(curNode.className.replace("highlight_element_strong", ""));
-                const elements = document.getElementsByClassName(className);
-                handleBatchEdit(elements, val);
-            } else {
-                handleEditLabel(curNode, val);
-            }
-        } else {
-            if(REMARK_GROUP_ACTIONS) {  
-                const className = String(curNode.className.replace("highlight_element_strong", ""));
-                const elements = document.getElementsByClassName(className);
-                handleBatchDelete(elements);
-                for(let ele of elements) {
-                    ele.classList.remove("highlight_element_strong");
-                }
-            } else {
-                handleDeleteLabel(curNode);
-                curNode.classList.remove("highlight_element_strong");
-            }
+    const menuContainer = document.querySelector(
+      ".remark_standard_menu_container"
+    );
+    const menuBody = document.querySelector(".remark_menu_body");
+    menuBody.classList.toggle("remark_hide");
+    menuContainer.classList.toggle("remark_menu_resize");
+  });
+
+  const labelTypeBtn = document.getElementById("labelTypeBtn");
+  labelTypeBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const val = String(e.target.value);
+    if (val != "remove_label") {
+      if (REMARK_GROUP_ACTIONS) {
+        const className = String(
+          curNode.className.replace("highlight_element_strong", "")
+        );
+        const elements = document.getElementsByClassName(className);
+        handleBatchEdit(elements, val);
+      } else {
+        handleEditLabel(curNode, val);
+      }
+    } else {
+      if (REMARK_GROUP_ACTIONS) {
+        const className = String(
+          curNode.className.replace("highlight_element_strong", "")
+        );
+        const elements = document.getElementsByClassName(className);
+        handleBatchDelete(elements);
+        for (let ele of elements) {
+          ele.classList.remove("highlight_element_strong");
         }
-    })
-    
-    const groupActionsBtn = document.getElementById("groupActionsBtn");
-    groupActionsBtn.addEventListener("click", (e) => {
-        const inp = document.getElementsByName("groupAnnotationCheckbox")[0];
-        if(inp.checked === true) {
-            inp.checked = false;
-            REMARK_GROUP_ACTIONS = false;
-        } else {
-            inp.checked = true;
-            REMARK_GROUP_ACTIONS = true;
-        }
-    })
-    
-    const createNewTagBtn = document.getElementById("createNewTagBtn");
-    createNewTagBtn.addEventListener("click", handleCreateNewTag)
-    
-    const pushToServerBtn = document.getElementById("pushToServerBtn");
-    pushToServerBtn.addEventListener("click", handlePushToServer);
+      } else {
+        handleDeleteLabel(curNode);
+        curNode.classList.remove("highlight_element_strong");
+      }
+    }
+  });
 
+  const groupActionsBtn = document.getElementById("groupActionsBtn");
+  groupActionsBtn.addEventListener("click", (e) => {
+    const inp = document.getElementsByName("groupAnnotationCheckbox")[0];
+    if (inp.checked === true) {
+      inp.checked = false;
+      REMARK_GROUP_ACTIONS = false;
+    } else {
+      inp.checked = true;
+      REMARK_GROUP_ACTIONS = true;
+    }
+  });
 
+  const createNewTagBtn = document.getElementById("createNewTagBtn");
+  createNewTagBtn.addEventListener("click", handleCreateNewTag);
+
+  const pushToServerBtn = document.getElementById("pushToServerBtn");
+  pushToServerBtn.addEventListener("click", handlePushToServer);
 }
 
 function removeHighlight(annotation) {
-    const t = annotation["html_target"];
-    if(t && t.className.includes("highlight_element_strong")) {
-        t.classList.remove("highlight_element_strong");
-    }
+  const t = annotation["html_target"];
+  if (t && t.className.includes("highlight_element_strong")) {
+    t.classList.remove("highlight_element_strong");
+  }
 }
-
 
 // *************** Annotations Utils ***************
 
-
 function getAnnotationByID(annotation_id) {
-    for(let ele of annotations) {
-        if(Number(annotation_id) === ele["id"]) {
-            return ele;
-        }
+  for (let ele of annotations) {
+    if (Number(annotation_id) === ele["id"]) {
+      return ele;
     }
-    return;
+  }
+  return;
 }
 
 function getAllAnnotations() {
-    let res = {};
-    res["item"] = [];
-    for(let a of annotations) {
-        res["item"].push({
-            x: a["x"],
-            y: a["y"],
-            width: a["width"],
-            height: a["height"],
-            tag: a["tag"],
-            text: a["text"]
-        })
-    }
-    return res;
+  let res = {};
+  res["item"] = [];
+  for (let a of annotations) {
+    res["item"].push({
+      x: a["x"],
+      y: a["y"],
+      width: a["width"],
+      height: a["height"],
+      tag: a["tag"],
+      text: a["text"],
+    });
+  }
+  return res;
 }
 
 function isValidAnnotation(curAnnotation) {
-
-    for(let i=0; i<annotations.length; i++) {
-        const ele = annotations[i];
-        if(
-            curAnnotation["x"] == ele["x"] &&
-            curAnnotation["y"] == ele["y"] &&
-            curAnnotation["width"] == ele["width"] &&
-            curAnnotation["height"] == ele["height"] 
-        ) {
-            return false;
-        }
+  for (let i = 0; i < annotations.length; i++) {
+    const ele = annotations[i];
+    if (
+      curAnnotation["x"] == ele["x"] &&
+      curAnnotation["y"] == ele["y"] &&
+      curAnnotation["width"] == ele["width"] &&
+      curAnnotation["height"] == ele["height"]
+    ) {
+      return false;
     }
+  }
 
-    return true;
-
+  return true;
 }
 
 function setCurrentLabelAsOption(val) {
-    const labelTypeBtn = document.getElementById("labelTypeBtn");
-    const n = labelTypeBtn.length;
+  const labelTypeBtn = document.getElementById("labelTypeBtn");
+  const n = labelTypeBtn.length;
 
-    let ind = -2;
+  let ind = -2;
 
-    for(let i=0; i<n; i++) {
-        if(labelTypeBtn[i].value == val) {
-            ind = i;
-            break;
-        } 
+  for (let i = 0; i < n; i++) {
+    if (labelTypeBtn[i].value == val) {
+      ind = i;
+      break;
     }
+  }
 
-    if(ind != -2) {
-        labelTypeBtn.selectedIndex = String(ind);
-    }
- 
+  if (ind != -2) {
+    labelTypeBtn.selectedIndex = String(ind);
+  }
 }
 
 // ***************** Load and Save *****************
 
-
 async function loadAllAnnotations() {
-    try {
-        console.log("IN LOAD DATA . . .")
-        const storageData = await getDataFromStorage("remark_annotations");
-        const data = storageData["remark_annotations"];
-        annotations = JSON.parse(data)["data"];
-        renderAllAnnotations(annotations)
-        console.log("in load data : ", annotations)
-        setDataToStorage("remark_annotations", null);
-    } catch(e) {
-        console.log("No annotations to load");
-    }
+  try {
+    const storageData = await getDataFromStorage("remark_annotations");
+    const data = storageData["remark_annotations"];
+    annotations = JSON.parse(data)["data"];
+    renderAllAnnotations(annotations);
+    setDataToStorage("remark_annotations", null);
+  } catch (e) {
+    console.log("No annotations to load");
+  }
 
-
-    return;
+  return;
 }
 
 function saveAllAnnotations() {
-    const d = JSON.stringify({data: annotations});
-    console.log("SAVE DATA : ", d)
-    setDataToStorage("remark_annotations", d);
-    return;
+  const d = JSON.stringify({ data: annotations });
+  console.log("SAVED DATA : ", d);
+  setDataToStorage("remark_annotations", d);
+  return;
 }
 
 function dataURIToBlob(dataURI) {
-    const splitDataURI = dataURI.split(',')
-    const byteString = splitDataURI[0].indexOf('base64') >= 0 ? atob(splitDataURI[1]) : decodeURI(splitDataURI[1])
-    const mimeString = splitDataURI[0].split(':')[1].split(';')[0]
+  const splitDataURI = dataURI.split(",");
+  const byteString =
+    splitDataURI[0].indexOf("base64") >= 0
+      ? atob(splitDataURI[1])
+      : decodeURI(splitDataURI[1]);
+  const mimeString = splitDataURI[0].split(":")[1].split(";")[0];
 
-    const ia = new Uint8Array(byteString.length)
-    for (let i = 0; i < byteString.length; i++)
-        ia[i] = byteString.charCodeAt(i)
+  const ia = new Uint8Array(byteString.length);
+  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
 
-    return new Blob([ia], { type: mimeString })
+  return new Blob([ia], { type: mimeString });
 }
-
 
 // **************** DOM Operations *****************
 
-
 function removeAllExistingModals() {
-    const menu_check = document.querySelector(".remark_standard_menu_container");
-    if(menu_check) {
-        removeHTMLElement(menu_check);
-    }
+  const menu_check = document.querySelector(".remark_standard_menu_container");
+  if (menu_check) {
+    removeHTMLElement(menu_check);
+  }
 }
 
 function stopHighlightElements() {
-    const elements = document.getElementsByClassName("highlight_element_strong");
-    while (elements.length) {
-        elements[0].classList.remove("highlight_element_strong");
-    }
+  const elements = document.getElementsByClassName("highlight_element_strong");
+  while (elements.length) {
+    elements[0].classList.remove("highlight_element_strong");
+  }
 }
 
 function getNodeXpath(node) {
-    let comp, comps = [];
-    let parent = null;
-    let xpath = "";
-    let getPos = function(node) {
-        let position = 1, curNode;
-        if (node.nodeType == Node.ATTRIBUTE_NODE) {
-            return null;
-        }
-        for (curNode = node.previousSibling; curNode; curNode = curNode.previousSibling) {
-            if (curNode.nodeName == node.nodeName) {
-                ++position;
-            }
-        }
-        return position;
-     }
-
-    if (node instanceof Document) {
-        return "/";
+  let comp,
+    comps = [];
+  let parent = null;
+  let xpath = "";
+  let getPos = function (node) {
+    let position = 1,
+      curNode;
+    if (node.nodeType == Node.ATTRIBUTE_NODE) {
+      return null;
     }
-
-    for (; node && !(node instanceof Document); node = node.nodeType == Node.ATTRIBUTE_NODE ? node.ownerElement : node.parentNode) {
-        comp = comps[comps.length] = {};
-        switch (node.nodeType) {
-            case Node.TEXT_NODE:
-                comp.name = "text()";
-                break;
-            case Node.ATTRIBUTE_NODE:
-                comp.name = "@" + node.nodeName;
-                break;
-            case Node.PROCESSING_INSTRUCTION_NODE:
-                comp.name = "processing-instruction()";
-                break;
-            case Node.COMMENT_NODE:
-                comp.name = "comment()";
-                break;
-            case Node.ELEMENT_NODE:
-                comp.name = node.nodeName;
-                break;
-        }
-        comp.position = getPos(node);
+    for (
+      curNode = node.previousSibling;
+      curNode;
+      curNode = curNode.previousSibling
+    ) {
+      if (curNode.nodeName == node.nodeName) {
+        ++position;
+      }
     }
+    return position;
+  };
 
-    for (var i = comps.length - 1; i >= 0; i--) {
-        comp = comps[i];
-        xpath += "/" + comp.name;
-        if (comp.position != null) {
-            xpath += "[" + comp.position + "]";
-        }
+  if (node instanceof Document) {
+    return "/";
+  }
+
+  for (
+    ;
+    node && !(node instanceof Document);
+    node =
+      node.nodeType == Node.ATTRIBUTE_NODE ? node.ownerElement : node.parentNode
+  ) {
+    comp = comps[comps.length] = {};
+    switch (node.nodeType) {
+      case Node.TEXT_NODE:
+        comp.name = "text()";
+        break;
+      case Node.ATTRIBUTE_NODE:
+        comp.name = "@" + node.nodeName;
+        break;
+      case Node.PROCESSING_INSTRUCTION_NODE:
+        comp.name = "processing-instruction()";
+        break;
+      case Node.COMMENT_NODE:
+        comp.name = "comment()";
+        break;
+      case Node.ELEMENT_NODE:
+        comp.name = node.nodeName;
+        break;
     }
-    return xpath;
+    comp.position = getPos(node);
+  }
+
+  for (var i = comps.length - 1; i >= 0; i--) {
+    comp = comps[i];
+    xpath += "/" + comp.name;
+    if (comp.position != null) {
+      xpath += "[" + comp.position + "]";
+    }
+  }
+  return xpath;
 }
 
 function getElementByXpath(path) {
-    let ele = null;
-    try {
-        ele = document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-    } catch (error) {
-        return;
-    }
-    return ele;
+  let ele = null;
+  try {
+    ele = document.evaluate(
+      path,
+      document,
+      null,
+      XPathResult.FIRST_ORDERED_NODE_TYPE,
+      null
+    ).singleNodeValue;
+  } catch (error) {
+    return;
+  }
+  return ele;
 }
 
 function removeHTMLElement(ele) {
-    if(ele && ele.parentElement) {
-        ele.parentElement.removeChild(ele);
-    }
-    return;
+  if (ele && ele.parentElement) {
+    ele.parentElement.removeChild(ele);
+  }
+  return;
 }
 
 function getDOMClassName(dom) {
-    let classes = dom.getAttribute("class");
-    classes = classes.replace("highlight_element_light", "").replace("highlight_element_strong", "");
-    classes = classes ? classes.split(" ").slice(0, -1) : [];
-    classes.unshift(dom.tagName.toLowerCase());
-    return classes.join(".");
+  let classes = dom.getAttribute("class");
+  classes = classes
+    .replace("highlight_element_light", "")
+    .replace("highlight_element_strong", "");
+  classes = classes ? classes.split(" ").slice(0, -1) : [];
+  classes.unshift(dom.tagName.toLowerCase());
+  return classes.join(".");
 }
 
 function disableAllCickableElements() {
-    const links = document.getElementsByTagName("a");
-    const buttons = document.getElementsByTagName("button");
-    const images = document.getElementsByTagName("images");
-    const videos = document.getElementsByTagName("video");
-    const iframes = document.getElementsByTagName("iframe");
-    const forms = document.getElementsByTagName("form");
-    
-    for(let i=0; i<links.length; i++) {
-        links[i].href = "#"
-        links[i].onclick = "return false";
-    }
+  const links = document.getElementsByTagName("a");
+  const buttons = document.getElementsByTagName("button");
+  const images = document.getElementsByTagName("images");
+  const videos = document.getElementsByTagName("video");
+  const iframes = document.getElementsByTagName("iframe");
+  const forms = document.getElementsByTagName("form");
 
-    for(let i=0; i<buttons.length; i++) {
-        buttons[i].onclick = "return false";
-    }
-    
-    for(let i=0; i<images.length; i++) {
-        images[i].onclick = "return false";
-    }
+  for (let i = 0; i < links.length; i++) {
+    links[i].href = "#";
+    links[i].onclick = "return false";
+  }
 
-    for(let i=0; i<videos.length; i++) {
-        videos[i].onclick = "return false";
-    }
+  for (let i = 0; i < buttons.length; i++) {
+    buttons[i].onclick = "return false";
+  }
 
-    for(let i=0; i<iframes.length; i++) {
-        iframes[i].onclick = "return false";
-    }
+  for (let i = 0; i < images.length; i++) {
+    images[i].onclick = "return false";
+  }
 
-    for(let i=0; i<forms.length; i++) {
-        forms[i].disabled = true;
-    }
+  for (let i = 0; i < videos.length; i++) {
+    videos[i].onclick = "return false";
+  }
 
-    return;
+  for (let i = 0; i < iframes.length; i++) {
+    iframes[i].onclick = "return false";
+  }
 
+  for (let i = 0; i < forms.length; i++) {
+    forms[i].disabled = true;
+  }
+
+  return;
 }
 
 // function dragListener(){
@@ -806,67 +826,63 @@ function disableAllCickableElements() {
 
 // ****************** HTTP methods *****************
 
-
 async function GET(url) {
-    try {
-      let res = await fetch(url);
-      res = await res.json();
-      return res;
-    } catch (e) {
-      console.log("ERROR IN GET REQUEST : ", e.message);
-    }
+  try {
+    let res = await fetch(url);
+    res = await res.json();
+    return res;
+  } catch (e) {
+    console.log("ERROR IN GET REQUEST : ", e.message);
+  }
 }
 
 async function POST(url, data, contentType = "application/json") {
-    try {
-      let d, h;
-      if(contentType == "application/json") {
-        d = JSON.stringify(data);
-      } else {
-        d = data;
-      }
-      let res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-type": contentType
-        },
-        body: d,
-      });
-  
-      res = await res.json();
-      return res;
-    } catch (e) {
-      console.log("ERROR IN POST REQUEST : ", e.message);
+  try {
+    let d, h;
+    if (contentType == "application/json") {
+      d = JSON.stringify(data);
+    } else {
+      d = data;
     }
+    let res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-type": contentType,
+      },
+      body: d,
+    });
+
+    res = await res.json();
+    return res;
+  } catch (e) {
+    console.log("ERROR IN POST REQUEST : ", e.message);
+  }
 }
 
-
-// ****************** Chrome APIs ****************** 
-
+// ****************** Chrome APIs ******************
 
 function setDataToStorage(key, value) {
-    try {
-        // [k] is a computed property. 
-        // Without it, we can not set dynamic keys.
-        chrome.storage.local.set({
-            [key]: value 
-        });
-    } catch(e) {
-        console.log("chrome error : ", e.message)
-    }
+  try {
+    // [k] is a computed property.
+    // Without it, we can not set dynamic keys.
+    chrome.storage.local.set({
+      [key]: value,
+    });
+  } catch (e) {
+    console.log("CHROME ERROR : ", e.message);
+  }
 }
 
 function getDataFromStorage(key) {
-    return new Promise((resolve) => {
-                chrome.storage.local.get([key], function(res) {
-                resolve(res);
-            })
-        }
-    )
+  return new Promise((resolve) => {
+    chrome.storage.local.get([key], function (res) {
+      resolve(res);
+    });
+  });
 }
 
 function logFormData(formData) {
-    for(let e of Array.from(formData)) {
-      console.log(e[0], " : ", e[1])
-    }
+  for (let e of Array.from(formData)) {
+    console.log(e[0], " : ", e[1]);
+  }
 }
