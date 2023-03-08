@@ -3,7 +3,7 @@ window.onload = async function () {
   const email = storageData["remark_email"];
 
   console.log("storage data  : ", storageData, email);
-
+ 
   // Check if the user has signed in
   if (email !== null) {
     renderUserStats();
@@ -94,8 +94,8 @@ async function handleSignout() {
 async function handleScreenshot() {
   const tab = await getCurrentTab();
   const dataURI = await takeScreenShot(tab);
-  // console.log(dataURI);
-  // downloadFile(dataURI, "s.jpg");
+  console.log(dataURI);
+  downloadFile(dataURI, "s.jpg");
 
   return dataURI;
 }
@@ -119,13 +119,15 @@ async function takeScreenShot(tab) {
               ["fixed", "sticky"].includes(el.style["position"])
             ) {
               const position = el.style["position"];
-              el.style["position"].setProperty("position", positionTo[position], "important");
+              console.log("in if", position)
+              el.style.setProperty("position", positionTo[position], "important");
               el.setAttribute("data-position", position);
             } else {
               const styles = getComputedStyle(el);
               const position = styles.getPropertyValue("position");
+              console.log("in else", position)
               if (position && ["fixed", "sticky"].includes(position)) {
-                el.style["position"].setProperty("position", positionTo[position], "important");
+                el.style.setProperty("position", positionTo[position], "important");
                 el.setAttribute("data-position", position);
               }
             }
@@ -183,7 +185,7 @@ async function takeScreenShot(tab) {
       };
 
       const [screenshotWidth, screenshotHeight] = await getDataImageDIM(
-        screenShots[0]
+        screenShots[1]
       );
       const canvasHeight = (screenshotHeight * result) / height;
 
@@ -260,50 +262,6 @@ function renderSignupForm() {
 }
 
 async function renderUserStats() {
-  // const dummyData = {
-  //   "users": [
-  //     {
-  //       "_id": "63fa3a398b9f0f6f3b27d574",
-  //       "email": "ravi.lamkoti@contentstack.com",
-  //       "count": 12,
-  //       "files": [
-  //         "6155b9a58f80c68fa8faace12",
-  //         "f6b1f7c26677bf9e9b4762b00"
-  //       ]
-  //     },
-  //     {
-  //       "_id": "63fa3aaf8b9f0f6f3b27d575",
-  //       "email": "ravi.lamkoti+1@contentstack.com",
-  //       "count": 8
-  //     },
-  //     {
-  //       "_id": "asdfasf",
-  //       "email": "asdad@contentstack.com",
-  //       "count": 4
-  //     },
-  //     {
-  //       "_id": "af2f[df",
-  //       "email": "manish@contentstack.com",
-  //       "count": 2
-  //     },
-  //     {
-  //       "_id": "asdfasf",
-  //       "email": "asdad@contentstack.com",
-  //       "count": 1
-  //     },
-  //     {
-  //       "_id": "6404d19233a54271711f2eae",
-  //       "username": "Test",
-  //       "password": "sample1234",
-  //       "email": "sample@gmail.com",
-  //       "count": 0,
-  //       "files": [
-  //         "b8587c1ba43398ce3dbb0ce02"
-  //       ]
-  //     }
-  //   ]
-  // }
-
   const url = "http://localhost:3000/api/scoreboard";
   const data = await GET(url);
   console.log("DATA : ", data, data["users"]);
