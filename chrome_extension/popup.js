@@ -48,7 +48,6 @@ async function handleInit() {
       })
     }
   }
-
 }
 
 async function handleSignup(signupForm) {
@@ -228,6 +227,7 @@ async function takeScreenShot(tab) {
 
 // *************** Render functions ****************
 
+
 function renderSignupForm() {
   const markup = `
     <span class="remark_header">
@@ -237,7 +237,7 @@ function renderSignupForm() {
     <form id="userSignupForm">
       <div style="float:left; width: 100%; margin: 0rem 1rem 0rem 0rem;">
           <label for="email" class="remark_form_label">Email</label>
-          <input type="email" name="email" class="remark_form_input" placeholder="Enter your email ID">
+          <input type="email" id="email" name="email" class="remark_form_input" placeholder="Enter your email ID">
       </div>
       <button type="button" class="remark_standard_button" id="signupBtn">Register</button>
     </form>
@@ -364,17 +364,20 @@ async function renderUserStats() {
   }
 
   markup += `
-    </table>
-    <button type="button" class="remark_standard_button" id="signoutBtn">Sign Out</button>
-  `;
-
-  console.log("in user stats : ", running, storageData);
-
-  if (running !== true) {
-    markup += `
-      <button type="button" class="remark_standard_button" id="remark_start">Start Annotation</button>
+      </table>
     `;
-  } else {
+    
+    console.log("in user stats : ", running, storageData);
+    
+    if (running !== true) {
+      markup += `
+        <button type="button" class="remark_standard_button" id="remark_start">Start Annotation</button>
+        <button type="button" id="signoutBtn">Sign Out</button>
+        `;
+      } else {
+      markup += `
+        <button type="button" id="signoutBtn">Sign Out</button>
+      `;
     handleInit();
   }
 
@@ -404,6 +407,7 @@ function renderErrorMessage(msg, pos, node) {
 
 // ****************** HTTP methods *****************
 
+
 async function POST(url, data, contentType = "application/json") {
   try {
     let res = await fetch(url, {
@@ -424,7 +428,7 @@ async function POST(url, data, contentType = "application/json") {
 async function GET(url) {
   try {
     let res = await fetch(url);
-    res = await (await res).json();
+    res = await res.json();
     return res;
   } catch (e) {
     console.log("ERROR IN GET REQUEST : ", e.message);
@@ -432,6 +436,7 @@ async function GET(url) {
 }
 
 // ****************** Chrome APIs ******************
+
 
 async function getCurrentTab() {
   let queryOptions = { active: true };

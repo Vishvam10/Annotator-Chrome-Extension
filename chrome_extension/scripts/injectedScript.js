@@ -6,7 +6,6 @@
     console.log("from foreground : init . . .", running);
 
     if(running === false) {
-        console.log("reached running");
         remark_destroy();
         return;
     } else {
@@ -18,6 +17,7 @@
 
 // ***************** Global Variables ****************
 
+
 var REMARK_GROUP_ACTIONS = false;
 var REMARK_ADDITIONAL_STYLES = null;
 
@@ -25,18 +25,6 @@ var annotations = []
 var tempBuffer = []
 var curNode;
 
-var eleColors = {
-    "div" : "highlight_blue", 
-    "span" : "highlight_green", 
-    "button" : "highlight_yellow", 
-    "main" : "highlight_teal", 
-    "section" : "highlight_teal", 
-    "nav" : "highlight_red", 
-    "input" : "highlight_purple", 
-    "image" : "highlight_violet", 
-    "video" : "highlight_violet", 
-    "a" : "highlight_pink"
-}
 
 var VALID_HTML_ELEMENTS = [
     "DIV", "SPAN", "BUTTON", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", 
@@ -52,6 +40,7 @@ function remark_init() {
     const style = document.createElement("style");
     REMARK_ADDITIONAL_STYLES = style;
     document.body.appendChild(style);
+    disableAllCickableElements();
     renderMenu();
     loadAllAnnotations();
     startAnnotationProcess();
@@ -60,7 +49,6 @@ function remark_init() {
 }
 
 function remark_destroy() {
-    console.log("in stop");
     
     removeAllExistingModals();
     saveAllAnnotations();
@@ -71,29 +59,42 @@ function remark_destroy() {
 
 }
 
+function dummy(e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    e.stopPropagation();
+    return false;
+}
+
 function startAnnotationProcess() {
     document.body.addEventListener("keypress", keyPressListener, false)
     document.body.addEventListener("click", clickListener, false);
     document.body.addEventListener("mouseover", mouseOverListener, false);
-    document.body.addEventListener("mouseout", mouseOutListener, false);    
+    document.body.addEventListener("mouseout", mouseOutListener, false); 
 }
 
 function stopAnnotationProcess() {
-    document.body.removeEventListener("keypress", keyPressListener, false)
-    document.body.removeEventListener("click", clickListener, false);
-    document.body.removeEventListener("mouseover", mouseOverListener, false);
-    document.body.removeEventListener("mouseout", mouseOutListener, false);
+    document.body.addEventListener("keypress", keyPressListener, false)
+    document.body.addEventListener("click", clickListener, false);
+    document.body.addEventListener("mouseover", mouseOverListener, false);
+    document.body.addEventListener("mouseout", mouseOutListener, false); 
     return;
 }
 
 // ******************* Listeners ********************
 
+
 function clickListener(e) {
     
     e.preventDefault();
+    e.stopImmediatePropagation();
     e.stopPropagation();
+
     
     const t = e.target;
+    if(t.tagName == "BUTTON") {
+        return false;
+    }
 
     if(e.altKey) {
 
@@ -109,7 +110,6 @@ function clickListener(e) {
                 
             } else {
                 handleDeleteLabel(t);
-                console.log("reached")
                 t.classList.remove("highlight_element_strong");
             }
         }
@@ -119,16 +119,29 @@ function clickListener(e) {
         // Add label
         if(t.classList.contains("highlight_element_light")) {
             if(t.classList.contains("highlight_element_strong")) {
-                console.log("REACHED STRONG")
                 return;
             }
 
             if(REMARK_GROUP_ACTIONS) {
-                handleBatchCreate(tempBuffer);
-                for(let t of tempBuffer) {
-                    t.classList.remove("highlight_element_light");
-                    t.classList.add("highlight_element_strong");
+                const className = String(e.target.className.replace("highlight_element_strong", ""));
+                const nodes = document.getElementsByClassName(className);
+
+
+                let elements = [];
+                
+                Array.from(nodes).forEach((ele) => {
+                    if(ele.tag == e.target.tag) {
+                        elements.push(ele);
+                    }
+                });
+
+                handleBatchCreate(elements);
+                
+                for(let ele of elements) {
+                    ele.classList.remove("highlight_element_light");
+                    ele.classList.add("highlight_element_strong");
                 }
+
             } else {
                 handleCreateLabel(t);
                 t.classList.remove("highlight_element_light");
@@ -213,6 +226,7 @@ function attachListeners() {
 
 // ******************* Handlers ********************
 
+
 function handleCreateLabel(targetHTMLElement) {
     const rect = targetHTMLElement.getBoundingClientRect();
     const x = Math.round(rect.x), y = Math.round(rect.y), w = Math.round(rect.width), h = Math.round(rect.height);
@@ -254,8 +268,14 @@ function handleCreateLabel(targetHTMLElement) {
         "html_target" : targetHTMLElement
     }
 
-    annotations.push(d);
-    targetHTMLElement.dataset.annotation_id = d["id"];
+    if(isValidAnnotation(d)) {
+        annotations.push(d);
+        targetHTMLElement.dataset.annotation_id = d["id"];
+        return;
+    }
+
+    return;
+
 }
 
 function handleEditLabel(targetHTMLElement, newTag) {
@@ -279,7 +299,6 @@ function handleEditLabel(targetHTMLElement, newTag) {
 
 function handleDeleteLabel(targetHTMLElement) {
     const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
-    console.log("delete : ", targetHTMLElement, annotation_id)
 
     let ind, annotation;
 
@@ -301,7 +320,7 @@ function handleDeleteLabel(targetHTMLElement) {
 function handleBatchCreate(targetHTMLElements) {
     for(let i=0; i<targetHTMLElements.length; i++) {
         const ele = targetHTMLElements[i];
-        handleCreateLabel(ele, annotations)
+        handleCreateLabel(ele)
     }
 }        
 
@@ -322,10 +341,29 @@ function handleBatchEdit(targetHTMLElements, val) {
     }
 }
 
+async function handleCreateNewTag() {
+    const inp = document.getElementById("createNewTag");
+    const val = inp.value.trim().toLowerCase();
+    if(val && val.length > 0) {
+        const data = {
+            "title" : val
+        }
+        const res = await POST("http://localhost:3000/api/labels", data);
+        if(res.msg == "Label created successfully!") {
+            console.log("SUCCESS")
+            renderMenu();
+            return;
+        } else {
+            console.log(res)
+        }
+    }    
+}
+
 async function handlePushToServer() {
-    const storageData = await getDataFromStorage("remark_screenshot_datauri");
-    const dataURI = storageData["remark_screenshot_datauri"];
-    const email = storageData["remark_email"];
+    const dataURIStorageData = await getDataFromStorage("remark_screenshot_datauri");
+    const dataURI = dataURIStorageData["remark_screenshot_datauri"];
+    const emailStorageData = await getDataFromStorage("remark_email");
+    const email = emailStorageData["remark_email"];
 
     const imgBlob = dataURIToBlob(dataURI)
     const labels = getAllAnnotations()
@@ -335,18 +373,14 @@ async function handlePushToServer() {
     formData.append("label", JSON.stringify(labels));
 
     logFormData(formData)
-
     const url = "http://localhost:3000/api/submit"
 
     try {
-
         const options = {
             method: "POST",
-            mode: "no-cors",
             headers: {
-                "Content-Type": "multipart/form-data",
-                "Access-Control-Allow-Origin": "*",
-                email: email
+                "Content-Type" : "multipart/form-data",
+                "email": email
             },
             body: formData
         };
@@ -371,6 +405,7 @@ async function handlePushToServer() {
 
 // *************** Render functions ***************
 
+
 function renderAllAnnotations(annotations) {
     for(let i=0; i<annotations.length; i++) {
         const ele = annotations[i];
@@ -386,13 +421,26 @@ function renderAllAnnotations(annotations) {
     }
 }
 
-function renderMenu() {
+async function renderMenu() {
+    console.log("render menu")
     if(document.querySelector(".remark_standard_menu_container")) {
         return;
     }
+    let labelMarkup = ""
+    const data = await GET("http://localhost:3000/api/labels");
+    const labels = data["labels"];
+    console.log("labels : ", labels)
+    
+    for(let i=0; i<labels.length; i++) {
+        const val = labels[i]
+        labelMarkup += `
+            <option value="${val}" class="remark_">${val}</option>
+        `
+    }
+    
     
     const markup = `
-        <div class="remark_standard_menu_container">
+        <div class="remark_standard_menu_container" id="remarkMainMenu" draggable=true>
             <div class="remark_standard_menu_header">
                 <h3 class="remark_standard_sidebar_title">MENU</h3>
                 <div class="remark_standard_sidebar_actions">
@@ -407,23 +455,21 @@ function renderMenu() {
                 <div class="remark_settings">
                     <div class="remark_settings_subgroup">
                         <label for="labelType" class="remark_">Choose a label type : </label>
-                        
                         <select name="labelType" id="labelTypeBtn" class="remark_">
-                            <option value="parapgraph" class="remark_">Paragraph</option>
-                            <option value="heading" class="remark_">Heading</option>
-                            <option value="link" class="remark_">Link</option>
-                            <option value="button" class="remark_">Button</option>
-                            <option value="span" class="remark_">Span</option>
-                            <option value="image" class="remark_">Image</option>
+                            ${labelMarkup}
                             <option value="remove_label" class="remark_">Remove Label</option>
                         </select>
-
+                        <div style="float:left; width: 100%; margin: 0rem 1rem 0rem 0rem;">
+                            <label for="createNewTag" class="remark_form_label">CREATE NEW TAG</label>
+                            <input type="text" name="createNewTag" id="createNewTag" class="remark_form_input" placeholder="Enter a new label">
+                        </div>
+                        <button type="button" class="remark_standard_button" id="createNewTagBtn">Create New Label</button>
                         <label class="remark_toggle" id="groupActionsBtn">
-                            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
-                            <div class="remark_toggle_switch"></div>
-                            <span class="remark_toggle_label">Group elements by class and tag</span>
+                        <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
+                        <div class="remark_toggle_switch"></div>
+                        <span class="remark_toggle_label">Group Elements</span>
+                        <p style="font-size: 0.7rem; margin: 1rem 0rem 1rem 0rem"><b>NOTE :</b> Elements will be grouped by their classname and their tagname )</p>
                         </label>
-
                     </div>  
                     <button type="button" class="remark_standard_button" id="pushToServerBtn">Save Annotations</button>
                 </div>
@@ -448,7 +494,6 @@ function renderMenu() {
         e.preventDefault();
         e.stopPropagation();
         const val = String(e.target.value);
-        console.log("val : ", val)
         if(val != "remove_label") {
             if(REMARK_GROUP_ACTIONS) {
                 const className = String(curNode.className.replace("highlight_element_strong", ""));
@@ -482,11 +527,14 @@ function renderMenu() {
             inp.checked = true;
             REMARK_GROUP_ACTIONS = true;
         }
-        console.log("CLICKED GROUP : ", REMARK_GROUP_ACTIONS, inp, inp.checked)
     })
+    
+    const createNewTagBtn = document.getElementById("createNewTagBtn");
+    createNewTagBtn.addEventListener("click", handleCreateNewTag)
     
     const pushToServerBtn = document.getElementById("pushToServerBtn");
     pushToServerBtn.addEventListener("click", handlePushToServer);
+
 
 }
 
@@ -498,56 +546,7 @@ function removeHighlight(annotation) {
 }
 
 
-// ************** Component functions **************
-
-
-var BATCH_ACTION_MODAL = (action) => {
-
-    let title = "";
-
-    if(action == "batchCreate") {
-        title = "BATCH CREATE"
-    } else if(action == "batchDelete") {
-        title = "BATCH DELETE"
-    }
-
-    const markup = `
-        <div class="remark_standard_minimodal">
-            <h4 class="remark_standard_minimodal_title">${title}</h4>
-            <div class="remark_standard_minimodal_body">
-                <span class="remark_standard_minimodal_input_container">
-                    <label for="batchInputTagName" class="remark_standard_minimodal_label">TAGNAME</label>
-                    <br>
-                    <input id="batchInputTagName" class="remark_standard_minimodal_input" type="text">
-                </span>
-                <span class="remark_standard_minimodal_input_container">
-                    <label for="batchInputClassName" class="remark_standard_minimodal_label">CLASSNAME</label>
-                    <br>
-                    <input id="batchInputClassName" class="remark_standard_minimodal_input" type="text">
-                </span>
-            </div>
-            <span class="remark_" style="height: 100%; border-left: 1px solid var(--remark-color-grey-light-2); margin: 0rem 0rem 0rem -2rem">
-                <button class="remark_standard_minimodal_button" id="remark_standard_minimodal_button">GO</button>
-            </span>
-        </div>
-    `
-    return markup;
-}
-
-var CONFIRM_GROUPING_MARKUP = () => {
-    const markup = `
-        <span class="remark_confirm_grouping">
-            <span class="remark_grouping_options">Yes</span>
-            <span class="remark_grouping_options">No</span>
-        </span>
-    `;
-    return markup;
-}
-
-// *************** Utility functions *************** 
-
-
-// --------------- Annotations utils ----------------
+// *************** Annotations Utils ***************
 
 
 function getAnnotationByID(annotation_id) {
@@ -575,6 +574,24 @@ function getAllAnnotations() {
     return res;
 }
 
+function isValidAnnotation(curAnnotation) {
+
+    for(let i=0; i<annotations.length; i++) {
+        const ele = annotations[i];
+        if(
+            curAnnotation["x"] == ele["x"] &&
+            curAnnotation["y"] == ele["y"] &&
+            curAnnotation["width"] == ele["width"] &&
+            curAnnotation["height"] == ele["height"] 
+        ) {
+            return false;
+        }
+    }
+
+    return true;
+
+}
+
 function setCurrentLabelAsOption(val) {
     const labelTypeBtn = document.getElementById("labelTypeBtn");
     const n = labelTypeBtn.length;
@@ -594,7 +611,7 @@ function setCurrentLabelAsOption(val) {
  
 }
 
-// ----------------- Load and Save ------------------
+// ***************** Load and Save *****************
 
 
 async function loadAllAnnotations() {
@@ -602,8 +619,6 @@ async function loadAllAnnotations() {
         console.log("IN LOAD DATA . . .")
         const storageData = await getDataFromStorage("remark_annotations");
         const data = storageData["remark_annotations"];
-        console.log("IN LOAD DATA : ", data)
-        // console.log("LOAD DATA : ", data, JSON.parse(data)["data"])
         annotations = JSON.parse(data)["data"];
         renderAllAnnotations(annotations)
         console.log("in load data : ", annotations)
@@ -636,27 +651,14 @@ function dataURIToBlob(dataURI) {
 }
 
 
-// ---------------- DOM Operations -----------------
+// **************** DOM Operations *****************
 
 
 function removeAllExistingModals() {
     const menu_check = document.querySelector(".remark_standard_menu_container");
-    const sidebar_check = document.getElementById("remark_annotations_sidebar");
-
-    const grouping_modal = document.querySelector(".remark_confirm_grouping");
-
     if(menu_check) {
         removeHTMLElement(menu_check);
     }
-
-    if(sidebar_check) {
-        removeHTMLElement(sidebar_check);
-    }
-
-    if(grouping_modal) {
-        removeHTMLElement(grouping_modal);
-    }
-
 }
 
 function stopHighlightElements() {
@@ -743,7 +745,101 @@ function getDOMClassName(dom) {
     classes.unshift(dom.tagName.toLowerCase());
     return classes.join(".");
 }
+
+function disableAllCickableElements() {
+    const links = document.getElementsByTagName("a");
+    const buttons = document.getElementsByTagName("button");
+    const images = document.getElementsByTagName("images");
+    const videos = document.getElementsByTagName("video");
+    const iframes = document.getElementsByTagName("iframe");
+    const forms = document.getElementsByTagName("form");
+    
+    for(let i=0; i<links.length; i++) {
+        links[i].href = "#"
+        links[i].onclick = "return false";
+    }
+
+    for(let i=0; i<buttons.length; i++) {
+        buttons[i].onclick = "return false";
+    }
+    
+    for(let i=0; i<images.length; i++) {
+        images[i].onclick = "return false";
+    }
+
+    for(let i=0; i<videos.length; i++) {
+        videos[i].onclick = "return false";
+    }
+
+    for(let i=0; i<iframes.length; i++) {
+        iframes[i].onclick = "return false";
+    }
+
+    for(let i=0; i<forms.length; i++) {
+        forms[i].disabled = true;
+    }
+
+    return;
+
+}
+
+// function dragListener(){
+//     document.getElementById("remarkMainMenu").addEventListener('mousedown', mouseDownListener, false);
+//     window.addEventListener('mouseup', mouseUpListener, false);
+
+// }
+
+// function mouseUpListener() {
+//     window.removeEventListener('mousemove', divMove, true);
+// }
+
+// function mouseDownListener(e){
+//   window.addEventListener('mousemove', divMove, true);
+// }
+
+// function divMove(e){
+//     let node = document.getElementById("remarkMainMenu");
+//     node.style.position = 'absolute';
+//     node.style.top = e.clientY + 'px';
+//     node.style.left = e.clientX + 'px';
+// }
+
+// ****************** HTTP methods *****************
+
+
+async function GET(url) {
+    try {
+      let res = await fetch(url);
+      res = await res.json();
+      return res;
+    } catch (e) {
+      console.log("ERROR IN GET REQUEST : ", e.message);
+    }
+}
+
+async function POST(url, data, contentType = "application/json") {
+    try {
+      let d, h;
+      if(contentType == "application/json") {
+        d = JSON.stringify(data);
+      } else {
+        d = data;
+      }
+      let res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-type": contentType
+        },
+        body: d,
+      });
   
+      res = await res.json();
+      return res;
+    } catch (e) {
+      console.log("ERROR IN POST REQUEST : ", e.message);
+    }
+}
+
 
 // ****************** Chrome APIs ****************** 
 

@@ -164,21 +164,21 @@ h6 {
   align-items: center;
 }
 
-#loginToSignupButton,
-#signupToLoginBtn {
-  color: var(--remark-color-primary);
-  cursor: pointer;
-}
-
 #signoutBtn {
   background-color: var(--remark-color-white);
   color: var(--remark-color-primary);
-  border: 1px solid var(--remark-color-primary);
-  border-radius: 1.2rem;
+  border: none;
+  border-radius: 0rem;
+  margin: 2rem 0rem 0rem 7rem;
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
 }
 
 #signoutBtn:hover {
-  color: var(--remark-color-white);
+  transform: scale(1.1);
+}
+
+#signoutBtn:active {
+  transform: scale(1.00);
 }
 
 .remark_user_info {
@@ -200,7 +200,7 @@ h6 {
 .remark_popup_container {
   width: 20rem;
   height: auto;
-  padding: 1rem 4rem 2rem 4rem;
+  padding: 2rem;
   color: var(--remark-color-grey-dark-2);
 }
 
@@ -247,7 +247,7 @@ h6 {
   padding: 1.25rem 4.5rem;
   border-radius: 1.2rem;
   cursor: pointer;
-  transition: all 0.1s;
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
   margin: 2.2rem -1rem 0rem 0rem;
   width: 100%;
   display: flex;

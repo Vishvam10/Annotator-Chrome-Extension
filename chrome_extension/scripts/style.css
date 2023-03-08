@@ -66,6 +66,30 @@
   z-index: 1000000;
 }
 
+#labelTypeBtn {
+  font-size: 1rem !important;
+  background: var(--remark-color-white) !important;
+  color: var(--remark-color-grey) !important;
+  padding: 0.4rem !important;
+  border-radius: 0.6rem !important;
+  margin: 0.4rem 0rem 2rem 0rem !important;
+}
+
+.remark_how_to_use {
+  color: var(--remark-color-grey-light-1);
+  font-size: 1rem;
+}
+
+.remark_how_to_use_title {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.remark_how_to_use_body {
+  font-size: 0.6rem;
+  font-weight: normal;
+}
+
 .remark_form_input {
   padding: 1rem 2rem 1.2rem 1rem;
   font-family: var(--remark-default-sanserif-font);
@@ -123,6 +147,21 @@
 
 #remarkStopBtn:hover {
   color: var(--remark-color-white);
+}
+
+#createNewTagBtn {
+  color: var(--remark-color-grey-light-1);
+  background: var(--remark-color-grey-light-3);
+  border: 1px solid var(--remark-color-grey-light-1);
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
+}
+
+#createNewTagBtn:hover {
+  transform: scale(1.04);
+}
+
+#createNewTagBtn:active {
+  transform: scale(1.00);
 }
 
 #pushToServerBtn {
