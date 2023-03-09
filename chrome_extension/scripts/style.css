@@ -2,8 +2,8 @@
   --remark-color-primary: #0d6efd;
   --remark-color-primary-lighter: #5498ff;
   --remark-color-primary-darker: #0b5dd7;
-  --remark-color-success: #5ec576;
-  --remark-color-success-darker: #399e66;
+  --remark-color-green: #5ec576;
+  --remark-color-green-darker: #399e66;
   --remark-color-warning: #ffcb03;
   --remark-color-warning-darker: #eaac00;
 
@@ -46,6 +46,11 @@
   border-radius: 0.2rem;
   cursor: crosshair;
   z-index: 100000;
+}
+
+.highlight_element_selected {
+  outline: 1px solid #2fed65 !important;
+  background: #2fed6527 !important;
 }
 
 .remark_standard_modal {

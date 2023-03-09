@@ -14,14 +14,17 @@
 
 // ***************** Global Variables ****************
 
+// var BACKEND_URL = "https://data-science-theta.vercel.app/api";
+var BACKEND_URL = "http://localhost:3001/api";
 
-var BACKEND_URL = "http://localhost:3000/api"
 var REMARK_GROUP_ACTIONS = false;
 var REMARK_ADDITIONAL_STYLES = null;
 
 var annotations = [];
 var tempBuffer = [];
 var curNode;
+
+var dragging = false;
 
 var VALID_HTML_ELEMENTS = [
   "DIV",
@@ -72,25 +75,19 @@ function remark_destroy() {
   setDataToStorage("remark_running", false);
 }
 
-function dummy(e) {
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  e.stopPropagation();
-  return false;
-}
-
 function startAnnotationProcess() {
-  document.body.addEventListener("keypress", keyPressListener, false);
+  // document.body.addEventListener("keydown", keyDownListener, false);
+
   document.body.addEventListener("click", clickListener, false);
   document.body.addEventListener("mouseover", mouseOverListener, false);
   document.body.addEventListener("mouseout", mouseOutListener, false);
 }
 
 function stopAnnotationProcess() {
-  document.body.addEventListener("keypress", keyPressListener, false);
-  document.body.addEventListener("click", clickListener, false);
-  document.body.addEventListener("mouseover", mouseOverListener, false);
-  document.body.addEventListener("mouseout", mouseOutListener, false);
+  // document.body.removeEventListener("keydown", keyDownListener, false);
+  document.body.removeEventListener("click", clickListener, false);
+  document.body.removeEventListener("mouseover", mouseOverListener, false);
+  document.body.removeEventListener("mouseout", mouseOutListener, false);
   return;
 }
 
@@ -158,7 +155,13 @@ function clickListener(e) {
 
       console.log("ADD ANNOTATIONS : ", annotations);
     } else if (t.classList.contains("highlight_element_strong")) {
+      prevNode = curNode;
+      if(prevNode && prevNode.className.includes("highlight_element_selected")) {
+        prevNode.classList.remove("highlight_element_selected");
+      }
+
       curNode = t;
+      curNode.classList.add("highlight_element_selected");
       const id = t.dataset.annotation_id;
       const ann = getAnnotationByID(id);
       setCurrentLabelAsOption(ann.tag);
@@ -211,28 +214,6 @@ function mouseOutListener(e) {
   tempBuffer = [];
 }
 
-function keyPressListener(e) {
-  if (e.key === "Escape") {
-    removeAllExistingModals();
-  }
-}
-
-function attachListeners() {
-  const remarkBatchCreateBtn = document.getElementById("remarkBatchCreateBtn");
-  remarkBatchCreateBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleBatchAction("batchCreate");
-  });
-
-  const remarkBatchDeleteBtn = document.getElementById("remarkBatchDeleteBtn");
-  remarkBatchDeleteBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleBatchAction("batchDelete");
-  });
-}
-
 // ******************* Handlers ********************
 
 function handleCreateLabel(targetHTMLElement) {
@@ -246,8 +227,7 @@ function handleCreateLabel(targetHTMLElement) {
     "highlight_element_light",
     ""
   );
-  curNode = targetHTMLElement;
-
+  
   // let c = getDOMClassName(targetHTMLElement);
 
   // REMARK_ADDITIONAL_STYLES.innerHTML = `
@@ -256,7 +236,7 @@ function handleCreateLabel(targetHTMLElement) {
   //     }
 
   //     ${c}::before {
-  //         content: '${targetHTMLElement.tagName.toLowerCase()}';
+  //         content: "${targetHTMLElement.tagName.toLowerCase()}";
   //         position: absolute;
   //         top: 0;
   //         left: 0;
@@ -376,6 +356,12 @@ async function handlePushToServer() {
   const imgBlob = dataURIToBlob(dataURI);
   const labels = getAllAnnotations();
 
+  const JSONDataURI =
+    "data:text/json;charset=utf-8," +
+    encodeURIComponent(JSON.stringify(labels));
+  downloadFile(dataURI, "s.jpg");
+  downloadFile(JSONDataURI, "labels.json");
+
   const formData = new FormData();
   formData.append("image", imgBlob, "image.jpg");
   formData.append("label", JSON.stringify(labels));
@@ -409,6 +395,25 @@ async function handlePushToServer() {
   }
 }
 
+function handleMoveMenu() {
+  function mouseMoveListener(e) {
+    e.preventDefault();
+    const menu = document.getElementById("remarkMainMenu");
+    // t.style.top = 0 + "px"
+    // t.style.left = 0 + "px"
+    menu.style.top = e.clientY + "px";
+    menu.style.left = e.clientX + "px";
+  }
+
+  if (dragging) {
+    console.log("reached : ADD LISTENER");
+    document.body.addEventListener("mousemove", mouseMoveListener, true);
+  } else {
+    console.log("reached : REMOVE LISTENER");
+    document.body.removeEventListener("mousemove", mouseMoveListener, true);
+  }
+}
+
 // *************** Render functions ***************
 
 function renderAllAnnotations(annotations) {
@@ -430,11 +435,12 @@ function renderAllAnnotations(annotations) {
 }
 
 async function renderMenu() {
-  if (document.querySelector(".remark_standard_menu_container")) {
-    return;
+  if (document.getElementById("remarkMainMenu")) {
+    removeHTMLElement(document.getElementById("remarkMainMenu"));
   }
   let labelMarkup = "";
   const data = await GET(`${BACKEND_URL}/labels`);
+  console.log("data : ", data);
   const labels = data["labels"];
 
   for (let i = 0; i < labels.length; i++) {
@@ -445,9 +451,8 @@ async function renderMenu() {
   }
 
   const markup = `
-        <div class="remark_standard_menu_container" id="remarkMainMenu" draggable=true>
+        <div class="remark_standard_menu_container" id="remarkMainMenu">
             <div class="remark_standard_menu_header">
-                <h3 class="remark_standard_sidebar_title">MENU</h3>
                 <div class="remark_standard_sidebar_actions">
                     <span class="remark_close_btn" id="remark_standard_menu_close_btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn">
@@ -482,6 +487,40 @@ async function renderMenu() {
         </div>
     `;
   document.body.insertAdjacentHTML("afterbegin", markup);
+
+  // ************************ DRAGGING ************************
+
+  const menu = document.getElementById("remarkMainMenu");
+  let isDragging = false;
+  let dragOffset = { x: 0, y: 0 };
+
+  menu.addEventListener("mousedown", (e) => {
+    if (
+      e.target.tagName === "INPUT" ||
+      e.target.tagName === "TOGGLE" ||
+      e.target.tagName === "BUTTON" ||
+      e.target.tagName === "SELECT" ||
+      e.target.tagName === "LABEL"
+    ) {
+      return;
+    }
+    isDragging = true;
+    dragOffset.x = e.offsetX;
+    dragOffset.y = e.offsetY;
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (isDragging) {
+      menu.style.left = e.clientX - dragOffset.x + "px";
+      menu.style.top = e.clientY - dragOffset.y + "px";
+    }
+  });
+
+  document.addEventListener("mouseup", (e) => {
+    isDragging = false;
+  });
+
+  // **********************************************************
 
   const menuCloseBtn = document.getElementById(
     "remark_standard_menu_close_btn"
@@ -611,7 +650,6 @@ function setCurrentLabelAsOption(val) {
       break;
     }
   }
-
   if (ind != -2) {
     labelTypeBtn.selectedIndex = String(ind);
   }
@@ -672,21 +710,21 @@ function stopHighlightElements() {
 
 function getNodeXpath(node) {
   let comp,
-    comps = [];
+  comps = [];
   let parent = null;
   let xpath = "";
   let getPos = function (node) {
     let position = 1,
-      curNode;
+      currentNode;
     if (node.nodeType == Node.ATTRIBUTE_NODE) {
       return null;
     }
     for (
-      curNode = node.previousSibling;
-      curNode;
-      curNode = curNode.previousSibling
+      currentNode = node.previousSibling;
+      currentNode;
+      currentNode = currentNode.previousSibling
     ) {
-      if (curNode.nodeName == node.nodeName) {
+      if (currentNode.nodeName == node.nodeName) {
         ++position;
       }
     }
@@ -803,27 +841,6 @@ function disableAllCickableElements() {
   return;
 }
 
-// function dragListener(){
-//     document.getElementById("remarkMainMenu").addEventListener('mousedown', mouseDownListener, false);
-//     window.addEventListener('mouseup', mouseUpListener, false);
-
-// }
-
-// function mouseUpListener() {
-//     window.removeEventListener('mousemove', divMove, true);
-// }
-
-// function mouseDownListener(e){
-//   window.addEventListener('mousemove', divMove, true);
-// }
-
-// function divMove(e){
-//     let node = document.getElementById("remarkMainMenu");
-//     node.style.position = 'absolute';
-//     node.style.top = e.clientY + 'px';
-//     node.style.left = e.clientX + 'px';
-// }
-
 // ****************** HTTP methods *****************
 
 async function GET(url) {
@@ -885,4 +902,14 @@ function logFormData(formData) {
   for (let e of Array.from(formData)) {
     console.log(e[0], " : ", e[1]);
   }
+}
+
+// ****************** Other utils ******************
+
+function downloadFile(dataURI, fileName) {
+  const downloadLink = document.createElement("a");
+  downloadLink.href = dataURI;
+  downloadLink.download = fileName;
+  downloadLink.click();
+  downloadLink.remove();
 }
