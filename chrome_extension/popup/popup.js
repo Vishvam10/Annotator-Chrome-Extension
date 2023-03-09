@@ -11,7 +11,7 @@ window.onload = async function () {
   
 };
 
-var BACKEND_URL = "http://localhost:3001/api"
+var BACKEND_URL = "http://localhost:3000/api"
 // var BACKEND_URL = "https://data-science-theta.vercel.app/api"
 
 async function handleInit() {
@@ -72,6 +72,90 @@ async function handleSignup(signupForm) {
     return;
   }
 }
+
+
+async function handlePushToServer() {
+  const tab = await getCurrentTab()
+  const screenshotURIStorageData = await getDataFromStorage(
+    "remark_screenshot_datauri"
+  );
+
+  const url = `${BACKEND_URL}/submit`;
+  
+  const emailStorageData = await getDataFromStorage("remark_email");
+  const email = emailStorageData["remark_email"];
+
+  const [result] = await chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: () => {
+      // const allAnnotations = document.querySelectorAll(
+      //   "[data-annotation_id]"
+      // );
+      let res = []
+      for(let annotation of window.annotations) {
+        res.push(annotation);
+      }
+      console.log("res : ", res)
+      return res;
+    },
+  });
+
+  const labels = result["result"]
+  const screenshotDataURI = screenshotURIStorageData["remark_screenshot_datauri"];
+
+  console.log("all labels : ", result, result["result"])
+
+  const jsn = JSON.stringify(labels);
+  const blob = new Blob([jsn], { type: "application/json" });
+  
+  const imgFile = dataURItoFile(screenshotDataURI, "screenshot.png");
+  const labelFile = new File([ blob ], "labels.json");
+
+  console.log(imgFile, labelFile);
+
+  // downloadFile(dataURI, "s.jpg");
+  // downloadFile(JSONDataURI, "labels.json");
+
+  var myHeaders = new Headers();
+  console.log("SUBMIT EMAIL : ", email)
+  myHeaders.append("email", String(email));
+  
+  var formdata = new FormData();
+  formdata.append("label", labelFile);
+  formdata.append("image", imgFile);
+  logFormData(formdata)
+
+  var requestOptions = {
+    method: 'POST',
+    headers: myHeaders,
+    body: formdata,
+    redirect: 'follow'
+  };
+
+  const pushToServerBtn = document.getElementById("pushToServerBtn");
+  pushToServerBtn.classList.add("remark_fade");
+  pushToServerBtn.innerText = "Saving ...";
+  pushToServerBtn.removeEventListener("click", handlePushToServer)
+  
+  let res = await fetch(url, requestOptions);
+  res = await res.text();
+  
+  console.log("res : ", res, typeof(res), res.includes("Submitted"));
+  
+  if(res && res.includes("Submitted")) {
+    console.log("SUCCESSFUL SUBMISSION !");
+    pushToServerBtn.classList.remove("remark_fade");
+    pushToServerBtn.innerText = "Save Annotations";
+    pushToServerBtn.addEventListener("click", handlePushToServer)
+  } else {
+    pushToServerBtn.classList.remove("remark_fade");
+    pushToServerBtn.classList.add("remark_error");
+    pushToServerBtn.innerText = "Some Error Occured";
+    pushToServerBtn.addEventListener("click", handlePushToServer)
+  }
+
+}
+
 
 async function handleSignout() {
   setDataToStorage("remark_email", null);
@@ -273,6 +357,10 @@ async function renderUserStats() {
   const running = storageData["remark_running"];
 
   let markup = `
+    <span class="remark_header">
+      <h2 class="remark_title">ReMark</h2>
+      <p class="remark_description">Annotate any website</p>
+    </span>
     <span class="remark_user_info">
       <p>Signed in as</p>
       <h4 class="remark_user_email">${email}</h4>      
@@ -286,8 +374,23 @@ async function renderUserStats() {
   `;
 
   for (let i = 0; i < users.length; i++) {
-    if (i < 10) {
-      const em = users[i]["email"].split("@")[0].substring(0, 12);
+    if (users[i]["email"] === email) {
+      curUserPos = i + 1;
+      curUserEmail = users[i]["email"].split("@")[0].substring(0, 12);
+      curUserCount = users[i]["count"];
+    } 
+  }
+  for (let i = 0; i < 10; i++) {
+    const em = users[i]["email"].split("@")[0].substring(0, 12);
+    if(i == curUserPos - 1) {
+      markup += `
+        <tr style="background: var(--remark-color-warning); font-weight: bold;">
+          <td>${i+1}</td>
+          <td>${em}</td>
+          <td>${users[i]["count"]}</td>
+        </tr>
+      `;
+    } else {
       markup += `
         <tr>
           <td>${i+1}</td>
@@ -295,12 +398,7 @@ async function renderUserStats() {
           <td>${users[i]["count"]}</td>
         </tr>
       `;
-    }
 
-    if (users[i]["email"] === email) {
-      curUserPos = i + 1;
-      curUserEmail = users[i]["email"].split("@")[0].substring(0, 12);
-      curUserCount = users[i]["count"];
     }
   }
 
@@ -311,7 +409,7 @@ async function renderUserStats() {
         <td>...</td>
         <td>...</td>
       </tr>
-      <tr>
+      <tr style="background: var(--remark-color-warning); font-weight: bold;">
         <td>${curUserPos}</td>
         <td>${curUserEmail}</td>
         <td>${curUserCount}</td>
@@ -321,6 +419,7 @@ async function renderUserStats() {
 
   markup += `
       </table>
+      <button type="button" class="remark_standard_button" id="pushToServerBtn">Save Annotations</button>
     `;
         
     if (running !== true) {
@@ -343,6 +442,9 @@ async function renderUserStats() {
   if (initBtn) {
     initBtn.addEventListener("click", handleInit);
   }
+
+  const pushToServerBtn = document.getElementById("pushToServerBtn");
+  pushToServerBtn.addEventListener("click", handlePushToServer);
 
   const signoutBtn = document.getElementById("signoutBtn");
   signoutBtn.addEventListener("click", handleSignout);
@@ -488,3 +590,27 @@ function downloadFile(dataURI, fileName) {
   downloadLink.download = fileName;
   downloadLink.click();
 }
+
+function dataURIToBlob(dataURI) {
+  const splitDataURI = dataURI.split(",");
+  const byteString =
+    splitDataURI[0].indexOf("base64") >= 0
+      ? atob(splitDataURI[1])
+      : decodeURI(splitDataURI[1]);
+  const mimeString = splitDataURI[0].split(":")[1].split(";")[0];
+
+  const ia = new Uint8Array(byteString.length);
+  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+
+  return new Blob([ia], { type: mimeString });
+}
+
+function dataURItoFile(dataurl, filename) {
+  var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+      bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+  while(n--){
+      u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename, {type:mime});
+}
+

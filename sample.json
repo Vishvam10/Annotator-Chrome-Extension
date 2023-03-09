@@ -1,0 +1,25 @@
+{
+  "item": [
+    {
+      "tag": "section",
+      "x": "95",
+      "y": "140",
+      "width": "570",
+      "height": "245",
+      "image_width": "790",
+      "image_height": "790"
+    },
+    {
+      "tag": "image",
+      "x": "80",
+      "y": "400",
+      "width": "633",
+      "height": "241",
+      "image_width": "790",
+      "image_height": "790"
+    }
+  ],
+  "label_name": {
+    "image_path": "e3a3c640-aea6-11ed-b7c4-acde48001122.png"
+  }
+}

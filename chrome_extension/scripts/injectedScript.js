@@ -15,12 +15,12 @@
 // ***************** Global Variables ****************
 
 // var BACKEND_URL = "https://data-science-theta.vercel.app/api";
-var BACKEND_URL = "http://localhost:3001/api";
+var BACKEND_URL = "http://localhost:3000/api";
 
 var REMARK_GROUP_ACTIONS = false;
 var REMARK_ADDITIONAL_STYLES = null;
 
-var annotations = [];
+window.annotations = [];
 var tempBuffer = [];
 var curNode;
 
@@ -345,74 +345,6 @@ async function handleCreateNewTag() {
   }
 }
 
-async function handlePushToServer() {
-  const dataURIStorageData = await getDataFromStorage(
-    "remark_screenshot_datauri"
-  );
-  const dataURI = dataURIStorageData["remark_screenshot_datauri"];
-  const emailStorageData = await getDataFromStorage("remark_email");
-  const email = emailStorageData["remark_email"];
-
-  const imgBlob = dataURIToBlob(dataURI);
-  const labels = getAllAnnotations();
-
-  const JSONDataURI =
-    "data:text/json;charset=utf-8," +
-    encodeURIComponent(JSON.stringify(labels));
-  downloadFile(dataURI, "s.jpg");
-  downloadFile(JSONDataURI, "labels.json");
-
-  const formData = new FormData();
-  formData.append("image", imgBlob, "image.jpg");
-  formData.append("label", JSON.stringify(labels));
-
-  logFormData(formData);
-  const url = `${BACKEND_URL}/submit`;
-
-  try {
-    const options = {
-      method: "POST",
-      headers: {
-        "Content-Type": "multipart/form-data",
-        email: email,
-      },
-      body: formData,
-    };
-
-    res = await fetch(url, options);
-    res = await res.json();
-
-    console.log("POST RESULT : ", res);
-
-    if (res.msg === "Submitted") {
-      console.log("SUCCESSFUL !");
-      remark_destroy();
-    } else {
-      console.log("FAILED : ", res);
-    }
-  } catch (e) {
-    console.log("ERROR IN POST REQUEST : ", e);
-  }
-}
-
-function handleMoveMenu() {
-  function mouseMoveListener(e) {
-    e.preventDefault();
-    const menu = document.getElementById("remarkMainMenu");
-    // t.style.top = 0 + "px"
-    // t.style.left = 0 + "px"
-    menu.style.top = e.clientY + "px";
-    menu.style.left = e.clientX + "px";
-  }
-
-  if (dragging) {
-    console.log("reached : ADD LISTENER");
-    document.body.addEventListener("mousemove", mouseMoveListener, true);
-  } else {
-    console.log("reached : REMOVE LISTENER");
-    document.body.removeEventListener("mousemove", mouseMoveListener, true);
-  }
-}
 
 // *************** Render functions ***************
 
@@ -481,7 +413,6 @@ async function renderMenu() {
                         <p style="font-size: 0.7rem; margin: 1rem 0rem 1rem 0rem"><b>NOTE :</b> Elements will be grouped by their classname and their tagname )</p>
                         </label>
                     </div>  
-                    <button type="button" class="remark_standard_button" id="pushToServerBtn">Save Annotations</button>
                 </div>
             </div>
         </div>
@@ -584,8 +515,6 @@ async function renderMenu() {
   const createNewTagBtn = document.getElementById("createNewTagBtn");
   createNewTagBtn.addEventListener("click", handleCreateNewTag);
 
-  const pushToServerBtn = document.getElementById("pushToServerBtn");
-  pushToServerBtn.addEventListener("click", handlePushToServer);
 }
 
 function removeHighlight(annotation) {
@@ -678,19 +607,6 @@ function saveAllAnnotations() {
   return;
 }
 
-function dataURIToBlob(dataURI) {
-  const splitDataURI = dataURI.split(",");
-  const byteString =
-    splitDataURI[0].indexOf("base64") >= 0
-      ? atob(splitDataURI[1])
-      : decodeURI(splitDataURI[1]);
-  const mimeString = splitDataURI[0].split(":")[1].split(";")[0];
-
-  const ia = new Uint8Array(byteString.length);
-  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-
-  return new Blob([ia], { type: mimeString });
-}
 
 // **************** DOM Operations *****************
 
@@ -898,13 +814,14 @@ function getDataFromStorage(key) {
   });
 }
 
+// ****************** Other utils ******************
+
+
 function logFormData(formData) {
   for (let e of Array.from(formData)) {
     console.log(e[0], " : ", e[1]);
   }
 }
-
-// ****************** Other utils ******************
 
 function downloadFile(dataURI, fileName) {
   const downloadLink = document.createElement("a");
