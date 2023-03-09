@@ -9,6 +9,7 @@
 
   --remark-color-danger: #ff585f;
   --remark-color-danger-darker: #fd424b;
+  --remark-color-grey-light-4: #fcfcfc;
   --remark-color-grey-light-3: #f2f2f2;
   --remark-color-grey-light-2: #d0d0d0;
   --remark-color-grey-light-1: #9c9c9c;
@@ -77,7 +78,7 @@
   color: var(--remark-color-grey) !important;
   padding: 0.4rem !important;
   border-radius: 0.6rem !important;
-  margin: 0.4rem 0rem 2rem 0rem !important;
+  margin: 0.3rem 0rem 0.4rem 0rem !important;
 }
 
 .remark_how_to_use {
@@ -153,7 +154,7 @@
 #remarkStopBtn:hover {
   color: var(--remark-color-white);
 }
-
+/* 
 #createNewTagBtn {
   font-size: 1rem;
   font-family: inherit;
@@ -168,9 +169,9 @@
   padding: 1rem;
   border-radius: 0.6rem;
   margin: 1rem 0rem 1rem 0rem;
-  color: var(--remark-color-grey-light-1);
-  background: var(--remark-color-grey-light-3);
-  border: 1px solid var(--remark-color-grey-light-1);
+  color: var(--remark-color-primary);
+  background: var(--remark-color-white);
+  border: 1px solid var(--remark-color-primary);
   transition: transform 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
 }
 
@@ -180,11 +181,7 @@
 
 #createNewTagBtn:active {
   transform: scale(1.00);
-}
-
-#pushToServerBtn {
-  margin: 0rem 0rem 3rem 0rem;
-}
+} */
 
 .remark_standard_modal_title {
   display: flex;
@@ -217,8 +214,15 @@
 
 .remark_form_label {
   font-family: var(--remark-default-sanserif-font);
-  font-size: 12px;
+  font-size: 0.8rem;
   color: var(--remark-color-grey-light-1);
+  font-weight: normal;
+  text-align: left;
+  width: 12rem;
+  display: flex;
+  flex-direction: row;
+  line-height: 1.2rem;
+  margin: 1rem 0rem 0.2rem 0rem;
 }
 
 .remark_confirm_grouping {
@@ -410,7 +414,7 @@
   height: auto;
   width: 16rem;
   border-radius: 1.2rem;
-  background-color: var(--remark-color-white);
+  background-color: var(--remark-color-grey-light-4);
   border: var(--remark-default-border);
   display: flex;
   flex-direction: column;
@@ -420,6 +424,7 @@
   top: 2rem;
   left: 1.4rem;
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
+  font-family: var(--remark-default-sanserif-font);
 }
 
 .remark_menu_body {
@@ -439,6 +444,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  color: var(--remark-color-primary);
 }
 
 .remark_main_heading {
@@ -476,7 +482,7 @@
 .remark_toggle {
   cursor: pointer;
   display: inline-block;
-  margin: 0.4rem 0rem;
+  margin: 0rem;
 }
 
 .remark_toggle_switch {
@@ -488,6 +494,7 @@
   position: relative;
   vertical-align: middle;
   transition: background 0.25s;
+  margin: 0.6rem 0rem 0rem 0rem;
 }
 
 .remark_toggle_switch:before,
@@ -521,11 +528,15 @@
 }
 
 .remark_toggle_label {
-  margin: 0rem 0rem 0rem 1rem;
   position: relative;
   top: 1px;
-  font-size: 0.7rem;
   color: var(--remark-color-grey-light-1);
+  font-size: 0.8rem;
+  font-weight: normal;
+  display: flex;
+  flex-direction: row;
+  width: 9rem;
+  margin: 1rem 1rem 0.2rem 0rem;
 }
 
 .remark_action_btn {

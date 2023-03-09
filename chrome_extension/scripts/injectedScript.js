@@ -5,6 +5,7 @@
   console.log("INIT ...", running);
 
   if (running === false) {
+    console.log("going to destroy ...")
     remark_destroy();
     return;
   } else {
@@ -68,11 +69,8 @@ function remark_init() {
 
 function remark_destroy() {
   removeAllExistingModals();
-  saveAllAnnotations();
   stopHighlightElements();
   stopAnnotationProcess();
-
-  setDataToStorage("remark_running", false);
 }
 
 function startAnnotationProcess() {
@@ -83,11 +81,18 @@ function startAnnotationProcess() {
   document.body.addEventListener("mouseout", mouseOutListener, false);
 }
 
+
 function stopAnnotationProcess() {
-  // document.body.removeEventListener("keydown", keyDownListener, false);
-  document.body.removeEventListener("click", clickListener, false);
-  document.body.removeEventListener("mouseover", mouseOverListener, false);
-  document.body.removeEventListener("mouseout", mouseOutListener, false);
+  document.addEventListener("click", () => {
+    return false
+  });
+  document.addEventListener("mouseover", () => {
+    return false
+  });
+  document.addEventListener("mouseout", () => {
+    return false
+  });
+
   return;
 }
 
@@ -153,7 +158,7 @@ function clickListener(e) {
         t.classList.add("highlight_element_strong");
       }
 
-      console.log("ADD ANNOTATIONS : ", annotations);
+      // console.log("ADD ANNOTATIONS : ", annotations);
     } else if (t.classList.contains("highlight_element_strong")) {
       prevNode = curNode;
       if(prevNode && prevNode.className.includes("highlight_element_selected")) {
@@ -303,7 +308,7 @@ function handleDeleteLabel(targetHTMLElement) {
   annotations.splice(ind, 1);
   delete targetHTMLElement.dataset.annotation_id;
   setCurrentLabelAsOption("span");
-  console.log("DELETE ANNOTATIONS : ", annotations);
+  // console.log("DELETE ANNOTATIONS : ", annotations);
 }
 
 function handleBatchCreate(targetHTMLElements) {
@@ -336,7 +341,6 @@ async function handleCreateNewTag() {
     };
     const res = await POST(`${BACKEND_URL}/labels`, data);
     if (res.msg == "Label created successfully!") {
-      console.log("SUCCESS");
       renderMenu();
       return;
     } else {
@@ -372,7 +376,6 @@ async function renderMenu() {
   }
   let labelMarkup = "";
   const data = await GET(`${BACKEND_URL}/labels`);
-  console.log("data : ", data);
   const labels = data["labels"];
 
   for (let i = 0; i < labels.length; i++) {
@@ -383,42 +386,45 @@ async function renderMenu() {
   }
 
   const markup = `
-        <div class="remark_standard_menu_container" id="remarkMainMenu">
-            <div class="remark_standard_menu_header">
-                <div class="remark_standard_sidebar_actions">
-                    <span class="remark_close_btn" id="remark_standard_menu_close_btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn">
-                            <path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4l-6 6Z" class="remark_"/>
-                        </svg>
-                    </span>
-                </div>
-            </div>
-            <div class="remark_menu_body">
-                <div class="remark_settings">
-                    <div class="remark_settings_subgroup">
-                        <label for="labelType" class="remark_">Choose a label type : </label>
-                        <select name="labelType" id="labelTypeBtn" class="remark_">
-                            ${labelMarkup}
-                            <option value="remove_label" class="remark_">Remove Label</option>
-                        </select>
-                        <div style="float:left; width: 100%; margin: 0rem 1rem 0rem 0rem;">
-                            <label for="createNewTag" class="remark_form_label">CREATE NEW TAG</label>
-                            <input type="text" name="createNewTag" id="createNewTag" class="remark_form_input" placeholder="Enter a new label">
-                        </div>
-                        <button type="button" class="remark_" id="createNewTagBtn">Create New Label</button>
-                        <label class="remark_toggle" id="groupActionsBtn">
-                        <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
-                        <div class="remark_toggle_switch"></div>
-                        <span class="remark_toggle_label">Group Elements</span>
-                        <p style="font-size: 0.7rem; margin: 1rem 0rem 1rem 0rem"><b>NOTE :</b> Elements will be grouped by their classname and their tagname )</p>
-                        </label>
-                    </div>  
-                </div>
-            </div>
-        </div>
-    `;
+    <div class="remark_standard_menu_container" id="remarkMainMenu">
+      <div class="remark_standard_menu_header">
+          <p style="margin: 0.5rem 0rem 0rem 0rem; font-weight: bold;">ReMark</p>
+          <div class="remark_standard_sidebar_actions">
+            <span class="remark_close_btn" id="remark_standard_menu_close_btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn">
+                    <path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4l-6 6Z" class="remark_"/>
+                </svg>
+            </span>
+          </div>
+      </div>
+      <div class="remark_menu_body">
+          <div class="remark_settings">
+              <div class="remark_settings_subgroup">
+                  <label for="labelType" class="remark_form_label" style="width: 10rem;">Select Tag For Component From The List</label>
+                  <select name="labelType" id="labelTypeBtn" class="remark_">
+                      ${labelMarkup}
+                      <option value="remove_label" class="remark_">Remove Label</option>
+                  </select>
+                  <h4 style="margin: 1rem 0rem 0.2rem 0rem; color: var(--remark-color-grey-light-1);">OR</h4>
+                  <div style="float:left; width: 100%; margin: 0.1rem 0rem -0.4rem 0rem;">
+                      <label for="createNewTag" class="remark_form_label">Create New Tag</label>
+                      <input type="text" name="createNewTag" id="createNewTag" class="remark_form_input" placeholder="Enter a new tag">
+                  </div>
+                  <button type="button" class="remark_standard_button" id="createNewTagBtn">Create New Tag</button>
+                  <label class="remark_toggle" id="groupActionsBtn">
+                    <span class="remark_toggle_label">Tag All Similar Components ?</span>
+                    <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
+                    <div class="remark_toggle_switch"></div>
+                  </label>
+                  <p style="font-size: 0.7rem; margin: 2rem 0rem 2rem 0rem;"><b>NOTE :</b> Elements will be grouped by their classname and their tagname )</p>
+              </div>  
+          </div>
+      </div>
+    </div> 
+  `;
   document.body.insertAdjacentHTML("afterbegin", markup);
 
+  
   // ************************ DRAGGING ************************
 
   const menu = document.getElementById("remarkMainMenu");
@@ -602,7 +608,6 @@ async function loadAllAnnotations() {
 
 function saveAllAnnotations() {
   const d = JSON.stringify({ data: annotations });
-  console.log("SAVED DATA : ", d);
   setDataToStorage("remark_annotations", d);
   return;
 }

@@ -9,6 +9,7 @@
 
   --remark-color-danger: #ff585f;
   --remark-color-danger-darker: #fd424b;
+  --remark-color-grey-light-4: #fcfcfc;
   --remark-color-grey-light-3: #f2f2f2;
   --remark-color-grey-light-2: #d0d0d0;
   --remark-color-grey-light-1: #9c9c9c;
@@ -43,6 +44,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-size: 1.6rem;
+  background-color: var(--remark-color-grey-light-4);
 }
 
 a {
@@ -87,7 +89,7 @@ table {
 td,
 th {
   text-align: left;
-  padding: 8px;
+  padding: 6px;
 }
 
 tr:nth-child(even) {
@@ -127,6 +129,14 @@ h6 {
 .remark_error {
   background-color: var(--remark-color-danger);
   color: var(--remark-color-white);
+}
+
+.remark_button_container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .remark_header {
@@ -173,6 +183,25 @@ h6 {
   align-items: center;
 }
 
+#remark_start {
+  background-color: var(--remark-color-white);
+  color: var(--remark-color-primary);
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
+  border: 1px solid var(--remark-color-primary);
+}
+
+#remark_start:hover {
+  background-color: var(--remark-color-white) !important;
+  color: var(--remark-color-primary) !important;
+  transform: scale(1.04);
+}
+
+#remark_start:active {
+  background-color: var(--remark-color-white) !important;
+  color: var(--remark-color-primary) !important;
+  transform: scale(1) !important;
+}
+
 #signoutBtn {
   background-color: var(--remark-color-white);
   color: var(--remark-color-primary);
@@ -195,7 +224,7 @@ h6 {
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
-  margin: 0rem -1rem 1rem -1rem;
+  margin: -2rem -1rem 1rem -1rem;
   font-weight: normal;
   font-size: 1.2rem;
 }
@@ -251,7 +280,7 @@ h6 {
   font-size: 1.2rem;
   color: var(--remark-color-white);
   font-family: inherit;
-  font-weight: 500;
+  font-weight: bold;
   border: none;
   padding: 1.25rem 4.5rem;
   border-radius: 1.2rem;
@@ -259,6 +288,7 @@ h6 {
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
   margin: 1rem 0rem 0rem 0rem;
   width: 100%;
+  height: 4rem;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -272,11 +302,6 @@ h6 {
 
 .remark_standard_button:active {
   transform: scale(1) !important;
-}
-
-.remark_standard_button:focus {
-  background-color: var(--remark-color-primary) !important;
-  transform: scale(1);
 }
 
 .remark_init_button {

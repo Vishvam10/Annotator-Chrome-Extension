@@ -55,6 +55,8 @@ async function handleInit() {
 async function handleSignup(signupForm) {
   const formData = new FormData(signupForm);
   logFormData(formData);
+  const signupBtn = document.getElementById("signupBtn");
+  signupBtn.innerText = "Registering ..."
 
   const url = `${BACKEND_URL}/create-user`;
   console.log("URL : ", url)
@@ -69,6 +71,7 @@ async function handleSignup(signupForm) {
     removeHTMLElement(signupForm);
     setDataToStorage("remark_email", JSON.parse(data)["email"]);
     renderUserStats();
+    signupBtn.innerText = "Register"
     return;
   }
 }
@@ -156,7 +159,6 @@ async function handlePushToServer() {
 
 }
 
-
 async function handleSignout() {
   setDataToStorage("remark_email", null);
   setDataToStorage("remark_running", false);
@@ -170,8 +172,9 @@ async function handleSignout() {
   });
   chrome.scripting.insertCSS({
     target: { tabId: tab.id },
-    files: ["scripts/style.css"],
+    files: ["scripts/cleanup.css"],
   });
+
 
   window.close();
 }
@@ -357,10 +360,6 @@ async function renderUserStats() {
   const running = storageData["remark_running"];
 
   let markup = `
-    <span class="remark_header">
-      <h2 class="remark_title">ReMark</h2>
-      <p class="remark_description">Annotate any website</p>
-    </span>
     <span class="remark_user_info">
       <p>Signed in as</p>
       <h4 class="remark_user_email">${email}</h4>      
@@ -419,17 +418,20 @@ async function renderUserStats() {
 
   markup += `
       </table>
-      <button type="button" class="remark_standard_button" id="pushToServerBtn">Save Annotations</button>
+      <span class="remark_button_container">
+        <button type="button" class="remark_standard_button" id="pushToServerBtn">Save Annotations</button>
     `;
         
     if (running !== true) {
       markup += `
         <button type="button" class="remark_standard_button" id="remark_start">Start Annotation</button>
-        <button type="button" id="signoutBtn">Sign Out</button>
-        `;
-      } else {
+      </span>
+      <button type="button" id="signoutBtn">Sign Out</button>
+      `;
+    } else {
       markup += `
-        <button type="button" id="signoutBtn">Sign Out</button>
+      </span>
+      <button type="button" id="signoutBtn">Sign Out</button>
       `;
     handleInit();
   }
