@@ -11,8 +11,8 @@ window.onload = async function () {
   
 };
 
-var BACKEND_URL = "http://localhost:3000/api"
-// var BACKEND_URL = "https://data-science-theta.vercel.app/api"
+// var BACKEND_URL = "http://localhost:3000/api"
+var BACKEND_URL = "https://data-science-theta.vercel.app/api"
 
 async function handleInit() {
   setDataToStorage("remark_running", true);
@@ -75,7 +75,6 @@ async function handleSignup(signupForm) {
     return;
   }
 }
-
 
 async function handlePushToServer() {
   const tab = await getCurrentTab()
@@ -168,13 +167,10 @@ async function handleSignout() {
 
   chrome.scripting.executeScript({
     target: { tabId: tab.id },
-    files: ["/scripts/injectedScript.js"],
+    func: () => {
+      location.reload();
+    },
   });
-  chrome.scripting.insertCSS({
-    target: { tabId: tab.id },
-    files: ["scripts/cleanup.css"],
-  });
-
 
   window.close();
 }
@@ -188,130 +184,6 @@ async function handleScreenshot() {
   return dataURI;
 }
 
-async function takeScreenShot(tab) {
-  const windowId = tab.windowId;
-  return new Promise((res) =>
-    chrome.windows.get(windowId, { populate: true }, async function (window) {
-      const width = window.tabs[0].width;
-      const height = window.tabs[0].height;
-      // set all position fixed => absolute, sticky => relative
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => {
-          const els = Array.from(document.querySelectorAll("*"));
-          const positionTo = { fixed: "absolute", sticky: "relative" };
-          document.body.style.overflow = "hidden";
-          for (const el of els) {
-            if (
-              el.style["position"] &&
-              ["fixed", "sticky"].includes(el.style["position"])
-            ) {
-              const position = el.style["position"];
-              el.style.setProperty("position", positionTo[position], "important");
-              el.setAttribute("data-position", position);
-            } else {
-              const styles = getComputedStyle(el);
-              const position = styles.getPropertyValue("position");
-              if (position && ["fixed", "sticky"].includes(position)) {
-                el.style.setProperty("position", positionTo[position], "important");
-                el.setAttribute("data-position", position);
-              }
-            }
-          }
-        },
-      });
-
-      console.log("window", width, height);
-
-      const [{ result }] = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => {
-          return document.body.scrollHeight;
-        },
-      });
-
-      const canvas = document.createElement("canvas");
-      canvas.height = 0;
-      const context = canvas.getContext("2d");
-      const times = Math.ceil(result / height);
-      const Sleep = (n) => new Promise((res, rej) => setInterval(res, n));
-      const screenShots = [];
-      for (let i = 0, top = 0; i < times; i++, top += height) {
-        await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: (top) => {
-            // console.log("scrolltop", top);
-            document.documentElement.scrollTop = top;
-          },
-          args: [top],
-        });
-
-        await Sleep(550);
-        await new Promise((res, rej) => {
-          chrome.tabs.captureVisibleTab(
-            windowId,
-            { format: "png" },
-            function (dataUrl) {
-              screenShots.push(dataUrl);
-              return res(true);
-            }
-          );
-        });
-      }
-
-      const getDataImageDIM = async (src) => {
-        const img = new Image();
-        img.src = src;
-        return new Promise(
-          (res) =>
-            (img.onload = () => {
-              res([img.width, img.height]);
-            })
-        );
-      };
-
-      const [screenshotWidth, screenshotHeight] = await getDataImageDIM(
-        screenShots[1]
-      );
-      const canvasHeight = (screenshotHeight * result) / height;
-
-      canvas.height = canvasHeight;
-      canvas.width = screenshotWidth;
-
-      for (
-        let i = 0, top = 0;
-        i < screenShots.length;
-        i++, top += screenshotHeight
-      ) {
-        const img = document.createElement("img");
-        img.src = screenShots[i];
-
-        if (i === screenShots.length - 1) top = canvasHeight - screenshotHeight;
-
-        await new Promise((res) => {
-          img.onload = () => {
-            context.drawImage(img, 0, top);
-            res(true);
-          };
-        });
-      }
-      const base64 = await res(canvas.toDataURL("image/jpeg"));
-
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => {
-          const els = Array.from(document.querySelectorAll("[data-position]"));
-          document.body.style.overflow = "auto";
-          for (const el of els) {
-            el.style["position"] = el.getAttribute("data-position");
-            el.removeAttribute("data-position");
-          }
-        },
-      });
-      return base64;
-    })
-  );
-}
 
 // *************** Render functions ****************
 
@@ -320,7 +192,6 @@ function renderSignupForm() {
   const markup = `
     <span class="remark_header">
       <h2 class="remark_title">ReMark</h2>
-      <p class="remark_description">Annotate any website</p>
     </span>
     <form id="userSignupForm">
       <div style="float:left; width: 100%; margin: 0rem 1rem 0rem 0rem;">
@@ -454,14 +325,6 @@ async function renderUserStats() {
   return;
 }
 
-function renderErrorMessage(msg, pos, node) {
-  const markup = `
-    <p style="color: var(--remark-color-danger);">${msg}</p>
-  `;
-  if (node) {
-    node.insertAdjacentHTML(pos, markup);
-  }
-}
 
 // ****************** HTTP methods *****************
 
@@ -616,3 +479,127 @@ function dataURItoFile(dataurl, filename) {
   return new File([u8arr], filename, {type:mime});
 }
 
+async function takeScreenShot(tab) {
+  const windowId = tab.windowId;
+  return new Promise((res) =>
+    chrome.windows.get(windowId, { populate: true }, async function (window) {
+      const width = window.tabs[0].width;
+      const height = window.tabs[0].height;
+      // set all position fixed => absolute, sticky => relative
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => {
+          const els = Array.from(document.querySelectorAll("*"));
+          const positionTo = { fixed: "absolute", sticky: "relative" };
+          document.body.style.overflow = "hidden";
+          for (const el of els) {
+            if (
+              el.style["position"] &&
+              ["fixed", "sticky"].includes(el.style["position"])
+            ) {
+              const position = el.style["position"];
+              el.style.setProperty("position", positionTo[position], "important");
+              el.setAttribute("data-position", position);
+            } else {
+              const styles = getComputedStyle(el);
+              const position = styles.getPropertyValue("position");
+              if (position && ["fixed", "sticky"].includes(position)) {
+                el.style.setProperty("position", positionTo[position], "important");
+                el.setAttribute("data-position", position);
+              }
+            }
+          }
+        },
+      });
+
+      console.log("window", width, height);
+
+      const [{ result }] = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => {
+          return document.body.scrollHeight;
+        },
+      });
+
+      const canvas = document.createElement("canvas");
+      canvas.height = 0;
+      const context = canvas.getContext("2d");
+      const times = Math.ceil(result / height);
+      const Sleep = (n) => new Promise((res, rej) => setInterval(res, n));
+      const screenShots = [];
+      for (let i = 0, top = 0; i < times; i++, top += height) {
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: (top) => {
+            // console.log("scrolltop", top);
+            document.documentElement.scrollTop = top;
+          },
+          args: [top],
+        });
+
+        await Sleep(550);
+        await new Promise((res, rej) => {
+          chrome.tabs.captureVisibleTab(
+            windowId,
+            { format: "png" },
+            function (dataUrl) {
+              screenShots.push(dataUrl);
+              return res(true);
+            }
+          );
+        });
+      }
+
+      const getDataImageDIM = async (src) => {
+        const img = new Image();
+        img.src = src;
+        return new Promise(
+          (res) =>
+            (img.onload = () => {
+              res([img.width, img.height]);
+            })
+        );
+      };
+
+      const [screenshotWidth, screenshotHeight] = await getDataImageDIM(
+        screenShots[1]
+      );
+      const canvasHeight = (screenshotHeight * result) / height;
+
+      canvas.height = canvasHeight;
+      canvas.width = screenshotWidth;
+
+      for (
+        let i = 0, top = 0;
+        i < screenShots.length;
+        i++, top += screenshotHeight
+      ) {
+        const img = document.createElement("img");
+        img.src = screenShots[i];
+
+        if (i === screenShots.length - 1) top = canvasHeight - screenshotHeight;
+
+        await new Promise((res) => {
+          img.onload = () => {
+            context.drawImage(img, 0, top);
+            res(true);
+          };
+        });
+      }
+      const base64 = await res(canvas.toDataURL("image/jpeg"));
+
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => {
+          const els = Array.from(document.querySelectorAll("[data-position]"));
+          document.body.style.overflow = "auto";
+          for (const el of els) {
+            el.style["position"] = el.getAttribute("data-position");
+            el.removeAttribute("data-position");
+          }
+        },
+      });
+      return base64;
+    })
+  );
+}

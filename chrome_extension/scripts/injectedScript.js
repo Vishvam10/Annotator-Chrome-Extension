@@ -15,8 +15,8 @@
 
 // ***************** Global Variables ****************
 
-// var BACKEND_URL = "https://data-science-theta.vercel.app/api";
-var BACKEND_URL = "http://localhost:3000/api";
+var BACKEND_URL = "https://data-science-theta.vercel.app/api";
+// var BACKEND_URL = "http://localhost:3000/api";
 
 var REMARK_GROUP_ACTIONS = false;
 var REMARK_ADDITIONAL_STYLES = null;
