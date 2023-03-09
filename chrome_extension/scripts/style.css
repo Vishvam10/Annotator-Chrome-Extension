@@ -35,7 +35,7 @@
 
 .highlight_element_light {
   cursor: crosshair;
-  border-radius: 0.2rem;
+  border-radius: 2px;
   background: rgba(13, 109, 253, 0.393);
   transition: background-color 125ms ease-in-out 0s;
   z-index: 100000;
@@ -44,7 +44,7 @@
 .highlight_element_strong {
   outline: 1px solid #ff28009c !important;
   background: rgb(223 75 47 / 21%) !important;
-  border-radius: 0.2rem;
+  border-radius: 2px;
   cursor: crosshair;
   z-index: 100000;
 }
@@ -61,9 +61,9 @@
   color: black;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
-  border-radius: 1.2rem;
-  width: 22rem;
+  padding: 20px;
+  border-radius: 12px;
+  width: 22px;
   height: auto;
   position: absolute;
   top: 14%;
@@ -73,41 +73,42 @@
 }
 
 #labelTypeBtn {
-  font-size: 1rem !important;
   background: var(--remark-color-white) !important;
   color: var(--remark-color-grey) !important;
-  padding: 0.4rem !important;
-  border-radius: 0.6rem !important;
-  margin: 0.3rem 0rem 0.4rem 0rem !important;
+  padding: 4px !important;
+  border-radius: 6px !important;
+  margin: 3px 0px 4px 0px !important;
+  height: 36px;
+  font-size: 14px !important;
 }
 
 .remark_how_to_use {
   color: var(--remark-color-grey-light-1);
-  font-size: 1rem;
+  font-size: 10px;
 }
 
 .remark_how_to_use_title {
-  font-size: 1.2rem;
+  font-size: 12px;
   font-weight: bold;
 }
 
 .remark_how_to_use_body {
-  font-size: 0.6rem;
+  font-size: 6px;
   font-weight: normal;
 }
 
 .remark_form_input {
-  padding: 1rem 2rem 1.2rem 1rem;
+  padding: 10px 20px 12px 10px;
   font-family: var(--remark-default-sanserif-font);
   appearance: none;
-  height: 2.8rem;
+  height: 28px;
   width: 100%;
-  border-radius: 0.6rem;
+  border-radius: 6px;
   background-color: var(--remark-color-white);
-  margin: 0.2rem 0rem 1rem 0rem;
+  margin: 2px 0px 10px 0px;
   transition: border 0.2s ease-in 0s;
   border: 1px solid var(--remark-color-grey-light-1);
-  font-size: 0.8rem;
+  font-size: 8px;
   color: var(--remark-color-grey);
   outline: 0px !important;
 }
@@ -117,19 +118,19 @@
   color: var(--remark-color-white);
   border: none;
   transition: all 0.1s;
-  font-size: 1rem;
+  font-size: 10px;
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
-  height: 2.8rem;
+  height: 44px;
   width: 100%;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
-  border-radius: 0.6rem;
-  margin: 1rem 0rem 1rem 0rem;
+  padding: 10px;
+  border-radius: 6px;
+  margin: 10px 0px 10px 0px;
 }
 
 .remark_standard_button:hover {
@@ -154,59 +155,41 @@
 #remarkStopBtn:hover {
   color: var(--remark-color-white);
 }
-/* 
+
+#createNewTag {
+  height: 40px;
+  font-size: 14px;
+  margin: 0px 0px 16px 0px;
+}
+
 #createNewTagBtn {
-  font-size: 1rem;
-  font-family: inherit;
-  font-weight: 500;
-  cursor: pointer;
-  height: 2.8rem;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  border-radius: 0.6rem;
-  margin: 1rem 0rem 1rem 0rem;
-  color: var(--remark-color-primary);
-  background: var(--remark-color-white);
-  border: 1px solid var(--remark-color-primary);
-  transition: transform 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
+  font-size: 14px;
 }
-
-#createNewTagBtn:hover {
-  transform: scale(1.04);
-}
-
-#createNewTagBtn:active {
-  transform: scale(1.00);
-} */
 
 .remark_standard_modal_title {
   display: flex;
   flex-direction: row;
   justify-content: start;
   overflow-wrap: break-word;
-  padding: 0rem;
-  margin: 1rem 0rem 2rem 0rem;
-  font-size: 1.1rem;
+  padding: 0px;
+  margin: 10px 0px 20px 0px;
+  font-size: 11px;
   height: inherit;
-  line-height: 0rem;
+  line-height: 0px;
   font-weight: bold;
 }
 
 .remark_field {
   width: 100%;
-  height: 1.6rem;
+  height: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 1.2rem 0rem 0.8rem 0rem;
+  margin: 12px 0px 8px 0px;
   border: var(--remark-default-border);
-  border-radius: 0.9rem;
-  padding: 1.6rem;
-  font-size: 1.2rem;
+  border-radius: 9px;
+  padding: 16px;
+  font-size: 12px;
   font-weight: normal;
   color: var(--remark-color-grey-light-1);
 }
@@ -214,31 +197,31 @@
 
 .remark_form_label {
   font-family: var(--remark-default-sanserif-font);
-  font-size: 0.8rem;
+  font-size: 8px;
   color: var(--remark-color-grey-light-1);
   font-weight: normal;
   text-align: left;
-  width: 12rem;
+  width: 120px;
   display: flex;
   flex-direction: row;
-  line-height: 1.2rem;
-  margin: 1rem 0rem 0.2rem 0rem;
+  line-height: 12px;
+  margin: 10px 0px 2px 0px;
 }
 
 .remark_confirm_grouping {
   display: flex;
   flex-direction: row;
-  gap: 1.2rem;
-  padding: 1rem;
+  gap: 12px;
+  padding: 10px;
   position: inherit;
-  top: 0rem;
-  right: 0rem;
-  border-radius: 0.8rem;
-  margin: 0rem 0rem 0rem;
+  top: 0px;
+  right: 0px;
+  border-radius: 8px;
+  margin: 0px 0px 0px 0px;
   background-color: #000000;
   color: var(--remark-color-white);
-  width: 9rem;
-  height: 3.2rem;
+  width: 90px;
+  height: 320px;
   z-index: 10000;
   justify-content: center;
   align-items: center;
@@ -256,24 +239,24 @@
 
 .remark_standard_sidebar {
   position: fixed;
-  top: 2.2rem;
-  right: 2rem;
-  width: 20rem;
+  top: 22px;
+  right: 20px;
+  width: 200px;
   background-color: var(--remark-color-white);
   border: var(--remark-default-border);
-  border-radius: 1.2rem;
+  border-radius: 12px;
   z-index: 100000000;
   height: auto;
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
   display: flex;
   overflow: hidden;
   flex-direction: column;
-  padding: 2rem;
+  padding: 20px;
 }
 
 .remark_annotations_sidebar_resize {
-  height: 3.2rem;
-  padding: 0rem;
+  height: 32px;
+  padding: 0px;
 }
 
 @keyframes remark_sidebar_animation {
@@ -281,22 +264,22 @@
     width: 0px;
   }
   to {
-    width: 20rem;
+    width: 200px;
   }
 }
 
 .remark_sidebar_modal_header {
-  padding: 1rem;
-  height: 2rem;
-  margin: -1.2rem 0rem 1rem -1rem;
-  width: 18.2rem;
+  padding: 10px;
+  height: 20px;
+  margin: -12px 0px 10px -10px;
+  width: 182px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .remark_sidebar_modal_header_resize {
-  margin: 0.4rem 1rem 0rem 1rem;
+  margin: 4px 10px 0px 10px;
 }
 
 .remark_standard_sidebar_actions {
@@ -312,13 +295,13 @@
   flex-direction: row;
   justify-content: start;
   overflow-wrap: break-word;
-  margin: 0.4rem 0rem 0rem;
-  font-size: 0.8rem;
+  margin: 4px 0px 0px;
+  font-size: 8px;
   font-weight: bold;
 }
 
 .remark_close_btn {
-  margin: 0.4rem 0rem 0rem 0rem;
+  margin: 4px 0px 0px 0px;
   cursor: pointer;
 }
 
@@ -328,7 +311,7 @@
 }
 
 .remark_form_fields {
-  margin: 0rem 0rem 0rem 0rem;
+  margin: 0px 0px 0px 0px;
 }
 
 .remark_form_input:focus {
@@ -337,7 +320,7 @@
 
 .remark_form_label {
   font-family: var(--remark-default-sanserif-font);
-  font-size: 0.8rem;
+  font-size: 14px;
   color: var(--remark-color-grey-light-1);
   font-weight: normal;
 }
@@ -351,14 +334,14 @@
 }
 
 .remark_init_container {
-  width: 20rem;
+  width: 20px;
   background: var(--remark-color-white);
-  padding: 1rem;
-  height: 4rem;
-  border-radius: 1.2rem;
+  padding: 10px;
+  height: 40px;
+  border-radius: 120px;
   position: fixed;
   z-index: 10000000;
-  bottom: 3rem;
+  bottom: 30px;
   left: 36%;
   display: flex;
   flex-direction: row;
@@ -370,27 +353,27 @@
 
 .remark_init_container_resize {
   left: 1.6%;
-  width: 16rem;
+  width: 160px;
   bottom: 2.6%;
 }
 
 .remark_init_container_resize > .remark_init_button {
-  font-size: 0.8rem;
+  font-size: 8px;
 }
 
 .remark_init_button {
   color: var(--remark-color-white);
   width: 60%;
-  font-size: 0.9rem;
-  padding: 1rem;
+  font-size: 90px;
+  padding: 10px;
   background-color: var(--remark-color-primary);
-  height: 3rem;
-  margin: -0.5rem -0.4rem 0rem 2rem;
+  height: 30px;
+  margin: -5px -4px 0px 20px;
 }
 
 .remark_init_text {
   width: 30%;
-  font-size: 1rem;
+  font-size: 10px;
   font-weight: 500;
   color: var(--remark-color-grey-dark-1);
   display: flex;
@@ -412,17 +395,17 @@
 
 .remark_standard_menu_container {
   height: auto;
-  width: 16rem;
-  border-radius: 1.2rem;
+  width: 240px;
+  border-radius: 12px;
   background-color: var(--remark-color-grey-light-4);
   border: var(--remark-default-border);
   display: flex;
   flex-direction: column;
-  padding: 1.6rem;
+  padding: 24px;
   z-index: 10000000;
   position: fixed;
-  top: 2rem;
-  left: 1.4rem;
+  top: 20px;
+  left: 14px;
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
   font-family: var(--remark-default-sanserif-font);
 }
@@ -433,13 +416,13 @@
 }
 
 .remark_menu_resize {
-  height: 3.2rem;
+  height: 32px;
 }
 
 .remark_standard_menu_header {
-  padding: 0rem;
-  height: 2rem;
-  margin: -1.2rem 0rem 1rem 0rem;
+  padding: 0px;
+  height: 20px;
+  margin: -12px 0rem 20px 0rem;
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -448,7 +431,7 @@
 }
 
 .remark_main_heading {
-  font-size: 1.6rem;
+  font-size: 16px;
   color: var(--remark-color-grey-dark-2);
   text-align: center;
 }
@@ -457,22 +440,22 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  margin: -1rem 0rem -3rem 0rem;
+  margin: -10px 0px -30px 0px;
 }
 
 .remark_settings_subgroup {
-  padding: 1rem;
-  margin: 0rem 0rem 0rem -1rem;
+  padding: 10px;
+  margin: 0px 0px 0px -10px;
 }
 
 .remark_settings_subgroup_title {
-  margin: 0.2rem 0rem 0.2rem 0rem;
-  font-size: 0.7rem;
+  margin: 2px 0px 2px 0px;
+  font-size: 7px;
   color: var(--remark-color-grey-light-1);
 }
 
 .remark_setting_subgroup_item {
-  margin: 0.4rem 0rem 0rem;
+  margin: 4px 0px 0px;
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -482,7 +465,7 @@
 .remark_toggle {
   cursor: pointer;
   display: inline-block;
-  margin: 0rem;
+  margin: 0px;
 }
 
 .remark_toggle_switch {
@@ -494,7 +477,7 @@
   position: relative;
   vertical-align: middle;
   transition: background 0.25s;
-  margin: 0.6rem 0rem 0rem 0rem;
+  margin: 6px 0px 0px 0px;
 }
 
 .remark_toggle_switch:before,
@@ -531,25 +514,25 @@
   position: relative;
   top: 1px;
   color: var(--remark-color-grey-light-1);
-  font-size: 0.8rem;
   font-weight: normal;
   display: flex;
   flex-direction: row;
-  width: 9rem;
-  margin: 1rem 1rem 0.2rem 0rem;
+  width: 90px;
+  margin: 10px 10px 2px 0px;
+  font-size: 12px;
 }
 
 .remark_action_btn {
   width: 100%;
-  margin: 0.2rem 1rem 0rem 0rem;
-  height: 2rem;
+  margin: 20px 10px 0px 0px;
+  height: 20px;
   color: var(--remark-color-grey-dark-1);
-  padding: 0.3rem;
+  padding: 3px;
   background-color: var(--remark-color-grey-light-3);
-  border-radius: 0.6rem;
+  border-radius: 6px;
   border: 1px solid var(--remark-color-grey-light-2);
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
-  font-size: 0.8rem;
+  font-size: 8px;
 }
 
 .remark_action_btn:hover {
@@ -561,5 +544,5 @@
 }
 
 #remark_edit_annotation_button {
-  margin: 1rem 0rem 0rem 0rem;
+  margin: 16px 0px 0px 0px;
 }

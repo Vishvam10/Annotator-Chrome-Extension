@@ -400,14 +400,14 @@ async function renderMenu() {
       <div class="remark_menu_body">
           <div class="remark_settings">
               <div class="remark_settings_subgroup">
-                  <label for="labelType" class="remark_form_label" style="width: 10rem;">Select Tag For Component From The List</label>
+                  <label for="labelType" class="remark_form_label" style="width: 160px; line-height: 20px;">Select Tag For Component From The List</label>
                   <select name="labelType" id="labelTypeBtn" class="remark_">
                       ${labelMarkup}
                       <option value="remove_label" class="remark_">Remove Label</option>
                   </select>
-                  <h4 style="margin: 1rem 0rem 0.2rem 0rem; color: var(--remark-color-grey-light-1);">OR</h4>
+                  <h4 style="margin: 1rem 0rem 0.2rem 0rem; color: var(--remark-color-grey-light-1); font-size: 16px">OR</h4>
                   <div style="float:left; width: 100%; margin: 0.1rem 0rem -0.4rem 0rem;">
-                      <label for="createNewTag" class="remark_form_label">Create New Tag</label>
+                      <label for="createNewTag" class="remark_form_label" style="margin: 20px 0px 10px 0px">Create New Tag</label>
                       <input type="text" name="createNewTag" id="createNewTag" class="remark_form_input" placeholder="Enter a new tag">
                   </div>
                   <button type="button" class="remark_standard_button" id="createNewTagBtn">Create New Tag</button>
@@ -416,7 +416,7 @@ async function renderMenu() {
                     <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
                     <div class="remark_toggle_switch"></div>
                   </label>
-                  <p style="font-size: 0.7rem; margin: 2rem 0rem 2rem 0rem;"><b>NOTE :</b> Elements will be grouped by their classname and their tagname )</p>
+                  <p style="font-size: 0.7rem; margin: 2rem 0rem 2rem 0rem;color: var(--remark-color-grey-light-2); line-height: 16px;"><b>NOTE :</b> Elements will be grouped by their classname and their tagname )</p>
               </div>  
           </div>
       </div>
