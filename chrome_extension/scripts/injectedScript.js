@@ -307,8 +307,7 @@ function handleEditLabel(targetHTMLElement, newTag) {
       for (let ele of window.annotations) {
         if (ele["id"] == annotation_id) {
           ele["tag"] = newTag;
-          // displayLabel(targetHTMLElement, annotation_id, newTag);
-
+          updateTooltip(annotation_id, newTag)
           if (DEBUG) {
             console.log("edit : window.annotations : ", ele);
           }
@@ -324,21 +323,33 @@ function handleEditLabel(targetHTMLElement, newTag) {
 function handleDeleteLabel(targetHTMLElement) {
   const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
 
-  let ind, annotation;
+  let ind1, ind2;
 
   for (let i = 0; i < window.annotations.length; i++) {
     if (window.annotations[i]["id"] == annotation_id) {
-      ind = i;
-      annotation = window.annotations[i];
+      ind1 = i;
       break;
     }
   }
 
-  window.annotations.splice(ind, 1);
+  for (let i = 0; i < annotationNodes.length; i++) {
+    if (annotationNodes[i][0] == annotation_id) {
+      ind2 = i;
+      break;
+    }
+  }
+
+  window.annotations.splice(ind1, 1);
+  annotationNodes.splice(ind2, 1);
+
+
+  removeTooltip(annotation_id)
+  
   delete targetHTMLElement.dataset.annotation_id;
+
   setCurrentLabelAsOption("span");
   if (DEBUG) {
-    console.log("delete : window.annotations : ", window.annotations);
+    console.log("delete : window.annotations : ", annotationNodes);
   }
 }
 
@@ -409,14 +420,37 @@ function createTagTooltipMarkup(annotation, tag) {
   const left = annotation["x"] + "px";
   
   const markup = `
-    <span class="reamrk_tag_tooltip" style="top:${top}; left:${left}" id="${annotation["id"]}_tooltip">
-      <p class="reamrk_tag_tooltip_info">${tag}</p>
+    <span class="remark_tag_tooltip" style="top:${top}; left:${left}" id="${annotation["id"]}_tooltip">
+      <p class="remark_tag_tooltip_info">${tag}</p>
     </span>
   `;
 
   return markup;
 
   // console.log("applied ::before to : ", `${c} [data-annotation_id=${annotation_id}]::before`)
+}
+
+function updateTooltip(annotation_id, tag) {
+  console.log("reached 1 : ", annotation_id, tag)
+  const id = `${annotation_id}_tooltip`;
+  const ele = document.getElementById(id);
+  console.log("reached 2 : ", ele)
+  
+  if(ele) {
+    console.log("reached 3 : ", annotation_id, tag)
+    ele.innerText = tag;
+  }
+
+}
+
+function removeTooltip(annotation_id) {
+  const id = `${annotation_id}_tooltip`;
+  const ele = document.getElementById(id);
+
+  if(ele) {
+    removeHTMLElement(ele);
+  }
+
 }
 
 // *************** Render functions ***************
