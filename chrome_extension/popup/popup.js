@@ -1,9 +1,10 @@
 window.onload = async function () {
   const storageData = await getDataFromStorage(null);
   const email = storageData["remark_email"];
+  const running = storageData["remark_running"];
 
   // Check if the user has signed in
-  if (email !== null) {
+  if (running && email !== null) {
     renderUserStats();
   } else {
     renderSignupForm();
@@ -11,34 +12,35 @@ window.onload = async function () {
   
 };
 
-// var BACKEND_URL = "http://localhost:3000/api"
-var BACKEND_URL = "https://data-science-theta.vercel.app/api"
+var BACKEND_URL = "http://localhost:3000/api"
+// var BACKEND_URL = "https://data-science-theta.vercel.app/api"
 
 async function handleInit() {
   setDataToStorage("remark_running", true);
   
-  let dataURICheck = await getDataFromStorage("remark_screenshot_datauri");
-  dataURICheck = dataURICheck["remark_screenshot_datauri"];
+  // let dataURICheck = await getDataFromStorage("remark_screenshot_datauri");
+  // dataURICheck = dataURICheck["remark_screenshot_datauri"];
 
-  let savedDataCheck = await getDataFromStorage("remark_annotations");
-  savedDataCheck = savedDataCheck["remark_annotations"];
+  // let savedDataCheck = await getDataFromStorage("remark_annotations");
+  // savedDataCheck = savedDataCheck["remark_annotations"];
 
-  if(!dataURICheck || dataURICheck === null) {
+  // // if(!dataURICheck || dataURICheck === null) {
     
-    const dataURI = await handleScreenshot();
-    setDataToStorage("remark_screenshot_datauri", dataURI);
-    const tab = await getCurrentTab();
-    chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ["/scripts/injectedScript.js"],
-    });
-    chrome.scripting.insertCSS({
-      target: { tabId: tab.id },
-      files: ["scripts/style.css"],
-    });
+    // const dataURI = await handleScreenshot();
+    // setDataToStorage("remark_screenshot_datauri", dataURI);
+    // const tab = await getCurrentTab();
+    // chrome.scripting.executeScript({
+    //   target: { tabId: tab.id },
+    //   files: ["/scripts/injectedScript.js"],
+    // });
+    // chrome.scripting.insertCSS({
+    //   target: { tabId: tab.id },
+    //   files: ["scripts/style.css"],
+    // });
 
-  } else {
-    if(savedDataCheck && savedDataCheck !== null) {
+  // }
+  //  else {
+    // if(savedDataCheck && savedDataCheck !== null) {
       const tab = await getCurrentTab();
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
@@ -48,8 +50,8 @@ async function handleInit() {
         target: { tabId: tab.id },
         files: ["scripts/style.css"],
       })
-    }
-  }
+    // }
+  // }
 }
 
 async function handleSignup(signupForm) {
@@ -304,8 +306,8 @@ async function renderUserStats() {
       </span>
       <button type="button" id="signoutBtn">Sign Out</button>
       `;
-    handleInit();
-  }
+      handleInit();
+    }
 
   document
     .querySelector(".remark_popup_container")
@@ -317,7 +319,11 @@ async function renderUserStats() {
   }
 
   const pushToServerBtn = document.getElementById("pushToServerBtn");
-  pushToServerBtn.addEventListener("click", handlePushToServer);
+  if(pushToServerBtn) {
+    pushToServerBtn.addEventListener("click", handlePushToServer);
+  } else {
+    handleSignout();
+  }
 
   const signoutBtn = document.getElementById("signoutBtn");
   signoutBtn.addEventListener("click", handleSignout);

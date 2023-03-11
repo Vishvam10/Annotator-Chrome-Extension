@@ -5,7 +5,7 @@
   console.log("INIT ...", running);
 
   if (running === false) {
-    console.log("going to destroy ...")
+    console.log("going to destroy ...");
     remark_destroy();
     return;
   } else {
@@ -15,15 +15,18 @@
 
 // ***************** Global Variables ****************
 
-var BACKEND_URL = "https://data-science-theta.vercel.app/api";
-// var BACKEND_URL = "http://localhost:3000/api";
+// var BACKEND_URL = "https://data-science-theta.vercel.app/api";
+var BACKEND_URL = "http://localhost:3000/api";
 
 var REMARK_GROUP_ACTIONS = false;
 var REMARK_ADDITIONAL_STYLES = null;
 
 window.annotations = [];
+annotationNodes = [];
+
 var tempBuffer = [];
 var curNode;
+var DEBUG = true;
 
 var dragging = false;
 
@@ -56,7 +59,7 @@ var VALID_HTML_ELEMENTS = [
 // ***************** Initialization ******************
 
 function remark_init() {
-  console.log("DOM CHECK : ", document.body);
+  console.log("DOM AND DEBUG CHECK : ", document.body, DEBUG);
   const style = document.createElement("style");
   REMARK_ADDITIONAL_STYLES = style;
   document.body.appendChild(style);
@@ -75,22 +78,39 @@ function remark_destroy() {
 
 function startAnnotationProcess() {
   // document.body.addEventListener("keydown", keyDownListener, false);
-
+  let ticking = false;
+  let lastScrollY = 0;
   document.body.addEventListener("click", clickListener, false);
   document.body.addEventListener("mouseover", mouseOverListener, false);
   document.body.addEventListener("mouseout", mouseOutListener, false);
-}
+  document.addEventListener("scroll", (event) => {
+    if (!ticking) {
+      let currentScrollY = window.scrollY;
+      let direction;
+      if (currentScrollY > lastScrollY) {
+        direction = "up";
+      } else {
+        direction = "down";
+      }
+      window.requestAnimationFrame(() => {
+        scrollListener(direction);
+        ticking = false;
+      });
 
+      ticking = true;
+    }
+  });
+}
 
 function stopAnnotationProcess() {
   document.addEventListener("click", () => {
-    return false
+    return false;
   });
   document.addEventListener("mouseover", () => {
-    return false
+    return false;
   });
   document.addEventListener("mouseout", () => {
-    return false
+    return false;
   });
 
   return;
@@ -123,6 +143,9 @@ function clickListener(e) {
       } else {
         handleDeleteLabel(t);
         t.classList.remove("highlight_element_strong");
+      }
+      if (DEBUG) {
+        console.log("click -> delete annotation");
       }
     }
   } else {
@@ -158,10 +181,15 @@ function clickListener(e) {
         t.classList.add("highlight_element_strong");
       }
 
-      // console.log("ADD ANNOTATIONS : ", annotations);
+      if (DEBUG) {
+        console.log("click -> add annotation");
+      }
     } else if (t.classList.contains("highlight_element_strong")) {
       prevNode = curNode;
-      if(prevNode && prevNode.className.includes("highlight_element_selected")) {
+      if (
+        prevNode &&
+        prevNode.className.includes("highlight_element_selected")
+      ) {
         prevNode.classList.remove("highlight_element_selected");
       }
 
@@ -170,6 +198,9 @@ function clickListener(e) {
       const id = t.dataset.annotation_id;
       const ann = getAnnotationByID(id);
       setCurrentLabelAsOption(ann.tag);
+      if (DEBUG) {
+        console.log("click -> set current label : ", ann.tag);
+      }
     }
   }
 }
@@ -219,12 +250,17 @@ function mouseOutListener(e) {
   tempBuffer = [];
 }
 
+function scrollListener() {
+  updateTooltipPosition()
+}
+
 // ******************* Handlers ********************
+
 
 function handleCreateLabel(targetHTMLElement) {
   const rect = targetHTMLElement.getBoundingClientRect();
   const x = Math.round(rect.x),
-    y = Math.round(rect.y),
+    y = Math.round(rect.y) + parseInt(window.scrollY),
     w = Math.round(rect.width),
     h = Math.round(rect.height);
 
@@ -232,27 +268,8 @@ function handleCreateLabel(targetHTMLElement) {
     "highlight_element_light",
     ""
   );
-  
-  // let c = getDOMClassName(targetHTMLElement);
 
-  // REMARK_ADDITIONAL_STYLES.innerHTML = `
-  //     ${c} {
-  //         position: relative;
-  //     }
-
-  //     ${c}::before {
-  //         content: "${targetHTMLElement.tagName.toLowerCase()}";
-  //         position: absolute;
-  //         top: 0;
-  //         left: 0;
-  //         width: 100%;
-  //         height: 100%;
-  //         z-index: 999999;
-  //         pointer-events: none;
-  //     }
-  // `;
-
-  const d = {
+  const annotation = {
     id: Math.round(Math.random() * 10000),
     tag: targetHTMLElement.tagName.toLowerCase(),
     x: x,
@@ -267,9 +284,16 @@ function handleCreateLabel(targetHTMLElement) {
     html_target: targetHTMLElement,
   };
 
-  if (isValidAnnotation(d)) {
-    annotations.push(d);
-    targetHTMLElement.dataset.annotation_id = d["id"];
+  if (isValidAnnotation(annotation)) {
+    window.annotations.push(annotation);
+    
+    const tooltipMarkup = createTagTooltipMarkup(annotation, "span");
+    targetHTMLElement.insertAdjacentHTML("afterbegin", tooltipMarkup);
+    annotationNodes.push([annotation["id"], annotation["y"]]);
+    
+    console.log("add : window.annotations : ", window.annotations, annotationNodes);
+    
+    targetHTMLElement.dataset.annotation_id = annotation["id"];
     return;
   }
 
@@ -280,9 +304,14 @@ function handleEditLabel(targetHTMLElement, newTag) {
   if (targetHTMLElement) {
     if (targetHTMLElement.classList.contains("highlight_element_strong")) {
       const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
-      for (let ele of annotations) {
+      for (let ele of window.annotations) {
         if (ele["id"] == annotation_id) {
           ele["tag"] = newTag;
+          // displayLabel(targetHTMLElement, annotation_id, newTag);
+
+          if (DEBUG) {
+            console.log("edit : window.annotations : ", ele);
+          }
           break;
         }
       }
@@ -297,18 +326,20 @@ function handleDeleteLabel(targetHTMLElement) {
 
   let ind, annotation;
 
-  for (let i = 0; i < annotations.length; i++) {
-    if (annotations[i]["id"] == annotation_id) {
+  for (let i = 0; i < window.annotations.length; i++) {
+    if (window.annotations[i]["id"] == annotation_id) {
       ind = i;
-      annotation = annotations[i];
+      annotation = window.annotations[i];
       break;
     }
   }
 
-  annotations.splice(ind, 1);
+  window.annotations.splice(ind, 1);
   delete targetHTMLElement.dataset.annotation_id;
   setCurrentLabelAsOption("span");
-  // console.log("DELETE ANNOTATIONS : ", annotations);
+  if (DEBUG) {
+    console.log("delete : window.annotations : ", window.annotations);
+  }
 }
 
 function handleBatchCreate(targetHTMLElements) {
@@ -341,6 +372,9 @@ async function handleCreateNewTag() {
     };
     const res = await POST(`${BACKEND_URL}/labels`, data);
     if (res.msg == "Label created successfully!") {
+      if (DEBUG) {
+        console.log("add : labels : ", res);
+      }
       renderMenu();
       return;
     } else {
@@ -349,8 +383,44 @@ async function handleCreateNewTag() {
   }
 }
 
+function createTagTooltipMarkup(annotation, tag) {
+  // let c = getDOMClassName(targetHTMLElement);
+
+  // REMARK_ADDITIONAL_STYLES.innerHTML += `
+  //   ${c}[data-annotation_id="${annotation_id}"] {
+  //     position: relative;
+  //   }
+
+  //   ${c}[data-annotation_id="${annotation_id}"]::before {
+  //     content: "${tag}";
+  //     position: absolute;
+  //     color: red;
+  //     top: 0;
+  //     left: 0;
+  //     width: 100%;
+  //     height: 100%;
+  //     z-index: 999999;
+  //     pointer-events: none;
+  //     display: block;
+  //   }
+  // `;
+  
+  const top = parseInt(annotation["y"] - window.scrollY)+ "px";
+  const left = annotation["x"] + "px";
+  
+  const markup = `
+    <span class="reamrk_tag_tooltip" style="top:${top}; left:${left}" id="${annotation["id"]}_tooltip">
+      <p class="reamrk_tag_tooltip_info">${tag}</p>
+    </span>
+  `;
+
+  return markup;
+
+  // console.log("applied ::before to : ", `${c} [data-annotation_id=${annotation_id}]::before`)
+}
 
 // *************** Render functions ***************
+
 
 function renderAllAnnotations(annotations) {
   for (let i = 0; i < annotations.length; i++) {
@@ -388,7 +458,7 @@ async function renderMenu() {
   const markup = `
     <div class="remark_standard_menu_container" id="remarkMainMenu">
       <div class="remark_standard_menu_header">
-          <p style="margin: 0.5rem 0rem 0rem 0rem; font-weight: bold;">ReMark</p>
+          <p style="margin: 5px 0px 0px 0px; font-weight: bold; color: inherit; font-size: 16px;">ReMark</p>
           <div class="remark_standard_sidebar_actions">
             <span class="remark_close_btn" id="remark_standard_menu_close_btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn">
@@ -405,7 +475,7 @@ async function renderMenu() {
                       ${labelMarkup}
                       <option value="remove_label" class="remark_">Remove Label</option>
                   </select>
-                  <h4 style="margin: 1rem 0rem 0.2rem 0rem; color: var(--remark-color-grey-light-1); font-size: 16px">OR</h4>
+                  <h4 style="margin: 24px 0px 12px 0px; color: var(--remark-color-grey-light-1); font-size: 16px">OR</h4>
                   <div style="float:left; width: 100%; margin: 0.1rem 0rem -0.4rem 0rem;">
                       <label for="createNewTag" class="remark_form_label" style="margin: 20px 0px 10px 0px">Create New Tag</label>
                       <input type="text" name="createNewTag" id="createNewTag" class="remark_form_input" placeholder="Enter a new tag">
@@ -416,7 +486,7 @@ async function renderMenu() {
                     <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
                     <div class="remark_toggle_switch"></div>
                   </label>
-                  <p style="font-size: 0.7rem; margin: 2rem 0rem 2rem 0rem;color: var(--remark-color-grey-light-2); line-height: 16px;"><b>NOTE :</b> Elements will be grouped by their classname and their tagname )</p>
+                  <p style="font-size: 11px; margin: 20px 10px 20px 0px;color: var(--remark-color-grey-light-2); line-height: 16px;"><b>NOTE :</b> Elements will be grouped by their classname and their tagname )</p>
               </div>  
           </div>
       </div>
@@ -424,7 +494,6 @@ async function renderMenu() {
   `;
   document.body.insertAdjacentHTML("afterbegin", markup);
 
-  
   // ************************ DRAGGING ************************
 
   const menu = document.getElementById("remarkMainMenu");
@@ -520,7 +589,6 @@ async function renderMenu() {
 
   const createNewTagBtn = document.getElementById("createNewTagBtn");
   createNewTagBtn.addEventListener("click", handleCreateNewTag);
-
 }
 
 function removeHighlight(annotation) {
@@ -530,10 +598,25 @@ function removeHighlight(annotation) {
   }
 }
 
+function updateTooltipPosition() {
+  for(let i=0; i<annotationNodes.length; i++) {
+    const id = `${annotationNodes[i][0]}_tooltip`;
+    const top = annotationNodes[i][1];
+    const tooltip = document.getElementById(id);
+    if(tooltip) {
+      const tooltipTop = Math.abs(top - parseInt(window.scrollY));
+      tooltip.style.top = `${tooltipTop}px`;
+    }
+  }
+}
+
+// const debouncedUpdateTooltipPosition = debounce(updateTooltipPosition, 100);
+
+
 // *************** Annotations Utils ***************
 
 function getAnnotationByID(annotation_id) {
-  for (let ele of annotations) {
+  for (let ele of window.annotations) {
     if (Number(annotation_id) === ele["id"]) {
       return ele;
     }
@@ -544,7 +627,7 @@ function getAnnotationByID(annotation_id) {
 function getAllAnnotations() {
   let res = {};
   res["item"] = [];
-  for (let a of annotations) {
+  for (let a of window.annotations) {
     res["item"].push({
       x: a["x"],
       y: a["y"],
@@ -558,8 +641,8 @@ function getAllAnnotations() {
 }
 
 function isValidAnnotation(curAnnotation) {
-  for (let i = 0; i < annotations.length; i++) {
-    const ele = annotations[i];
+  for (let i = 0; i < window.annotations.length; i++) {
+    const ele = window.annotations[i];
     if (
       curAnnotation["x"] == ele["x"] &&
       curAnnotation["y"] == ele["y"] &&
@@ -607,11 +690,10 @@ async function loadAllAnnotations() {
 }
 
 function saveAllAnnotations() {
-  const d = JSON.stringify({ data: annotations });
+  const d = JSON.stringify({ data: window.annotations });
   setDataToStorage("remark_annotations", d);
   return;
 }
-
 
 // **************** DOM Operations *****************
 
@@ -631,7 +713,7 @@ function stopHighlightElements() {
 
 function getNodeXpath(node) {
   let comp,
-  comps = [];
+    comps = [];
   let parent = null;
   let xpath = "";
   let getPos = function (node) {
@@ -821,7 +903,6 @@ function getDataFromStorage(key) {
 
 // ****************** Other utils ******************
 
-
 function logFormData(formData) {
   for (let e of Array.from(formData)) {
     console.log(e[0], " : ", e[1]);
@@ -834,4 +915,14 @@ function downloadFile(dataURI, fileName) {
   downloadLink.download = fileName;
   downloadLink.click();
   downloadLink.remove();
+}
+
+function debounce(fn, delay) {
+  let timeoutId;
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      fn.apply(this, args);
+    }, delay);
+  };
 }
