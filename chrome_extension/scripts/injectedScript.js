@@ -426,18 +426,13 @@ function createTagTooltipMarkup(annotation, tag) {
   `;
 
   return markup;
-
-  // console.log("applied ::before to : ", `${c} [data-annotation_id=${annotation_id}]::before`)
 }
 
 function updateTooltip(annotation_id, tag) {
-  console.log("reached 1 : ", annotation_id, tag)
   const id = `${annotation_id}_tooltip`;
   const ele = document.getElementById(id);
-  console.log("reached 2 : ", ele)
   
   if(ele) {
-    console.log("reached 3 : ", annotation_id, tag)
     ele.innerText = tag;
   }
 
@@ -503,25 +498,31 @@ async function renderMenu() {
       </div>
       <div class="remark_menu_body">
           <div class="remark_settings">
+              <div class="remark_settings_subgroup_row">
+                  <div class="remark_">
+                      <label for="labelType" class="remark_form_label" style="width: 100px; line-height: 18px; margin: 0px 0px 10px 1px;">Select Tag For Component From The List</label>
+                      <div class="remark_" style="width: 100%; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+                          <select name="labelType" id="labelTypeBtn" class="remark_">
+                              ${labelMarkup}
+                              <option value="remove_label" class="remark_">Remove Label</option>
+                          </select>
+                      </div>
+                  </div>
+                  <label class="remark_toggle" id="groupActionsBtn">
+                    <span class="remark_toggle_label" style="font-size: 12px; margin: -16px 16px 16px 0px; line-height: 18px; width: 70px;">Tag All Similar Components</span>
+                    <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
+                    <div class="remark_toggle_switch"></div>
+                  </label>
+              </div>
               <div class="remark_settings_subgroup">
-                  <label for="labelType" class="remark_form_label" style="width: 160px; line-height: 20px;">Select Tag For Component From The List</label>
-                  <select name="labelType" id="labelTypeBtn" class="remark_">
-                      ${labelMarkup}
-                      <option value="remove_label" class="remark_">Remove Label</option>
-                  </select>
-                  <h4 style="margin: 24px 0px 12px 0px; color: var(--remark-color-grey-light-1); font-size: 16px">OR</h4>
-                  <div style="float:left; width: 100%; margin: 0.1rem 0rem -0.4rem 0rem;">
+                  <h4 style="margin: 10px 0px 10px 0px; color: var(--remark-color-grey-light-1); font-size: 16px">OR</h4>
+                  <div style="float:left; width: 100%; margin: 0px 0px 0px 0px;">
                       <label for="createNewTag" class="remark_form_label" style="margin: 20px 0px 10px 0px">Create New Tag</label>
                       <input type="text" name="createNewTag" id="createNewTag" class="remark_form_input" placeholder="Enter a new tag">
                   </div>
                   <button type="button" class="remark_standard_button" id="createNewTagBtn">Create New Tag</button>
-                  <label class="remark_toggle" id="groupActionsBtn">
-                    <span class="remark_toggle_label">Tag All Similar Components ?</span>
-                    <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
-                    <div class="remark_toggle_switch"></div>
-                  </label>
-                  <p style="font-size: 11px; margin: 20px 10px 20px 0px;color: var(--remark-color-grey-light-2); line-height: 16px;"><b>NOTE :</b> Elements will be grouped by their classname and their tagname )</p>
-              </div>  
+                  <p style="width: 180px; font-size: 11px; margin: 20px 10px 20px 0px;color: var(--remark-color-grey-light-2); line-height: 16px;"><b>NOTE :</b> Elements will be grouped by their classname and their tagname</p>
+              </div>
           </div>
       </div>
     </div> 

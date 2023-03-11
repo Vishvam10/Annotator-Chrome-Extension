@@ -29,6 +29,16 @@
   --remark-default-sanserif-font: Arial, Helvetica, sans-serif;
 }
 
+
+.remark_settings_subgroup_row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: 28px 0px 0px 0px;
+  gap: 20px;
+}
+
 .remark_fade {
   opacity: 0.5;
 }
@@ -75,10 +85,12 @@
 #labelTypeBtn {
   background: var(--remark-color-white) !important;
   color: var(--remark-color-grey) !important;
-  padding: 4px !important;
+  border: var(--remark-default-border) !important;
+  padding: 8px !important;
   border-radius: 6px !important;
   margin: 3px 0px 4px 0px !important;
   height: 36px;
+  width: 92px;
   font-size: 14px !important;
 }
 
@@ -157,9 +169,10 @@
 }
 
 #createNewTag {
-  height: 40px;
+  height: 36px;
   font-size: 14px;
-  margin: 0px 0px 16px 0px;
+  margin: 12px 0px 16px 0px;
+  width: 100%;
 }
 
 #createNewTagBtn {
@@ -196,7 +209,7 @@
 
 .remark_form_label {
   font-family: var(--remark-default-sanserif-font);
-  font-size: 8px;
+  font-size: 12px;
   color: var(--remark-color-grey-light-1);
   font-weight: normal;
   text-align: left;
@@ -315,13 +328,6 @@
 
 .remark_form_input:focus {
   border: 0.5px solid var(--remark-color-primary);
-}
-
-.remark_form_label {
-  font-family: var(--remark-default-sanserif-font);
-  font-size: 14px;
-  color: var(--remark-color-grey-light-1);
-  font-weight: normal;
 }
 
 #remark_standard_modal_close_btn:hover {
@@ -548,7 +554,7 @@
 }
 
 .remark_tag_tooltip {
-  background: var(--remark-color-white) !important; 
+  background: var(--remark-color-white) !important;
   position: fixed;
   width: auto;
   padding: 10px;
@@ -559,6 +565,8 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
+  box-shadow: var(--remark-default-box-shadow-light) !important;
+  border: var(--remark-default-border) !important;
 }
 
 .remark_tag_tooltip_info {
@@ -572,5 +580,5 @@
   justify-content: center;
   align-items: center;
   margin: 0px 1px 2px 2px;
-
 }
+
