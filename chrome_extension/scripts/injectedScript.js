@@ -58,6 +58,7 @@ var VALID_HTML_ELEMENTS = [
 
 // ***************** Initialization ******************
 
+
 function remark_init() {
   console.log("DOM AND DEBUG CHECK : ", document.body, DEBUG);
   const style = document.createElement("style");
@@ -77,7 +78,6 @@ function remark_destroy() {
 }
 
 function startAnnotationProcess() {
-  // document.body.addEventListener("keydown", keyDownListener, false);
   let ticking = false;
   let lastScrollY = 0;
   document.body.addEventListener("click", clickListener, false);
@@ -176,9 +176,28 @@ function clickListener(e) {
           ele.classList.add("highlight_element_strong");
         }
       } else {
+
+
+
+
         handleCreateLabel(t);
         t.classList.remove("highlight_element_light");
+        
+        
+
+        
         t.classList.add("highlight_element_strong");
+
+
+
+
+
+
+
+
+
+
+
       }
 
       if (DEBUG) {
@@ -194,10 +213,11 @@ function clickListener(e) {
       }
 
       curNode = t;
-      curNode.classList.add("highlight_element_selected");
+      curNode.classList.add("highlight_element_selected")
       const id = t.dataset.annotation_id;
       const ann = getAnnotationByID(id);
       setCurrentLabelAsOption(ann.tag);
+
       if (DEBUG) {
         console.log("click -> set current label : ", ann.tag);
       }
@@ -253,6 +273,8 @@ function mouseOutListener(e) {
 function scrollListener() {
   updateTooltipPosition()
 }
+
+
 
 // ******************* Handlers ********************
 
@@ -342,8 +364,8 @@ function handleDeleteLabel(targetHTMLElement) {
   window.annotations.splice(ind1, 1);
   annotationNodes.splice(ind2, 1);
 
-
-  removeTooltip(annotation_id)
+  removeTooltip(annotation_id);
+  targetHTMLElement.classList.remove("highlight_element_selected");
   
   delete targetHTMLElement.dataset.annotation_id;
 
@@ -428,9 +450,28 @@ function createTagTooltipMarkup(annotation, tag) {
   return markup;
 }
 
+function createHighlightMarkup(annotation) {
+
+  const top = 10 + "px";
+  const left = annotation["x"] + "px";
+  const width = annotation["width"] + "px";
+  const height = annotation["height"] + "px";
+
+  const markup = `
+    <span 
+      class="highlight_element_resize"
+      data-annotation_id=${annotation["id"]} 
+      style="position: absolute; width=${width}; height: ${height}; top:${top}; left:${left}"
+    ></span>
+  `
+
+  return markup;
+
+}
+
 function updateTooltip(annotation_id, tag) {
   const id = `${annotation_id}_tooltip`;
-  const ele = document.getElementById(id);
+  const ele = document.getElementById(id).children[0];
   
   if(ele) {
     ele.innerText = tag;
@@ -449,7 +490,6 @@ function removeTooltip(annotation_id) {
 }
 
 // *************** Render functions ***************
-
 
 function renderAllAnnotations(annotations) {
   for (let i = 0; i < annotations.length; i++) {
@@ -633,13 +673,14 @@ function removeHighlight(annotation) {
   }
 }
 
+// Can be optimized with the IntersectionObserverAPI
 function updateTooltipPosition() {
   for(let i=0; i<annotationNodes.length; i++) {
     const id = `${annotationNodes[i][0]}_tooltip`;
     const top = annotationNodes[i][1];
     const tooltip = document.getElementById(id);
     if(tooltip) {
-      const tooltipTop = Math.abs(top - parseInt(window.scrollY));
+      const tooltipTop = top - parseInt(window.scrollY);
       tooltip.style.top = `${tooltipTop}px`;
     }
   }
@@ -649,6 +690,7 @@ function updateTooltipPosition() {
 
 
 // *************** Annotations Utils ***************
+
 
 function getAnnotationByID(annotation_id) {
   for (let ele of window.annotations) {

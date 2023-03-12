@@ -64,6 +64,16 @@
   background: #2fed6527 !important;
 }
 
+.highlight_element_resize {
+  position: absolute !important;
+  outline: 1px solid #ff00a69c !important;
+  background: rgba(255, 0, 174, 0.313) !important;
+  border-radius: 2px;
+  cursor: crosshair;
+  z-index: 100000 !important;
+}
+
+
 .remark_standard_modal {
   display: flex;
   flex-direction: column;
@@ -559,8 +569,8 @@
   width: auto;
   padding: 10px;
   z-index: 100000 !important;
-  border-radius: 8px;
-  height: 28px;
+  border-radius: 6px;
+  height: 12px;
   display: flex;
   flex-direction: row;
   justify-content: center;

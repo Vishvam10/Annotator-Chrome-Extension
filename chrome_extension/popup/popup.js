@@ -293,22 +293,11 @@ async function renderUserStats() {
       </table>
       <span class="remark_button_container">
         <button type="button" class="remark_standard_button" id="pushToServerBtn">Save Annotations</button>
-    `;
-        
-    if (running !== true) {
-      markup += `
         <button type="button" class="remark_standard_button" id="remark_start">Start Annotation</button>
       </span>
       <button type="button" id="signoutBtn">Sign Out</button>
-      `;
-    } else {
-      markup += `
-      </span>
-      <button type="button" id="signoutBtn">Sign Out</button>
-      `;
-      handleInit();
-    }
-
+    `;
+        
   document
     .querySelector(".remark_popup_container")
     .insertAdjacentHTML("beforeend", markup);
