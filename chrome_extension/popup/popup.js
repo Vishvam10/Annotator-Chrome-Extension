@@ -17,41 +17,16 @@ var BACKEND_URL = "http://localhost:3000/api"
 
 async function handleInit() {
   setDataToStorage("remark_running", true);
-  
-  // let dataURICheck = await getDataFromStorage("remark_screenshot_datauri");
-  // dataURICheck = dataURICheck["remark_screenshot_datauri"];
+  const tab = await getCurrentTab();
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    files: ["/scripts/injectedScript.js"],
+  });
+  chrome.scripting.insertCSS({
+    target: { tabId: tab.id },
+    files: ["scripts/style.css"],
+  })
 
-  // let savedDataCheck = await getDataFromStorage("remark_annotations");
-  // savedDataCheck = savedDataCheck["remark_annotations"];
-
-  // // if(!dataURICheck || dataURICheck === null) {
-    
-    // const dataURI = await handleScreenshot();
-    // setDataToStorage("remark_screenshot_datauri", dataURI);
-    // const tab = await getCurrentTab();
-    // chrome.scripting.executeScript({
-    //   target: { tabId: tab.id },
-    //   files: ["/scripts/injectedScript.js"],
-    // });
-    // chrome.scripting.insertCSS({
-    //   target: { tabId: tab.id },
-    //   files: ["scripts/style.css"],
-    // });
-
-  // }
-  //  else {
-    // if(savedDataCheck && savedDataCheck !== null) {
-      const tab = await getCurrentTab();
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ["/scripts/injectedScript.js"],
-      });
-      chrome.scripting.insertCSS({
-        target: { tabId: tab.id },
-        files: ["scripts/style.css"],
-      })
-    // }
-  // }
 }
 
 async function handleSignup(signupForm) {
@@ -80,10 +55,6 @@ async function handleSignup(signupForm) {
 
 async function handlePushToServer() {
   const tab = await getCurrentTab()
-  const screenshotURIStorageData = await getDataFromStorage(
-    "remark_screenshot_datauri"
-  );
-
   const url = `${BACKEND_URL}/submit`;
   
   const emailStorageData = await getDataFromStorage("remark_email");
@@ -96,6 +67,7 @@ async function handlePushToServer() {
       //   "[data-annotation_id]"
       // );
       let res = []
+
       for(let annotation of window.annotations) {
         res.push(annotation);
       }
@@ -105,11 +77,12 @@ async function handlePushToServer() {
   });
 
   const labels = result["result"]
-  const screenshotDataURI = screenshotURIStorageData["remark_screenshot_datauri"];
+  const screenshotDataURI = await handleScreenshot();
 
   console.log("all labels : ", result, result["result"])
 
   const jsn = JSON.stringify(labels);
+  setDataToStorage("remark_annotation_data", jsn);
   const blob = new Blob([jsn], { type: "application/json" });
   
   const imgFile = dataURItoFile(screenshotDataURI, "screenshot.png");
@@ -164,6 +137,7 @@ async function handleSignout() {
   setDataToStorage("remark_email", null);
   setDataToStorage("remark_running", false);
   setDataToStorage("remark_screenshot_datauri", null);
+  setDataToStorage("remark_annotation_data", null);
 
   const tab = await getCurrentTab();
 
@@ -230,7 +204,11 @@ async function renderUserStats() {
 
   const storageData = await getDataFromStorage(null);
   const email = storageData["remark_email"];
-  const running = storageData["remark_running"];
+
+  if(email == undefined || !email || email == "" || email == null) {
+    renderSignupForm();
+    return;
+  } 
 
   let markup = `
     <span class="remark_user_info">
@@ -487,6 +465,10 @@ async function takeScreenShot(tab) {
           const els = Array.from(document.querySelectorAll("*"));
           const positionTo = { fixed: "absolute", sticky: "relative" };
           document.body.style.overflow = "hidden";
+          const menu = document.getElementById("remarkMainMenu");
+          if(menu) {
+            removeHTMLElement(menu);
+          }
           for (const el of els) {
             if (
               el.style["position"] &&
@@ -503,7 +485,18 @@ async function takeScreenShot(tab) {
                 el.setAttribute("data-position", position);
               }
             }
-          }
+            el.classList.remove("highlight_element_strong")
+            el.classList.remove("highlight_element_light")
+            el.classList.remove("highlight_element_selected");
+            const id = el.dataset.annotation_id;
+            console.log("reached 1 : ", id)
+            if(id) {
+              console.log("reached 2 : ", id)
+              const hid = `${id}_highlight`;
+              const ele = document.getElementById(hid);
+              removeHTMLElement(ele);
+            }
+          }         
         },
       });
 

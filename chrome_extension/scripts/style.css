@@ -29,7 +29,6 @@
   --remark-default-sanserif-font: Arial, Helvetica, sans-serif;
 }
 
-
 .remark_settings_subgroup_row {
   display: flex;
   flex-direction: row;
@@ -51,22 +50,56 @@
   z-index: 100000;
 }
 
+.remark_control-point {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: white;
+  border: 1px solid black;
+  cursor: nwse-resize;
+}
+
+.remark_top-left {
+  top: -5px;
+  left: -5px;
+}
+
+.remark_top-right {
+  top: -5px;
+  right: -5px;
+}
+
+.remark_bottom-left {
+  bottom: -5px;
+  left: -5px;
+}
+
+.remark_bottom-right {
+  bottom: -5px;
+  right: -5px;
+}
+
 .highlight_element_strong {
-  outline: 1px solid #ff28009c !important;
-  background: rgb(223 75 47 / 21%) !important;
+  outline: 2px solid var(--remark-color-primary) !important;
+  background: #0d6dfd1f !important;
   border-radius: 2px;
   cursor: crosshair;
   z-index: 100000;
 }
 
-.highlight_element_selected {
-  outline: 1px solid #2fed65 !important;
-  background: #2fed6527 !important;
+.remark_hide_highlight {
+  outline: none;
+  background-color: transparent;
 }
 
-.highlight_element_resize {
+.highlight_element_selected {
+  outline: 2px solid #2fed65 !important;
+  background: #2fed653f !important;
+}
+
+.remark_highlight_element_resize {
   position: absolute !important;
-  outline: 1px solid #ff00a69c !important;
+  outline: 2px solid #ff00a69c !important;
   background: rgba(255, 0, 174, 0.313) !important;
   border-radius: 2px;
   cursor: crosshair;
@@ -566,7 +599,7 @@
 .remark_tag_tooltip {
   background: var(--remark-color-white) !important;
   position: fixed;
-  width: auto;
+  width: max-content;
   padding: 10px;
   z-index: 100000 !important;
   border-radius: 6px;

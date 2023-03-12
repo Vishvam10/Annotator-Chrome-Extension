@@ -19,9 +19,11 @@
 var BACKEND_URL = "http://localhost:3000/api";
 
 var REMARK_GROUP_ACTIONS = false;
-var REMARK_ADDITIONAL_STYLES = null;
 
+
+REMARK_ADDITIONAL_STYLES = null;
 window.annotations = [];
+
 annotationNodes = [];
 
 var tempBuffer = [];
@@ -62,7 +64,7 @@ var VALID_HTML_ELEMENTS = [
 function remark_init() {
   console.log("DOM AND DEBUG CHECK : ", document.body, DEBUG);
   const style = document.createElement("style");
-  REMARK_ADDITIONAL_STYLES = style;
+  window.REMARK_ADDITIONAL_STYLES = style;
   document.body.appendChild(style);
   disableAllCickableElements();
   renderMenu();
@@ -78,28 +80,12 @@ function remark_destroy() {
 }
 
 function startAnnotationProcess() {
-  let ticking = false;
-  let lastScrollY = 0;
+ 
   document.body.addEventListener("click", clickListener, false);
   document.body.addEventListener("mouseover", mouseOverListener, false);
   document.body.addEventListener("mouseout", mouseOutListener, false);
-  document.addEventListener("scroll", (event) => {
-    if (!ticking) {
-      let currentScrollY = window.scrollY;
-      let direction;
-      if (currentScrollY > lastScrollY) {
-        direction = "up";
-      } else {
-        direction = "down";
-      }
-      window.requestAnimationFrame(() => {
-        scrollListener(direction);
-        ticking = false;
-      });
-
-      ticking = true;
-    }
-  });
+  document.addEventListener("scroll", scrollListener)
+    
 }
 
 function stopAnnotationProcess() {
@@ -148,7 +134,86 @@ function clickListener(e) {
         console.log("click -> delete annotation");
       }
     }
-  } else {
+  } 
+  else if(e.ctrlKey) {
+
+    console.log("reached 1")
+    if(t.classList.contains("highlight_element_strong")) {
+      console.log("reached 2", t)
+
+      t.classList.add("remark_hide_highlight");
+
+      const id = t.dataset.annotation_id;
+      const ann = getAnnotationByID(id);
+
+      const highlightMarkup = createHighlightMarkup(ann);
+      t.insertAdjacentHTML("afterbegin", highlightMarkup);
+
+      const hid = ann["id"] + "_highlight";
+      const highlightElement = document.getElementById(hid);
+
+      console.log(highlightElement, ann["id"], ann);
+
+      removeTooltip(ann["id"]);
+
+      if(highlightElement) {
+        const ttm = createTagTooltipMarkup(ann, ann["tag"]);
+        highlightElement.insertAdjacentHTML("afterbegin", ttm);
+
+        let isDragging = false;
+        let initialX;
+        let initialY;
+        let currentX;
+        let currentY;
+        let xOffset = 0;
+        let yOffset = 0;
+        let rect = highlightElement;
+
+        rect.addEventListener("mousedown", dragStart);
+        rect.addEventListener("mouseup", dragEnd);
+        rect.addEventListener("mousemove", drag);
+
+        function dragStart(e) {
+          stopAnnotationProcess();
+          initialX = e.clientX - xOffset;
+          initialY = e.clientY - yOffset;
+
+          if (e.target === rect) {
+            isDragging = true;
+          }
+        }
+
+        function dragEnd(e) {
+          startAnnotationProcess();
+          initialX = currentX;
+          initialY = currentY;
+
+          isDragging = false;
+        }
+
+        function drag(e) {
+          if (isDragging) {
+            currentX = e.clientX - initialX;
+            currentY = e.clientY - initialY;
+
+            xOffset = currentX;
+            yOffset = currentY;
+
+            el.style.left = xPos + "px";
+            el.style.top = yPos + "px";
+          }
+        }
+
+      }
+        
+
+    } else {
+      return;
+    }
+    
+
+  }
+  else {
     // Add label
     if (t.classList.contains("highlight_element_light")) {
       if (t.classList.contains("highlight_element_strong")) {
@@ -271,9 +336,24 @@ function mouseOutListener(e) {
 }
 
 function scrollListener() {
-  updateTooltipPosition()
-}
+  let ticking = false;
+  // let lastScrollY = 0;
+  if (!ticking) {
+    let currentScrollY = window.scrollY;
+    // let direction;
+    // if (currentScrollY > lastScrollY) {
+    //   direction = "up";
+    // } else {
+    //   direction = "down";
+    // }
+    window.requestAnimationFrame(() => {
+      updateTooltipPosition()
+      ticking = false;
+    });
 
+    ticking = true;
+  }
+}
 
 
 // ******************* Handlers ********************
@@ -417,27 +497,7 @@ async function handleCreateNewTag() {
 }
 
 function createTagTooltipMarkup(annotation, tag) {
-  // let c = getDOMClassName(targetHTMLElement);
 
-  // REMARK_ADDITIONAL_STYLES.innerHTML += `
-  //   ${c}[data-annotation_id="${annotation_id}"] {
-  //     position: relative;
-  //   }
-
-  //   ${c}[data-annotation_id="${annotation_id}"]::before {
-  //     content: "${tag}";
-  //     position: absolute;
-  //     color: red;
-  //     top: 0;
-  //     left: 0;
-  //     width: 100%;
-  //     height: 100%;
-  //     z-index: 999999;
-  //     pointer-events: none;
-  //     display: block;
-  //   }
-  // `;
-  
   const top = parseInt(annotation["y"] - window.scrollY)+ "px";
   const left = annotation["x"] + "px";
   
@@ -457,12 +517,19 @@ function createHighlightMarkup(annotation) {
   const width = annotation["width"] + "px";
   const height = annotation["height"] + "px";
 
+
   const markup = `
     <span 
-      class="highlight_element_resize"
+      id="${annotation["id"]}_highlight"
+      class="remark_highlight_element_resize"
       data-annotation_id=${annotation["id"]} 
-      style="position: absolute; width=${width}; height: ${height}; top:${top}; left:${left}"
-    ></span>
+      style="position: absolute; width: ${width}; height: ${height}; top:${top}; left:${left}"
+    >
+      <div class="remark_control-point remark_top-left"></div>
+      <div class="remark_control-point remark_top-right"></div>
+      <div class="remark_control-point remark_bottom-left"></div>
+      <div class="remark_control-point remark_bottom-right"></div>
+    </span>
   `
 
   return markup;
@@ -754,11 +821,11 @@ function setCurrentLabelAsOption(val) {
 
 async function loadAllAnnotations() {
   try {
-    const storageData = await getDataFromStorage("remark_annotations");
-    const data = storageData["remark_annotations"];
+    const storageData = await getDataFromStorage("remark_annotation_data");
+    const data = storageData["remark_annotation_data"];
     annotations = JSON.parse(data)["data"];
     renderAllAnnotations(annotations);
-    setDataToStorage("remark_annotations", null);
+    setDataToStorage("remark_annotation_data", null);
   } catch (e) {
     console.log("No annotations to load");
   }
