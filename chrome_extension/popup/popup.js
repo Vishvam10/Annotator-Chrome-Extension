@@ -12,21 +12,36 @@ window.onload = async function () {
   
 };
 
-var BACKEND_URL = "http://localhost:3000/api"
-// var BACKEND_URL = "https://data-science-theta.vercel.app/api"
+// var BACKEND_URL = "http://localhost:3000/api"
+var BACKEND_URL = "https://data-science-theta.vercel.app/api"
 
 async function handleInit() {
-  setDataToStorage("remark_running", true);
-  const tab = await getCurrentTab();
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    files: ["/scripts/injectedScript.js"],
-  });
-  chrome.scripting.insertCSS({
-    target: { tabId: tab.id },
-    files: ["scripts/style.css"],
-  })
+  
+  const remarkRunningStorageData = await getDataFromStorage("remark_running");
+  const running = remarkRunningStorageData["remark_running"];
 
+  if(running == true) {
+    return;
+  } else {
+    const initBtn = document.getElementById("remark_start");
+    initBtn.removeEventListener("click", handleInit);
+    initBtn.classList.add("remark_fade");
+    initBtn.innerText = "Running ...";
+    
+    setDataToStorage("remark_running", true);
+    
+    const tab = await getCurrentTab();
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ["/scripts/injectedScript.js"],
+    });
+    chrome.scripting.insertCSS({
+      target: { tabId: tab.id },
+      files: ["scripts/style.css"],
+    })
+    return;
+}
+    
 }
 
 async function handleSignup(signupForm) {
