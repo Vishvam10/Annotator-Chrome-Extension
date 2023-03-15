@@ -1,7 +1,8 @@
 (async () => {
   const storageData = await getDataFromStorage("remark_running");
   const running = storageData["remark_running"];
-
+  window.annotations = [];
+  
   console.log("INIT ...", running);
 
   if (running === false) {
@@ -13,6 +14,8 @@
   }
 })();
 
+
+
 // ***************** Global Variables ****************
 
 // var BACKEND_URL = "https://data-science-theta.vercel.app/api";
@@ -22,8 +25,6 @@ var REMARK_GROUP_ACTIONS = false;
 
 
 REMARK_ADDITIONAL_STYLES = null;
-window.annotations = [];
-
 annotationNodes = [];
 
 var tempBuffer = [];
@@ -109,6 +110,8 @@ function clickListener(e) {
   e.stopImmediatePropagation();
   e.stopPropagation();
 
+  console.log("click : ", e.target)
+
   const t = e.target;
   if (t.tagName == "BUTTON") {
     return false;
@@ -135,84 +138,6 @@ function clickListener(e) {
       }
     }
   } 
-  else if(e.ctrlKey) {
-
-    console.log("reached 1")
-    if(t.classList.contains("highlight_element_strong")) {
-      console.log("reached 2", t)
-
-      t.classList.add("remark_hide_highlight");
-
-      const id = t.dataset.annotation_id;
-      const ann = getAnnotationByID(id);
-
-      const highlightMarkup = createHighlightMarkup(ann);
-      t.insertAdjacentHTML("afterbegin", highlightMarkup);
-
-      const hid = ann["id"] + "_highlight";
-      const highlightElement = document.getElementById(hid);
-
-      console.log(highlightElement, ann["id"], ann);
-
-      removeTooltip(ann["id"]);
-
-      if(highlightElement) {
-        const ttm = createTagTooltipMarkup(ann, ann["tag"]);
-        highlightElement.insertAdjacentHTML("afterbegin", ttm);
-
-        let isDragging = false;
-        let initialX;
-        let initialY;
-        let currentX;
-        let currentY;
-        let xOffset = 0;
-        let yOffset = 0;
-        let rect = highlightElement;
-
-        rect.addEventListener("mousedown", dragStart);
-        rect.addEventListener("mouseup", dragEnd);
-        rect.addEventListener("mousemove", drag);
-
-        function dragStart(e) {
-          stopAnnotationProcess();
-          initialX = e.clientX - xOffset;
-          initialY = e.clientY - yOffset;
-
-          if (e.target === rect) {
-            isDragging = true;
-          }
-        }
-
-        function dragEnd(e) {
-          startAnnotationProcess();
-          initialX = currentX;
-          initialY = currentY;
-
-          isDragging = false;
-        }
-
-        function drag(e) {
-          if (isDragging) {
-            currentX = e.clientX - initialX;
-            currentY = e.clientY - initialY;
-
-            xOffset = currentX;
-            yOffset = currentY;
-
-            el.style.left = xPos + "px";
-            el.style.top = yPos + "px";
-          }
-        }
-
-      }
-        
-
-    } else {
-      return;
-    }
-    
-
-  }
   else {
     // Add label
     if (t.classList.contains("highlight_element_light")) {
@@ -241,33 +166,15 @@ function clickListener(e) {
           ele.classList.add("highlight_element_strong");
         }
       } else {
-
-
-
-
         handleCreateLabel(t);
         t.classList.remove("highlight_element_light");
-        
-        
-
-        
         t.classList.add("highlight_element_strong");
-
-
-
-
-
-
-
-
-
-
-
       }
 
       if (DEBUG) {
         console.log("click -> add annotation");
       }
+
     } else if (t.classList.contains("highlight_element_strong")) {
       prevNode = curNode;
       if (
@@ -339,7 +246,7 @@ function scrollListener() {
   let ticking = false;
   // let lastScrollY = 0;
   if (!ticking) {
-    let currentScrollY = window.scrollY;
+    // let currentScrollY = window.scrollY;
     // let direction;
     // if (currentScrollY > lastScrollY) {
     //   direction = "up";
@@ -508,32 +415,6 @@ function createTagTooltipMarkup(annotation, tag) {
   `;
 
   return markup;
-}
-
-function createHighlightMarkup(annotation) {
-
-  const top = 10 + "px";
-  const left = annotation["x"] + "px";
-  const width = annotation["width"] + "px";
-  const height = annotation["height"] + "px";
-
-
-  const markup = `
-    <span 
-      id="${annotation["id"]}_highlight"
-      class="remark_highlight_element_resize"
-      data-annotation_id=${annotation["id"]} 
-      style="position: absolute; width: ${width}; height: ${height}; top:${top}; left:${left}"
-    >
-      <div class="remark_control-point remark_top-left"></div>
-      <div class="remark_control-point remark_top-right"></div>
-      <div class="remark_control-point remark_bottom-left"></div>
-      <div class="remark_control-point remark_bottom-right"></div>
-    </span>
-  `
-
-  return markup;
-
 }
 
 function updateTooltip(annotation_id, tag) {
@@ -785,6 +666,10 @@ function getAllAnnotations() {
 }
 
 function isValidAnnotation(curAnnotation) {
+  if(!window.annotations || window.annotations == undefined) {
+    window.annotations = []
+    return true;
+  }
   for (let i = 0; i < window.annotations.length; i++) {
     const ele = window.annotations[i];
     if (
@@ -828,9 +713,10 @@ async function loadAllAnnotations() {
     setDataToStorage("remark_annotation_data", null);
   } catch (e) {
     console.log("No annotations to load");
+  } finally {
+    return;
   }
 
-  return;
 }
 
 function saveAllAnnotations() {

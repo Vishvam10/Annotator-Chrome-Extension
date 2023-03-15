@@ -50,35 +50,6 @@
   z-index: 100000;
 }
 
-.remark_control-point {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background-color: white;
-  border: 1px solid black;
-  cursor: nwse-resize;
-}
-
-.remark_top-left {
-  top: -5px;
-  left: -5px;
-}
-
-.remark_top-right {
-  top: -5px;
-  right: -5px;
-}
-
-.remark_bottom-left {
-  bottom: -5px;
-  left: -5px;
-}
-
-.remark_bottom-right {
-  bottom: -5px;
-  right: -5px;
-}
-
 .highlight_element_strong {
   outline: 2px solid var(--remark-color-primary) !important;
   background: #0d6dfd1f !important;

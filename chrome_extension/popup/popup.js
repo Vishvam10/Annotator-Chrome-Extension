@@ -16,13 +16,7 @@ var BACKEND_URL = "http://localhost:3000/api"
 // var BACKEND_URL = "https://data-science-theta.vercel.app/api"
 
 async function handleInit() {
-  
-  // const remarkRunningStorageData = await getDataFromStorage("remark_running");
-  // const running = remarkRunningStorageData["remark_running"];
 
-  // if(running == true) {
-  //   return;
-  // } else {
   const initBtn = document.getElementById("remark_start");
   initBtn.removeEventListener("click", handleInit);
   initBtn.classList.add("remark_fade");
@@ -31,16 +25,22 @@ async function handleInit() {
   setDataToStorage("remark_running", true);
   
   const tab = await getCurrentTab();
+
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    files: ["/scripts/html2canvas.min.js"],
+  });
+
   chrome.scripting.executeScript({
     target: { tabId: tab.id },
     files: ["/scripts/injectedScript.js"],
   });
+  
   chrome.scripting.insertCSS({
     target: { tabId: tab.id },
     files: ["scripts/style.css"],
   })
   return;
-// }
     
 }
 
@@ -69,6 +69,10 @@ async function handleSignup(signupForm) {
 }
 
 async function handlePushToServer() {
+  const pushToServerBtn = document.getElementById("pushToServerBtn");
+  pushToServerBtn.classList.add("remark_fade");
+  pushToServerBtn.removeEventListener("click", handlePushToServer)
+  
   const tab = await getCurrentTab()
   const url = `${BACKEND_URL}/submit`;
   
@@ -91,8 +95,12 @@ async function handlePushToServer() {
     },
   });
 
+  pushToServerBtn.innerText = "Obtaining annotations ...";
+
   const labels = result["result"]
   const screenshotDataURI = await handleScreenshot();
+
+  pushToServerBtn.innerText = "Taking screenshot ...";
 
   console.log("all labels : ", result, result["result"])
 
@@ -102,6 +110,8 @@ async function handlePushToServer() {
   
   const imgFile = dataURItoFile(screenshotDataURI, "screenshot.png");
   const labelFile = new File([ blob ], "labels.json");
+
+  pushToServerBtn.innerText = "Converting files ..."  
 
   console.log(imgFile, labelFile);
 
@@ -124,10 +134,8 @@ async function handlePushToServer() {
     redirect: 'follow'
   };
 
-  const pushToServerBtn = document.getElementById("pushToServerBtn");
-  pushToServerBtn.classList.add("remark_fade");
+  
   pushToServerBtn.innerText = "Saving ...";
-  pushToServerBtn.removeEventListener("click", handlePushToServer)
   
   let res = await fetch(url, requestOptions);
   res = await res.text();
@@ -137,13 +145,18 @@ async function handlePushToServer() {
   if(res && res.includes("Submitted")) {
     console.log("SUCCESSFUL SUBMISSION !");
     pushToServerBtn.classList.remove("remark_fade");
-    pushToServerBtn.innerText = "Save Annotations";
-    pushToServerBtn.addEventListener("click", handlePushToServer)
+    pushToServerBtn.innerText = "Successful Submission !"  
+    setTimeout(() => {
+      pushToServerBtn.innerText = "Save Annotations";
+    }, 1500)
+    pushToServerBtn.addEventListener("click", handlePushToServer);
+    handleInit();
   } else {
     pushToServerBtn.classList.remove("remark_fade");
     pushToServerBtn.classList.add("remark_error");
     pushToServerBtn.innerText = "Some Error Occured";
     pushToServerBtn.addEventListener("click", handlePushToServer)
+    handleInit();
   }
 
 }
@@ -169,9 +182,8 @@ async function handleSignout() {
 async function handleScreenshot() {
   const tab = await getCurrentTab();
   const dataURI = await takeScreenShot(tab);
-  console.log(dataURI);
+  console.log("reached data uri : ", dataURI)
   downloadFile(dataURI, "s.jpg");
-
   return dataURI;
 }
 
@@ -471,138 +483,57 @@ async function takeScreenShot(tab) {
   const windowId = tab.windowId;
   return new Promise((res) =>
     chrome.windows.get(windowId, { populate: true }, async function (window) {
-      const width = window.tabs[0].width;
-      const height = window.tabs[0].height;
-      // set all position fixed => absolute, sticky => relative
+      
+      // Scroll to top
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => {
+          document.documentElement.scrollTop = 0;
+        },
+      });
+
+      // Remove ReMark elements
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: () => {
           const els = Array.from(document.querySelectorAll("*"));
-          const positionTo = { fixed: "absolute", sticky: "relative" };
-          document.body.style.overflow = "hidden";
           const menu = document.getElementById("remarkMainMenu");
           if(menu) {
             removeHTMLElement(menu);
           }
-          for (const el of els) {
-            if (
-              el.style["position"] &&
-              ["fixed", "sticky"].includes(el.style["position"])
-            ) {
-              const position = el.style["position"];
-              el.style.setProperty("position", positionTo[position], "important");
-              el.setAttribute("data-position", position);
-            } else {
-              const styles = getComputedStyle(el);
-              const position = styles.getPropertyValue("position");
-              if (position && ["fixed", "sticky"].includes(position)) {
-                el.style.setProperty("position", positionTo[position], "important");
-                el.setAttribute("data-position", position);
-              }
-            }
-            el.classList.remove("highlight_element_strong")
-            el.classList.remove("highlight_element_light")
+          for(const el of els) {
+            el.classList.remove("highlight_element_strong");
+            el.classList.remove("highlight_element_light");
             el.classList.remove("highlight_element_selected");
             const id = el.dataset.annotation_id;
-            console.log("reached 1 : ", id)
+
             if(id) {
               console.log("reached 2 : ", id)
-              const hid = `${id}_highlight`;
+              const hid = `${id}_tooltip`;
               const ele = document.getElementById(hid);
               removeHTMLElement(ele);
             }
-          }         
+          }       
         },
       });
-
-      console.log("window", width, height);
 
       const [{ result }] = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        func: () => {
-          return document.body.scrollHeight;
+        func: async() => {
+          const uri = await html2canvas(document.documentElement, {
+            allowTaint: true,
+            useCORS: true
+          }).then(function(canvas) {
+            const dataURI = canvas.toDataURL();
+            return dataURI
+          });
+          return uri;
         },
       });
-
-      const canvas = document.createElement("canvas");
-      canvas.height = 0;
-      const context = canvas.getContext("2d");
-      const times = Math.ceil(result / height);
-      const Sleep = (n) => new Promise((res, rej) => setInterval(res, n));
-      const screenShots = [];
-      for (let i = 0, top = 0; i < times; i++, top += height) {
-        await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: (top) => {
-            // console.log("scrolltop", top);
-            document.documentElement.scrollTop = top;
-          },
-          args: [top],
-        });
-
-        await Sleep(550);
-        await new Promise((res, rej) => {
-          chrome.tabs.captureVisibleTab(
-            windowId,
-            { format: "png" },
-            function (dataUrl) {
-              screenShots.push(dataUrl);
-              return res(true);
-            }
-          );
-        });
-      }
-
-      const getDataImageDIM = async (src) => {
-        const img = new Image();
-        img.src = src;
-        return new Promise(
-          (res) =>
-            (img.onload = () => {
-              res([img.width, img.height]);
-            })
-        );
-      };
-
-      const [screenshotWidth, screenshotHeight] = await getDataImageDIM(
-        screenShots[1]
-      );
-      const canvasHeight = (screenshotHeight * result) / height;
-
-      canvas.height = canvasHeight;
-      canvas.width = screenshotWidth;
-
-      for (
-        let i = 0, top = 0;
-        i < screenShots.length;
-        i++, top += screenshotHeight
-      ) {
-        const img = document.createElement("img");
-        img.src = screenShots[i];
-
-        if (i === screenShots.length - 1) top = canvasHeight - screenshotHeight;
-
-        await new Promise((res) => {
-          img.onload = () => {
-            context.drawImage(img, 0, top);
-            res(true);
-          };
-        });
-      }
-      const base64 = await res(canvas.toDataURL("image/jpeg"));
-
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => {
-          const els = Array.from(document.querySelectorAll("[data-position]"));
-          document.body.style.overflow = "auto";
-          for (const el of els) {
-            el.style["position"] = el.getAttribute("data-position");
-            el.removeAttribute("data-position");
-          }
-        },
-      });
+      
+      console.log("return val : ", result)
+      const base64 = await res(result)
       return base64;
     })
-  );
+  )
 }
