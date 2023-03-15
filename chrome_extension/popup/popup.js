@@ -1,7 +1,6 @@
 window.onload = async function () {
   const storageData = await getDataFromStorage(null);
   const email = storageData["remark_email"];
-  const running = storageData["remark_running"];
 
   // Check if the user has signed in
   if (email !== null) {
@@ -95,12 +94,10 @@ async function handlePushToServer() {
     },
   });
 
-  pushToServerBtn.innerText = "Obtaining annotations ...";
+  pushToServerBtn.innerText = "Getting annotations";
 
   const labels = result["result"]
   const screenshotDataURI = await handleScreenshot();
-
-  pushToServerBtn.innerText = "Taking screenshot ...";
 
   console.log("all labels : ", result, result["result"])
 
@@ -110,8 +107,6 @@ async function handlePushToServer() {
   
   const imgFile = dataURItoFile(screenshotDataURI, "screenshot.png");
   const labelFile = new File([ blob ], "labels.json");
-
-  pushToServerBtn.innerText = "Converting files ..."  
 
   console.log(imgFile, labelFile);
 
@@ -126,6 +121,8 @@ async function handlePushToServer() {
   formdata.append("label", labelFile);
   formdata.append("image", imgFile);
   logFormData(formdata)
+  
+  pushToServerBtn.innerText = "Saving";
 
   var requestOptions = {
     method: 'POST',
@@ -135,8 +132,6 @@ async function handlePushToServer() {
   };
 
   
-  pushToServerBtn.innerText = "Saving ...";
-  
   let res = await fetch(url, requestOptions);
   res = await res.text();
   
@@ -145,10 +140,10 @@ async function handlePushToServer() {
   if(res && res.includes("Submitted")) {
     console.log("SUCCESSFUL SUBMISSION !");
     pushToServerBtn.classList.remove("remark_fade");
-    pushToServerBtn.innerText = "Successful Submission !"  
+    pushToServerBtn.innerText = "Success !"  
     setTimeout(() => {
       pushToServerBtn.innerText = "Save Annotations";
-    }, 1500)
+    }, 2000)
     pushToServerBtn.addEventListener("click", handlePushToServer);
     handleInit();
   } else {
@@ -180,6 +175,9 @@ async function handleSignout() {
 }
 
 async function handleScreenshot() {
+  const pushToServerBtn = document.getElementById("pushToServerBtn");
+  pushToServerBtn.innerText = "Taking screenshot";
+
   const tab = await getCurrentTab();
   const dataURI = await takeScreenShot(tab);
   console.log("reached data uri : ", dataURI)
@@ -471,6 +469,9 @@ function dataURIToBlob(dataURI) {
 }
 
 function dataURItoFile(dataurl, filename) {
+  const pushToServerBtn = document.getElementById("pushToServerBtn");
+  pushToServerBtn.innerText = "Converting files ..."  
+
   var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
       bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
   while(n--){
@@ -488,6 +489,8 @@ async function takeScreenShot(tab) {
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: () => {
+          document.documentElement.scrollTop = 0;
+          document.documentElement.scrollTop = document.documentElement.scrollHeight;
           document.documentElement.scrollTop = 0;
         },
       });

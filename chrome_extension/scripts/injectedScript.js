@@ -6,7 +6,6 @@
   console.log("INIT ...", running);
 
   if (running === false) {
-    console.log("going to destroy ...");
     remark_destroy();
     return;
   } else {
@@ -110,8 +109,6 @@ function clickListener(e) {
   e.stopImmediatePropagation();
   e.stopPropagation();
 
-  console.log("click : ", e.target)
-
   const t = e.target;
   if (t.tagName == "BUTTON") {
     return false;
@@ -176,6 +173,7 @@ function clickListener(e) {
       }
 
     } else if (t.classList.contains("highlight_element_strong")) {
+      // Select label
       prevNode = curNode;
       if (
         prevNode &&
@@ -298,10 +296,7 @@ function handleCreateLabel(targetHTMLElement) {
     
     const tooltipMarkup = createTagTooltipMarkup(annotation, "span");
     targetHTMLElement.insertAdjacentHTML("afterbegin", tooltipMarkup);
-    annotationNodes.push([annotation["id"], annotation["y"]]);
-    
-    console.log("add : window.annotations : ", window.annotations, annotationNodes);
-    
+    annotationNodes.push([annotation["id"], annotation["y"]]);    
     targetHTMLElement.dataset.annotation_id = annotation["id"];
     return;
   }
@@ -377,6 +372,7 @@ function handleBatchDelete(targetHTMLElements) {
 }
 
 function handleBatchEdit(targetHTMLElements, val) {
+  console.log("batch edit : ", targetHTMLElements, val)
   for (let i = 0; i < targetHTMLElements.length; i++) {
     const ele = targetHTMLElements[i];
     handleEditLabel(ele, val);
@@ -567,14 +563,14 @@ async function renderMenu() {
   });
 
   const labelTypeBtn = document.getElementById("labelTypeBtn");
-  labelTypeBtn.addEventListener("click", (e) => {
+  labelTypeBtn.addEventListener("change", (e) => {
     e.preventDefault();
     e.stopPropagation();
     const val = String(e.target.value);
     if (val != "remove_label") {
       if (REMARK_GROUP_ACTIONS) {
         const className = String(
-          curNode.className.replace("highlight_element_strong", "")
+          curNode.className.replace("highlight_element_strong", "").replace("highlight_element_selected", "").replace("highlight_element_light", "")
         );
         const elements = document.getElementsByClassName(className);
         handleBatchEdit(elements, val);
