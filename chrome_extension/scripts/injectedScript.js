@@ -89,6 +89,7 @@ function startAnnotationProcess() {
 }
 
 function stopAnnotationProcess() {
+  
   document.addEventListener("click", () => {
     return false;
   });

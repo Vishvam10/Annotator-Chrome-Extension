@@ -96,25 +96,36 @@ async function handlePushToServer() {
 
   pushToServerBtn.innerText = "Getting annotations";
 
-  const labels = result["result"]
+  let labels = []
+  let tags = {}
+
+  const temp = result["result"];
+
+  temp.forEach((ele, ind) => {
+    if(!(ele["tag"] in tags)) {
+      tags[ele["tag"]] = ind;
+    }
+  });
+
+  temp.forEach((ele) => {
+    labels.push([tags[ele["tag"]] ,ele["x"], ele["y"], ele["width"], ele["height"]] )
+  });
+
+  labels = labels.join("\n")
+
+  tags = Object.entries(tags).sort((a, b) => b[1]-a[1])
+  tags = tags.join("\n")
+
+  console.log("tags : ", tags)
+  console.log("labels : ", labels)
+
   const screenshotDataURI = await handleScreenshot();
-
-  console.log("all labels : ", result, result["result"])
-
-  const jsn = JSON.stringify(labels);
-  setDataToStorage("remark_annotation_data", jsn);
-  const blob = new Blob([jsn], { type: "application/json" });
-  
   const imgFile = dataURItoFile(screenshotDataURI, "screenshot.png");
-  const labelFile = new File([ blob ], "labels.json");
-
-  console.log(imgFile, labelFile);
-
-  // downloadFile(dataURI, "s.jpg");
-  // downloadFile(JSONDataURI, "labels.json");
+  
+  const imgBlob = new Blob([ labels ], { type: "text/plain" });
+  const labelFile = new File([ imgBlob ], "labels.txt");
 
   var myHeaders = new Headers();
-  console.log("SUBMIT EMAIL : ", email)
   myHeaders.append("email", String(email));
   
   var formdata = new FormData();
