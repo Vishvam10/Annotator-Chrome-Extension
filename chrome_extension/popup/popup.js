@@ -97,33 +97,22 @@ async function handlePushToServer() {
   pushToServerBtn.innerText = "Getting annotations";
 
   let labels = []
-  let tags = {}
 
   const temp = result["result"];
 
-  temp.forEach((ele, ind) => {
-    if(!(ele["tag"] in tags)) {
-      tags[ele["tag"]] = ind;
-    }
-  });
-
   temp.forEach((ele) => {
-    labels.push([tags[ele["tag"]] ,ele["x"], ele["y"], ele["width"], ele["height"]] )
+    labels.push([ele["tag"] ,ele["x"], ele["y"], ele["width"], ele["height"]] )
   });
 
   labels = labels.join("\n")
 
-  tags = Object.entries(tags).sort((a, b) => b[1]-a[1])
-  tags = tags.join("\n")
-
-  console.log("tags : ", tags)
   console.log("labels : ", labels)
 
   const screenshotDataURI = await handleScreenshot();
   const imgFile = dataURItoFile(screenshotDataURI, "screenshot.png");
   
-  const imgBlob = new Blob([ labels ], { type: "text/plain" });
-  const labelFile = new File([ imgBlob ], "labels.txt");
+  const labelBlob = new Blob([ labels ], { type: "text/plain" });
+  const labelFile = new File([ labelBlob ], "labels.txt", {type: "text/plain"});
 
   var myHeaders = new Headers();
   myHeaders.append("email", String(email));

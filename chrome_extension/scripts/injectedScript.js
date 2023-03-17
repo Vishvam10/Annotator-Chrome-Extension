@@ -21,6 +21,7 @@
 var BACKEND_URL = "http://localhost:3000/api";
 
 var REMARK_GROUP_ACTIONS = false;
+var REMARK_DOWNLOAD_LOCAL = false;
 
 
 REMARK_ADDITIONAL_STYLES = null;
@@ -89,7 +90,7 @@ function startAnnotationProcess() {
 }
 
 function stopAnnotationProcess() {
-  
+
   document.addEventListener("click", () => {
     return false;
   });
@@ -400,6 +401,33 @@ async function handleCreateNewTag() {
   }
 }
 
+function handlePushToServer() {
+  if(REMARK_DOWNLOAD_LOCAL) {
+    downloadAnnotations();
+  }
+}
+
+function downloadAnnotations() {
+
+  const temp = window.annotations;
+  let labels = []
+
+  temp.forEach((ele) => {
+    labels.push([ele["tag"] ,ele["x"], ele["y"], ele["width"], ele["height"]] )
+  });
+
+  labels = labels.join("\n")
+
+  console.log("download labels : ", labels)
+  
+  const labelBlob = new Blob([ labels ], { type: "text/plain" });
+  const labelDataURI = window.URL.createObjectURL(labelBlob);
+
+  downloadFile(labelDataURI, "labels.txt");
+  return;
+  
+}
+
 function createTagTooltipMarkup(annotation, tag) {
 
   const top = parseInt(annotation["y"] - window.scrollY)+ "px";
@@ -473,7 +501,7 @@ async function renderMenu() {
     <div class="remark_standard_menu_container" id="remarkMainMenu">
       <div class="remark_standard_menu_header">
           <p style="margin: 5px 0px 0px 0px; font-weight: bold; color: inherit; font-size: 16px;">ReMark</p>
-          <div class="remark_standard_sidebar_actions">
+          <div class="remark_standard_menu_actions">
             <span class="remark_close_btn" id="remark_standard_menu_close_btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn">
                     <path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4l-6 6Z" class="remark_"/>
@@ -482,34 +510,32 @@ async function renderMenu() {
           </div>
       </div>
       <div class="remark_menu_body">
-          <div class="remark_settings">
-              <div class="remark_settings_subgroup_row">
-                  <div class="remark_">
-                      <label for="labelType" class="remark_form_label" style="width: 100px; line-height: 18px; margin: 0px 0px 10px 1px;">Select Tag For Component From The List</label>
-                      <div class="remark_" style="width: 100%; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
-                          <select name="labelType" id="labelTypeBtn" class="remark_">
-                              ${labelMarkup}
-                              <option value="remove_label" class="remark_">Remove Label</option>
-                          </select>
-                      </div>
-                  </div>
-                  <label class="remark_toggle" id="groupActionsBtn">
-                    <span class="remark_toggle_label" style="font-size: 12px; margin: -16px 16px 16px 0px; line-height: 18px; width: 70px;">Tag All Similar Components</span>
-                    <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
-                    <div class="remark_toggle_switch"></div>
-                  </label>
-              </div>
-              <div class="remark_settings_subgroup">
-                  <h4 style="margin: 10px 0px 10px 0px; color: var(--remark-color-grey-light-1); font-size: 16px">OR</h4>
-                  <div style="float:left; width: 100%; margin: 0px 0px 0px 0px;">
-                      <label for="createNewTag" class="remark_form_label" style="margin: 20px 0px 10px 0px">Create New Tag</label>
-                      <input type="text" name="createNewTag" id="createNewTag" class="remark_form_input" placeholder="Enter a new tag">
-                  </div>
-                  <button type="button" class="remark_standard_button" id="createNewTagBtn">Create New Tag</button>
-                  <p style="width: 180px; font-size: 11px; margin: 20px 10px 20px 0px;color: var(--remark-color-grey-light-2); line-height: 16px;"><b>NOTE :</b> Elements will be grouped by their classname and their tagname</p>
-              </div>
+        <div class="remark_settings_subgroup">
+          <label for="labelType" class="remark_form_label" style="width: 160px; line-height: 20px;">Select tag for component from the list</label>
+          <select name="labelType" id="labelTypeBtn" class="remark_">
+              ${labelMarkup}
+              <option value="remove_label" class="remark_">Remove Label</option>
+          </select>
+          <h4 style="margin: 16px 0px 0px 0px; color: var(--remark-color-grey-light-1); font-size: 16px">OR</h4>
+          <div style="float:left; width: 100%; margin: 0.1rem 0rem -0.4rem 0rem;">
+              <label for="createNewTag" class="remark_form_label" style="margin: 20px 0px 2px 0px;">Create new tag</label>
+              <input type="text" name="createNewTag" id="createNewTag" class="remark_form_input" placeholder="Enter a new tag">
           </div>
-      </div>
+          <button type="button" class="remark_standard_button remark_secondary_button" id="createNewTagBtn">Create new tag</button>
+          <label class="remark_toggle" id="groupActionsBtn">
+            <span class="remark_toggle_label">Tag all similar components ?</span>
+            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
+            <div class="remark_toggle_switch"></div>
+          </label>
+          <label class="remark_toggle" id="downloadBtn">
+            <span class="remark_toggle_label">Download annotations locally ?</span>
+            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="downloadCheckbox">
+            <div class="remark_toggle_switch"></div>
+          </label>
+          <button type="button" class="remark_standard_button" id="pushToServerButton">Push to server</button>
+          <p style="font-size: 11px; margin: 30px 0px -10px 0px; color: var(--remark-color-grey-light-2); line-height: 16px;"><b>NOTE :</b> Elements will be grouped by their classname and their tagname</p>
+        </div>  
+        </div>
     </div> 
   `;
   document.body.insertAdjacentHTML("afterbegin", markup);
@@ -546,11 +572,9 @@ async function renderMenu() {
     isDragging = false;
   });
 
-  // **********************************************************
+  // ****************** BUTTON EVENT LISTENERS *****************
 
-  const menuCloseBtn = document.getElementById(
-    "remark_standard_menu_close_btn"
-  );
+  const menuCloseBtn = document.getElementById("remark_standard_menu_close_btn");
   menuCloseBtn.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -609,14 +633,25 @@ async function renderMenu() {
 
   const createNewTagBtn = document.getElementById("createNewTagBtn");
   createNewTagBtn.addEventListener("click", handleCreateNewTag);
+
+  const downloadBtn = document.getElementById("downloadBtn");
+  downloadBtn.addEventListener("click", (e) => {
+    const inp = document.getElementsByName("downloadCheckbox")[0];
+    if (inp.checked === true) {
+      inp.checked = false;
+      REMARK_DOWNLOAD_LOCAL = false;
+    } else {
+      inp.checked = true;
+      REMARK_DOWNLOAD_LOCAL = true;
+    }
+    console.log("LOCAL DOWNLOAD : ", REMARK_DOWNLOAD_LOCAL)
+  });
+
+  const pushToServerButton = document.getElementById("pushToServerButton");
+  pushToServerButton.addEventListener("click", handlePushToServer)
+
 }
 
-function removeHighlight(annotation) {
-  const t = annotation["html_target"];
-  if (t && t.className.includes("highlight_element_strong")) {
-    t.classList.remove("highlight_element_strong");
-  }
-}
 
 // Can be optimized with the IntersectionObserverAPI
 function updateTooltipPosition() {
@@ -728,6 +763,13 @@ function removeAllExistingModals() {
   const menu_check = document.querySelector(".remark_standard_menu_container");
   if (menu_check) {
     removeHTMLElement(menu_check);
+  }
+}
+
+function removeHighlight(annotation) {
+  const t = annotation["html_target"];
+  if (t && t.className.includes("highlight_element_strong")) {
+    t.classList.remove("highlight_element_strong");
   }
 }
 

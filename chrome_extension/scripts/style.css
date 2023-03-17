@@ -29,18 +29,25 @@
   --remark-default-sanserif-font: Arial, Helvetica, sans-serif;
 }
 
-.remark_settings_subgroup_row {
+/* ******************************* UTILS ******************************** */
+
+.remark_hide {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.remark_show {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin: 28px 0px 0px 0px;
-  gap: 20px;
+  opacity: 1;
+  visibility: visible;
 }
 
 .remark_fade {
   opacity: 0.5;
 }
+
+/* ***************************** HIGHLIGHT ****************************** */
 
 .highlight_element_light {
   cursor: crosshair;
@@ -68,83 +75,14 @@
   background: #2fed653f !important;
 }
 
-.remark_highlight_element_resize {
-  position: absolute !important;
-  outline: 2px solid #ff00a69c !important;
-  background: rgba(255, 0, 174, 0.313) !important;
-  border-radius: 2px;
-  cursor: crosshair;
-  z-index: 100000 !important;
-}
-
-
-.remark_standard_modal {
-  display: flex;
-  flex-direction: column;
-  background: white;
-  color: black;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  border-radius: 12px;
-  width: 22px;
-  height: auto;
-  position: absolute;
-  top: 14%;
-  left: 40%;
-  box-shadow: rgb(149 157 165 / 20%) 0px 8px 24px;
-  z-index: 1000000;
-}
-
-#labelTypeBtn {
-  background: var(--remark-color-white) !important;
-  color: var(--remark-color-grey) !important;
-  border: var(--remark-default-border) !important;
-  padding: 8px !important;
-  border-radius: 6px !important;
-  margin: 3px 0px 4px 0px !important;
-  height: 36px;
-  width: 92px;
-  font-size: 14px !important;
-}
-
-.remark_how_to_use {
-  color: var(--remark-color-grey-light-1);
-  font-size: 10px;
-}
-
-.remark_how_to_use_title {
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.remark_how_to_use_body {
-  font-size: 6px;
-  font-weight: normal;
-}
-
-.remark_form_input {
-  padding: 10px 20px 12px 10px;
-  font-family: var(--remark-default-sanserif-font);
-  appearance: none;
-  height: 28px;
-  width: 100%;
-  border-radius: 6px;
-  background-color: var(--remark-color-white);
-  margin: 2px 0px 10px 0px;
-  transition: border 0.2s ease-in 0s;
-  border: 1px solid var(--remark-color-grey-light-1);
-  font-size: 8px;
-  color: var(--remark-color-grey);
-  outline: 0px !important;
-}
+/* ****************************** BUTTONS ******************************* */
 
 .remark_standard_button {
   background-color: var(--remark-color-primary);
   color: var(--remark-color-white);
   border: none;
   transition: all 0.1s;
-  font-size: 10px;
+  font-size: 14px;
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
@@ -172,14 +110,81 @@
   color: var(--remark-color-white);
 }
 
-#remarkStopBtn {
+.remark_secondary_button {
+  background: white;
+  border: 1.4px solid var(--remark-color-primary);
   color: var(--remark-color-primary);
-  background-color: var(--remark-color-white);
-  border: 1px solid var(--remark-color-primary);
 }
 
-#remarkStopBtn:hover {
+.remark_secondary_button:hover {
+  background-color: var(--remark-color-primary);
   color: var(--remark-color-white);
+  transform: scale(1.04);
+}
+
+.remark_secondary_button:active {
+  transform: scale(1) !important;
+  color: var(--remark-color-primary);
+}
+
+.remark_secondary_button:active {
+  color: var(--remark-color-white) !important;
+}
+
+.remark_action_btn {
+  width: 100%;
+  margin: 20px 10px 0px 0px;
+  height: 20px;
+  color: var(--remark-color-grey-dark-1);
+  padding: 3px;
+  background-color: var(--remark-color-grey-light-3);
+  border-radius: 6px;
+  border: 1px solid var(--remark-color-grey-light-2);
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
+  font-size: 8px;
+}
+
+.remark_action_btn:hover {
+  transform: scale(1.1);
+}
+
+.remark_action_btn:active {
+  transform: scale(1);
+}
+
+#remark_edit_annotation_button {
+  margin: 16px 0px 0px 0px;
+}
+
+
+.remark_close_btn {
+  margin: 4px 0px 0px 0px;
+  cursor: pointer;
+}
+
+#labelTypeBtn {
+  background: var(--remark-color-white) !important;
+  color: var(--remark-color-grey) !important;
+  border: var(--remark-default-border) !important;
+  padding: 8px !important;
+  border-radius: 6px !important;
+  margin: 3px 0px 4px 0px !important;
+  height: 36px;
+  width: 180px;
+  font-size: 14px !important;
+}
+
+#createNewTagBtn {
+  font-size: 14px;
+  margin: 18px 0px 0px 0px;
+}
+
+#groupActionsBtn {
+  margin: 20px 0px 0px 0px;
+}
+
+#downloadBtn {
+  margin: 20px 0px 10px 0px;
 }
 
 #createNewTag {
@@ -189,297 +194,8 @@
   width: 100%;
 }
 
-#createNewTagBtn {
-  font-size: 14px;
-}
+/* ******************************* TOGGLE ******************************* */
 
-.remark_standard_modal_title {
-  display: flex;
-  flex-direction: row;
-  justify-content: start;
-  overflow-wrap: break-word;
-  padding: 0px;
-  margin: 10px 0px 20px 0px;
-  font-size: 11px;
-  height: inherit;
-  line-height: 0px;
-  font-weight: bold;
-}
-
-.remark_field {
-  width: 100%;
-  height: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 12px 0px 8px 0px;
-  border: var(--remark-default-border);
-  border-radius: 9px;
-  padding: 16px;
-  font-size: 12px;
-  font-weight: normal;
-  color: var(--remark-color-grey-light-1);
-}
-
-.remark_form_label {
-  font-family: var(--remark-default-sanserif-font);
-  font-size: 12px;
-  color: var(--remark-color-grey-light-1);
-  font-weight: normal;
-  text-align: left;
-  width: 120px;
-  display: flex;
-  flex-direction: row;
-  line-height: 12px;
-  margin: 10px 0px 2px 0px;
-}
-
-.remark_confirm_grouping {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  padding: 10px;
-  position: inherit;
-  top: 0px;
-  right: 0px;
-  border-radius: 8px;
-  margin: 0px 0px 0px 0px;
-  background-color: #000000;
-  color: var(--remark-color-white);
-  width: 90px;
-  height: 320px;
-  z-index: 10000;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: all 125ms ease-in-out 0s;
-}
-
-.remark_grouping_options:hover {
-  transform: scale(1.05);
-}
-
-.remark_grouping_options {
-  transform: scale(1);
-}
-
-.remark_standard_sidebar {
-  position: fixed;
-  top: 22px;
-  right: 20px;
-  width: 200px;
-  background-color: var(--remark-color-white);
-  border: var(--remark-default-border);
-  border-radius: 12px;
-  z-index: 100000000;
-  height: auto;
-  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
-  display: flex;
-  overflow: hidden;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.remark_annotations_sidebar_resize {
-  height: 32px;
-  padding: 0px;
-}
-
-@keyframes remark_sidebar_animation {
-  from {
-    width: 0px;
-  }
-  to {
-    width: 200px;
-  }
-}
-
-.remark_sidebar_modal_header {
-  padding: 10px;
-  height: 20px;
-  margin: -12px 0px 10px -10px;
-  width: 182px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.remark_sidebar_modal_header_resize {
-  margin: 4px 10px 0px 10px;
-}
-
-.remark_standard_sidebar_actions {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  width: 10%;
-}
-
-.remark_standard_sidebar_title {
-  display: flex;
-  flex-direction: row;
-  justify-content: start;
-  overflow-wrap: break-word;
-  margin: 4px 0px 0px;
-  font-size: 8px;
-  font-weight: bold;
-}
-
-.remark_close_btn {
-  margin: 4px 0px 0px 0px;
-  cursor: pointer;
-}
-
-.remark_standard_sidebar_body_full {
-  height: 100%;
-  overflow: hidden;
-}
-
-.remark_form_fields {
-  margin: 0px 0px 0px 0px;
-}
-
-.remark_form_input:focus {
-  border: 0.5px solid var(--remark-color-primary);
-}
-
-#remark_standard_modal_close_btn:hover {
-  transform: scale(1.1);
-}
-
-#remark_standard_modal_close_btn:active {
-  transform: scale(1);
-}
-
-.remark_init_container {
-  width: 20px;
-  background: var(--remark-color-white);
-  padding: 10px;
-  height: 40px;
-  border-radius: 120px;
-  position: fixed;
-  z-index: 10000000;
-  bottom: 30px;
-  left: 36%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  align-content: center;
-  box-shadow: var(--remark-default-box-shadow);
-  transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-}
-
-.remark_init_container_resize {
-  left: 1.6%;
-  width: 160px;
-  bottom: 2.6%;
-}
-
-.remark_init_container_resize > .remark_init_button {
-  font-size: 8px;
-}
-
-.remark_init_button {
-  color: var(--remark-color-white);
-  width: 60%;
-  font-size: 90px;
-  padding: 10px;
-  background-color: var(--remark-color-primary);
-  height: 30px;
-  margin: -5px -4px 0px 20px;
-}
-
-.remark_init_text {
-  width: 30%;
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--remark-color-grey-dark-1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.remark_hide {
-  display: none;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.remark_show {
-  display: flex;
-  opacity: 1;
-  visibility: visible;
-}
-
-.remark_standard_menu_container {
-  height: auto;
-  width: 240px;
-  border-radius: 12px;
-  background-color: var(--remark-color-grey-light-4);
-  border: var(--remark-default-border);
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
-  z-index: 10000000;
-  position: fixed;
-  top: 20px;
-  left: 14px;
-  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
-  font-family: var(--remark-default-sanserif-font);
-}
-
-.remark_menu_body {
-  height: 100%;
-  width: 100%;
-}
-
-.remark_menu_resize {
-  height: 32px;
-}
-
-.remark_standard_menu_header {
-  padding: 0px;
-  height: 20px;
-  margin: -12px 0rem 20px 0rem;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: var(--remark-color-primary);
-}
-
-.remark_main_heading {
-  font-size: 16px;
-  color: var(--remark-color-grey-dark-2);
-  text-align: center;
-}
-
-.remark_settings {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  margin: -10px 0px -30px 0px;
-}
-
-.remark_settings_subgroup {
-  padding: 10px;
-  margin: 0px 0px 0px -10px;
-}
-
-.remark_settings_subgroup_title {
-  margin: 2px 0px 2px 0px;
-  font-size: 7px;
-  color: var(--remark-color-grey-light-1);
-}
-
-.remark_setting_subgroup_item {
-  margin: 4px 0px 0px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
 
 .remark_toggle {
   cursor: pointer;
@@ -536,36 +252,152 @@
   font-weight: normal;
   display: flex;
   flex-direction: row;
-  width: 90px;
-  margin: 10px 10px 2px 0px;
+  width: 180px;
+  margin: 0px 0px 2px 0px;
   font-size: 12px;
   line-height: 16px;
 }
 
-.remark_action_btn {
+/* ****************************** FORM ******************************* */
+
+
+.remark_form_input {
+  padding: 10px 20px 12px 10px;
+  font-family: var(--remark-default-sanserif-font);
+  appearance: none;
+  height: 28px;
   width: 100%;
-  margin: 20px 10px 0px 0px;
-  height: 20px;
-  color: var(--remark-color-grey-dark-1);
-  padding: 3px;
-  background-color: var(--remark-color-grey-light-3);
   border-radius: 6px;
-  border: 1px solid var(--remark-color-grey-light-2);
-  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
+  background-color: var(--remark-color-white);
+  margin: 2px 0px 10px 0px;
+  transition: border 0.2s ease-in 0s;
+  border: 1px solid var(--remark-color-grey-light-1);
   font-size: 8px;
+  color: var(--remark-color-grey);
+  outline: 0px !important;
 }
 
-.remark_action_btn:hover {
-  transform: scale(1.1);
+.remark_field {
+  width: 100%;
+  height: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0px 8px 0px;
+  border: var(--remark-default-border);
+  border-radius: 9px;
+  padding: 16px;
+  font-size: 12px;
+  font-weight: normal;
+  color: var(--remark-color-grey-light-1);
 }
 
-.remark_action_btn:active {
-  transform: scale(1);
+.remark_form_label {
+  font-family: var(--remark-default-sanserif-font);
+  font-size: 12px;
+  color: var(--remark-color-grey-light-1);
+  font-weight: normal;
+  text-align: left;
+  width: 120px;
+  display: flex;
+  flex-direction: row;
+  line-height: 12px;
+  margin: 10px 0px 2px 0px;
 }
 
-#remark_edit_annotation_button {
-  margin: 16px 0px 0px 0px;
+
+
+/* ****************************** MENU ******************************* */
+
+
+.remark_standard_menu_container {
+  height: auto;
+  width: 240px;
+  border-radius: 12px;
+  background-color: var(--remark-color-grey-light-4);
+  border: var(--remark-default-border);
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  z-index: 10000000;
+  position: fixed;
+  top: 20px;
+  left: 14px;
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
+  font-family: var(--remark-default-sanserif-font);
 }
+
+.remark_menu_body {
+  height: 100%;
+  width: 100%;
+}
+
+.remark_menu_resize {
+  height: 32px;
+}
+
+.remark_standard_menu_header {
+  padding: 0px;
+  height: 20px;
+  margin: -12px 0rem 20px 0rem;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--remark-color-primary);
+}
+
+.remark_main_heading {
+  font-size: 16px;
+  color: var(--remark-color-grey-dark-2);
+  text-align: center;
+}
+
+.remark_settings {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: -10px 0px -30px 0px;
+}
+
+.remark_settings_subgroup {
+  padding: 10px;
+  margin: 0px 0px 0px -10px;
+}
+
+.remark_settings_subgroup_row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: 28px 0px 0px 0px;
+  gap: 20px;
+}
+
+.remark_settings_subgroup_title {
+  margin: 2px 0px 2px 0px;
+  font-size: 7px;
+  color: var(--remark-color-grey-light-1);
+}
+
+.remark_setting_subgroup_item {
+  margin: 4px 0px 0px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.remark_standard_menu_actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 10%;
+}
+
+
+/* **************************** TOOLTIP ****************************** */
 
 .remark_tag_tooltip {
   background: var(--remark-color-white) !important;
@@ -595,4 +427,3 @@
   align-items: center !important;
   margin: 0px 1px 2px 2px !important;
 }
-
