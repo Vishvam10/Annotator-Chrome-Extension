@@ -124,6 +124,16 @@ h6 {
 
 .remark_fade {
   opacity: 0.5;
+  transition: none !important;
+  pointer-events: none !important;
+}
+
+.remark_fade:hover {
+  transform: scale(1) !important;
+}
+
+.remark_fade:active {
+  transform: scale(1) !important;
 }
 
 .remark_error {

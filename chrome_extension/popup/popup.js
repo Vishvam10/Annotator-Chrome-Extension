@@ -8,21 +8,19 @@ window.onload = async function () {
   } else {
     renderSignupForm();
   }
-  
 };
 
-var BACKEND_URL = "http://localhost:3000/api"
+var BACKEND_URL = "http://localhost:3000/api";
 // var BACKEND_URL = "https://data-science-theta.vercel.app/api"
 
 async function handleInit() {
-
   const initBtn = document.getElementById("remark_start");
   initBtn.removeEventListener("click", handleInit);
   initBtn.classList.add("remark_fade");
   initBtn.innerText = "Running ...";
-  
+
   setDataToStorage("remark_running", true);
-  
+
   const tab = await getCurrentTab();
 
   chrome.scripting.executeScript({
@@ -34,23 +32,22 @@ async function handleInit() {
     target: { tabId: tab.id },
     files: ["/scripts/injectedScript.js"],
   });
-  
+
   chrome.scripting.insertCSS({
     target: { tabId: tab.id },
     files: ["scripts/style.css"],
-  })
+  });
   return;
-    
 }
 
 async function handleSignup(signupForm) {
   const formData = new FormData(signupForm);
   logFormData(formData);
   const signupBtn = document.getElementById("signupBtn");
-  signupBtn.innerText = "Registering ..."
+  signupBtn.innerText = "Registering ...";
 
   const url = `${BACKEND_URL}/create-user`;
-  console.log("URL : ", url)
+  console.log("URL : ", url);
   const data = JSON.stringify(Object.fromEntries(formData));
 
   const res = await POST(url, data);
@@ -62,7 +59,7 @@ async function handleSignup(signupForm) {
     removeHTMLElement(signupForm);
     setDataToStorage("remark_email", JSON.parse(data)["email"]);
     renderUserStats();
-    signupBtn.innerText = "Register"
+    signupBtn.innerText = "Register";
     return;
   }
 }
@@ -70,11 +67,11 @@ async function handleSignup(signupForm) {
 async function handlePushToServer() {
   const pushToServerBtn = document.getElementById("pushToServerBtn");
   pushToServerBtn.classList.add("remark_fade");
-  pushToServerBtn.removeEventListener("click", handlePushToServer)
-  
-  const tab = await getCurrentTab()
+  pushToServerBtn.removeEventListener("click", handlePushToServer);
+
+  const tab = await getCurrentTab();
   const url = `${BACKEND_URL}/submit`;
-  
+
   const emailStorageData = await getDataFromStorage("remark_email");
   const email = emailStorageData["remark_email"];
 
@@ -84,76 +81,74 @@ async function handlePushToServer() {
       // const allAnnotations = document.querySelectorAll(
       //   "[data-annotation_id]"
       // );
-      let res = []
+      let res = [];
 
-      for(let annotation of window.annotations) {
+      for (let annotation of window.annotations) {
         res.push(annotation);
       }
-      console.log("res : ", res)
+      console.log("res : ", res);
       return res;
     },
   });
 
   pushToServerBtn.innerText = "Getting annotations";
 
-  let labels = []
+  let labels = [];
 
   const temp = result["result"];
 
   temp.forEach((ele) => {
-    labels.push([ele["tag"] ,ele["x"], ele["y"], ele["width"], ele["height"]] )
+    labels.push([ele["tag"], ele["x"], ele["y"], ele["width"], ele["height"]]);
   });
 
-  labels = labels.join("\n")
+  labels = labels.join("\n");
 
-  console.log("labels : ", labels)
+  console.log("labels : ", labels);
 
   const screenshotDataURI = await handleScreenshot();
   const imgFile = dataURItoFile(screenshotDataURI, "screenshot.png");
-  
-  const labelBlob = new Blob([ labels ], { type: "text/plain" });
-  const labelFile = new File([ labelBlob ], "labels.txt", {type: "text/plain"});
+
+  const labelBlob = new Blob([labels], { type: "text/plain" });
+  const labelFile = new File([labelBlob], "labels.txt", { type: "text/plain" });
 
   var myHeaders = new Headers();
   myHeaders.append("email", String(email));
-  
+
   var formdata = new FormData();
   formdata.append("label", labelFile);
   formdata.append("image", imgFile);
-  logFormData(formdata)
-  
+  logFormData(formdata);
+
   pushToServerBtn.innerText = "Saving";
 
   var requestOptions = {
-    method: 'POST',
+    method: "POST",
     headers: myHeaders,
     body: formdata,
-    redirect: 'follow'
+    redirect: "follow",
   };
 
-  
   let res = await fetch(url, requestOptions);
   res = await res.text();
-  
-  console.log("res : ", res, typeof(res), res.includes("Submitted"));
-  
-  if(res && res.includes("Submitted")) {
+
+  console.log("res : ", res, typeof res, res.includes("Submitted"));
+
+  if (res && res.includes("Submitted")) {
     console.log("SUCCESSFUL SUBMISSION !");
     pushToServerBtn.classList.remove("remark_fade");
-    pushToServerBtn.innerText = "Success !"  
+    pushToServerBtn.innerText = "Success !";
     setTimeout(() => {
       pushToServerBtn.innerText = "Save Annotations";
-    }, 2000)
+    }, 2000);
     pushToServerBtn.addEventListener("click", handlePushToServer);
     handleInit();
   } else {
     pushToServerBtn.classList.remove("remark_fade");
     pushToServerBtn.classList.add("remark_error");
     pushToServerBtn.innerText = "Some Error Occured";
-    pushToServerBtn.addEventListener("click", handlePushToServer)
+    pushToServerBtn.addEventListener("click", handlePushToServer);
     handleInit();
   }
-
 }
 
 async function handleSignout() {
@@ -180,14 +175,12 @@ async function handleScreenshot() {
 
   const tab = await getCurrentTab();
   const dataURI = await takeScreenShot(tab);
-  console.log("reached data uri : ", dataURI)
+  console.log("reached data uri : ", dataURI);
   downloadFile(dataURI, "s.jpg");
   return dataURI;
 }
 
-
 // *************** Render functions ****************
-
 
 function renderSignupForm() {
   const markup = `
@@ -229,11 +222,12 @@ async function renderUserStats() {
 
   const storageData = await getDataFromStorage(null);
   const email = storageData["remark_email"];
+  const running = storageData["remark_running"];
 
-  if(email == undefined || !email || email == "" || email == null) {
+  if (email == undefined || !email || email == "" || email == null) {
     renderSignupForm();
     return;
-  } 
+  }
 
   let markup = `
     <span class="remark_user_info">
@@ -253,14 +247,15 @@ async function renderUserStats() {
       curUserPos = i + 1;
       curUserEmail = users[i]["email"].split("@")[0].substring(0, 12);
       curUserCount = users[i]["count"];
-    } 
+    }
   }
+
   for (let i = 0; i < 10; i++) {
     const em = users[i]["email"].split("@")[0].substring(0, 12);
-    if(i == curUserPos - 1) {
+    if (i == curUserPos - 1) {
       markup += `
         <tr style="background: var(--remark-color-warning); font-weight: bold;">
-          <td>${i+1}</td>
+          <td>${i + 1}</td>
           <td>${em}</td>
           <td>${users[i]["count"]}</td>
         </tr>
@@ -268,12 +263,11 @@ async function renderUserStats() {
     } else {
       markup += `
         <tr>
-          <td>${i+1}</td>
+          <td>${i + 1}</td>
           <td>${em}</td>
           <td>${users[i]["count"]}</td>
         </tr>
       `;
-
     }
   }
 
@@ -295,26 +289,24 @@ async function renderUserStats() {
   markup += `
       </table>
       <span class="remark_button_container">
-        <button type="button" class="remark_standard_button" id="pushToServerBtn">Save Annotations</button>
         <button type="button" class="remark_standard_button" id="remark_start">Start Annotation</button>
       </span>
       <button type="button" id="signoutBtn">Sign Out</button>
-    `;
-        
+  `;
+
   document
     .querySelector(".remark_popup_container")
     .insertAdjacentHTML("beforeend", markup);
 
   const initBtn = document.getElementById("remark_start");
   if (initBtn) {
-    initBtn.addEventListener("click", handleInit);
-  }
-
-  const pushToServerBtn = document.getElementById("pushToServerBtn");
-  if(pushToServerBtn) {
-    pushToServerBtn.addEventListener("click", handlePushToServer);
-  } else {
-    handleSignout();
+    if(running) {
+      initBtn.removeEventListener("click", handleInit);
+      initBtn.classList.add("remark_fade");
+      initBtn.innerText = "Running ...";
+    } else {
+      initBtn.addEventListener("click", handleInit);
+    }
   }
 
   const signoutBtn = document.getElementById("signoutBtn");
@@ -323,9 +315,7 @@ async function renderUserStats() {
   return;
 }
 
-
 // ****************** HTTP methods *****************
-
 
 async function POST(url, data, contentType = "application/json") {
   try {
@@ -355,7 +345,6 @@ async function GET(url) {
 }
 
 // ****************** Chrome APIs ******************
-
 
 async function getCurrentTab() {
   let queryOptions = { active: true };
@@ -470,27 +459,30 @@ function dataURIToBlob(dataURI) {
 
 function dataURItoFile(dataurl, filename) {
   const pushToServerBtn = document.getElementById("pushToServerBtn");
-  pushToServerBtn.innerText = "Converting files ..."  
+  pushToServerBtn.innerText = "Converting files ...";
 
-  var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-      bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-  while(n--){
-      u8arr[n] = bstr.charCodeAt(n);
+  var arr = dataurl.split(","),
+    mime = arr[0].match(/:(.*?);/)[1],
+    bstr = atob(arr[1]),
+    n = bstr.length,
+    u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
   }
-  return new File([u8arr], filename, {type:mime});
+  return new File([u8arr], filename, { type: mime });
 }
 
 async function takeScreenShot(tab) {
   const windowId = tab.windowId;
   return new Promise((res) =>
     chrome.windows.get(windowId, { populate: true }, async function (window) {
-      
       // Scroll to top
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: () => {
           document.documentElement.scrollTop = 0;
-          document.documentElement.scrollTop = document.documentElement.scrollHeight;
+          document.documentElement.scrollTop =
+            document.documentElement.scrollHeight;
           document.documentElement.scrollTop = 0;
         },
       });
@@ -501,42 +493,42 @@ async function takeScreenShot(tab) {
         func: () => {
           const els = Array.from(document.querySelectorAll("*"));
           const menu = document.getElementById("remarkMainMenu");
-          if(menu) {
+          if (menu) {
             removeHTMLElement(menu);
           }
-          for(const el of els) {
+          for (const el of els) {
             el.classList.remove("highlight_element_strong");
             el.classList.remove("highlight_element_light");
             el.classList.remove("highlight_element_selected");
             const id = el.dataset.annotation_id;
 
-            if(id) {
-              console.log("reached 2 : ", id)
+            if (id) {
+              console.log("reached 2 : ", id);
               const hid = `${id}_tooltip`;
               const ele = document.getElementById(hid);
               removeHTMLElement(ele);
             }
-          }       
+          }
         },
       });
 
       const [{ result }] = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        func: async() => {
+        func: async () => {
           const uri = await html2canvas(document.documentElement, {
             allowTaint: true,
-            useCORS: true
-          }).then(function(canvas) {
+            useCORS: true,
+          }).then(function (canvas) {
             const dataURI = canvas.toDataURL();
-            return dataURI
+            return dataURI;
           });
           return uri;
         },
       });
-      
-      console.log("return val : ", result)
-      const base64 = await res(result)
+
+      console.log("return val : ", result);
+      const base64 = await res(result);
       return base64;
     })
-  )
+  );
 }

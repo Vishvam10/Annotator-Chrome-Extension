@@ -401,10 +401,67 @@ async function handleCreateNewTag() {
   }
 }
 
-function handlePushToServer() {
-  if(REMARK_DOWNLOAD_LOCAL) {
-    downloadAnnotations();
+async function handleScreenshot() {
+  const pushToServerButton = document.getElementById("pushToServerButton");
+  pushToServerButton.innerText = "Taking screenshot";
+
+  const dataURI = await takeScreenShot();
+  console.log("reached data uri : ", dataURI)
+  downloadFile(dataURI, "s.jpg");
+  return dataURI;
+}
+
+
+async function handlePushToServer() {
+  const pushToServerButton = document.getElementById("pushToServerButton");
+  pushToServerButton.classList.add("remark_fade");
+  pushToServerButton.removeEventListener("click", handlePushToServer)
+  
+  const emailStorageData = await getDataFromStorage("remark_email");
+  const email = emailStorageData["remark_email"];
+
+  pushToServerButton.innerText = "Getting annotations";
+
+  let labels = []
+
+  const temp = window.annotations;
+
+  temp.forEach((ele) => {
+    labels.push([ele["tag"] ,ele["x"], ele["y"], ele["width"], ele["height"]] )
+  });
+
+  labels = labels.join("\n")
+
+  console.log("email : ", email)
+  console.log("labels : ", labels)
+
+  const screenshotDataURI = await handleScreenshot();
+  
+  const data = {
+    "action" : "pushToServer",
+    "email" : email,
+    "labels": labels,
+    "screenshotDataURI" : screenshotDataURI
   }
+
+  sendMessageToBackground(data)
+
+  // console.log("res : ", res, typeof(res), res.includes("Submitted"));
+  
+  // if success
+  // pushToServerButton.classList.remove("remark_fade");
+  // pushToServerButton.innerText = "Success !"  
+  // setTimeout(() => {
+  //   pushToServerButton.innerText = "Save Annotations";
+  // }, 2000)
+  // pushToServerButton.addEventListener("click", handlePushToServer);
+
+  // else 
+  // pushToServerButton.classList.remove("remark_fade");
+  // pushToServerButton.classList.add("remark_error");
+  // pushToServerButton.innerText = "Some Error Occured";
+  // pushToServerButton.addEventListener("click", handlePushToServer)
+
 }
 
 function downloadAnnotations() {
@@ -426,6 +483,47 @@ function downloadAnnotations() {
   downloadFile(labelDataURI, "labels.txt");
   return;
   
+}
+
+async function takeScreenShot() {
+
+  // Scroll to top
+  document.documentElement.scrollTop = 0;
+  document.documentElement.scrollTop = document.documentElement.scrollHeight;
+  document.documentElement.scrollTop = 0;
+
+  // Remove ReMark elements
+  const els = Array.from(document.querySelectorAll("*"));
+  const menu = document.getElementById("remarkMainMenu");
+  if(menu) {
+    removeHTMLElement(menu);
+  }
+  for(const el of els) {
+    el.classList.remove("highlight_element_strong");
+    el.classList.remove("highlight_element_light");
+    el.classList.remove("highlight_element_selected");
+    const id = el.dataset.annotation_id;
+
+    if(id) {
+      console.log("reached 2 : ", id)
+      const hid = `${id}_tooltip`;
+      const ele = document.getElementById(hid);
+      removeHTMLElement(ele);
+    }
+  }  
+
+  // Take screenshot
+  const uri = await html2canvas(document.documentElement, {
+    allowTaint: true,
+    useCORS: true
+  }).then(function(canvas) {
+    const dataURI = canvas.toDataURL();
+    return dataURI
+  });
+  
+  console.log("return val : ", uri)
+  return uri;
+
 }
 
 function createTagTooltipMarkup(annotation, tag) {
@@ -970,6 +1068,12 @@ function getDataFromStorage(key) {
   });
 }
 
+function sendMessageToBackground(data) {
+  chrome.runtime.sendMessage(data , function(response) {
+    console.log(response);
+  });
+}
+
 // ****************** Other utils ******************
 
 function logFormData(formData) {
@@ -984,6 +1088,29 @@ function downloadFile(dataURI, fileName) {
   downloadLink.download = fileName;
   downloadLink.click();
   downloadLink.remove();
+}
+
+function dataURIToBlob(dataURI) {
+  const splitDataURI = dataURI.split(",");
+  const byteString =
+    splitDataURI[0].indexOf("base64") >= 0
+      ? atob(splitDataURI[1])
+      : decodeURI(splitDataURI[1]);
+  const mimeString = splitDataURI[0].split(":")[1].split(";")[0];
+
+  const ia = new Uint8Array(byteString.length);
+  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+
+  return new Blob([ia], { type: mimeString });
+}
+
+function dataURItoFile(dataurl, filename) {
+  let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+      bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+  while(n--){
+      u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename, {type:mime});
 }
 
 function debounce(fn, delay) {
