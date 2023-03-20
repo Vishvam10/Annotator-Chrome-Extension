@@ -141,6 +141,30 @@ h6 {
   color: var(--remark-color-white);
 }
 
+.remark_message_popup {
+  width: 200px;
+  height: 20px;
+  padding: 8px;
+  z-index: 100000000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--remark-color-white);
+  border: var(--remark-default-border);
+  box-shadow: var(--remark-default-box-shadow-light);
+  border-radius: 12px;
+  position: fixed;
+  bottom: 40px;
+  left: 720px;
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
+}
+
+.remark_message_popup_content {
+  color: var(--remark-color-success-darker);
+  font-size: 14px;
+  font-weight: bold;
+}
+
 .remark_button_container {
   display: flex;
   flex-direction: column;

@@ -4,12 +4,18 @@
   window.annotations = [];
   
   console.log("INIT ...", running);
-
-  if (running === false) {
+  
+  if (running && running.includes(String(location.href))) {
+    console.log("reached : ", running, running.includes(String(location.href)));
     remark_destroy();
     return;
   } else {
-    remark_init();
+    
+    const temp = running + "," + String(location.href)
+    setDataToStorage("remark_running", temp);
+
+    const port = chrome.runtime.connect({ name: 'injected' });
+    remark_init(port);
   }
 })();
 
@@ -22,6 +28,8 @@ var BACKEND_URL = "http://localhost:3000/api";
 
 var REMARK_GROUP_ACTIONS = false;
 var REMARK_DOWNLOAD_LOCAL = false;
+
+var PORT;
 
 
 REMARK_ADDITIONAL_STYLES = null;
@@ -62,16 +70,79 @@ var VALID_HTML_ELEMENTS = [
 // ***************** Initialization ******************
 
 
-function remark_init() {
+function remark_init(port) {
   console.log("DOM AND DEBUG CHECK : ", document.body, DEBUG);
   const style = document.createElement("style");
   window.REMARK_ADDITIONAL_STYLES = style;
   document.body.appendChild(style);
+
+  PORT = port;
+
+  // Listen for data from the background script
+  port.onMessage.addListener(async function(message) {
+    console.log('Received message from background script:', message);
+
+    // Do something with the data
+    if (message.result == "screenshotSuccess") {
+
+      const storageData = await getDataFromStorage("remark_running");
+      const running = storageData["remark_running"];
+      const temp = running.replace(String(location.href), "");
+      setDataToStorage("remark_running", temp);
+
+      const messagePopupCheck = document.getElementById("messagePopup");
+      if(messagePopupCheck) {
+        removeHTMLElement(messagePopupCheck)
+      }
+
+      const markup = `
+        <span class="remark_message_popup" id="messagePopup">
+            <p class="remark_message_popup_content">Save Annotation : Success</p>
+        </span>
+      `;
+      document.body.insertAdjacentHTML("beforeend", markup);
+
+      const messagePopup = document.getElementById("messagePopup");
+
+      setTimeout(() => {
+        removeHTMLElement(messagePopup);
+      }, 3000)
+
+      setTimeout(() => {
+        location.reload();
+      }, 1000)
+      
+    } else {
+      const messagePopupCheck = document.getElementById("messagePopup");
+      if(messagePopupCheck) {
+        removeHTMLElement(messagePopupCheck)
+      }
+
+      const markup = `
+        <span class="remark_message_popup" id="messagePopup">
+            <p class="remark_message_popup_content" style="color: var(--remark-color-danger-darker);">Save Annotation : Failed</p>
+        </span>
+      `;
+
+      document.body.insertAdjacentHTML("beforeend", markup);
+
+      const messagePopup = document.getElementById("messagePopup");
+      setTimeout(() => {
+        removeHTMLElement(messagePopup);
+      }, 3000)
+      
+      setTimeout(() => {
+        location.reload();
+      }, 1000)
+
+
+    }
+  });
+  
   disableAllCickableElements();
   renderMenu();
   loadAllAnnotations();
   startAnnotationProcess();
-  setDataToStorage("remark_running", true);
 }
 
 function remark_destroy() {
@@ -404,10 +475,8 @@ async function handleCreateNewTag() {
 async function handleScreenshot() {
   const pushToServerButton = document.getElementById("pushToServerButton");
   pushToServerButton.innerText = "Taking screenshot";
-
   const dataURI = await takeScreenShot();
-  console.log("reached data uri : ", dataURI)
-  downloadFile(dataURI, "s.jpg");
+  // console.log("reached data uri : ", dataURI)
   return dataURI;
 }
 
@@ -421,6 +490,24 @@ async function handlePushToServer() {
   const email = emailStorageData["remark_email"];
 
   pushToServerButton.innerText = "Getting annotations";
+  
+  const messagePopupCheck = document.getElementById("messagePopup");
+  if(messagePopupCheck) {
+    removeHTMLElement(messagePopupCheck)
+  }
+
+  
+  const messagePopup = document.getElementById("messagePopup");
+  if(messagePopup) {
+    messagePopup.children[0].innerText = "Getting annotations ..."
+  } else {
+    const markup = `
+      <span class="remark_message_popup" id="messagePopup">
+          <p class="remark_message_popup_content">Getting annotation ...</p>
+      </span>
+    `;
+    document.body.insertAdjacentHTML("beforeend", markup);
+  }
 
   let labels = []
 
@@ -430,12 +517,24 @@ async function handlePushToServer() {
     labels.push([ele["tag"] ,ele["x"], ele["y"], ele["width"], ele["height"]] )
   });
 
-  labels = labels.join("\n")
+  labels = labels.join("\n");
 
   console.log("email : ", email)
   console.log("labels : ", labels)
 
   const screenshotDataURI = await handleScreenshot();
+
+  if(messagePopup) {
+    messagePopup.children[0].innerText = "Taking screenshot ..."
+  } else {
+    const markup = `
+      <span class="remark_message_popup" id="messagePopup">
+          <p class="remark_message_popup_content">Taking screenshot ...</p>
+      </span>
+    `;
+    document.body.insertAdjacentHTML("beforeend", markup);
+  }
+
   
   const data = {
     "action" : "pushToServer",
@@ -444,45 +543,37 @@ async function handlePushToServer() {
     "screenshotDataURI" : screenshotDataURI
   }
 
-  sendMessageToBackground(data)
+  if(REMARK_DOWNLOAD_LOCAL) {
+    downloadAnnotations(labels);
+    downloadScreenshot(screenshotDataURI);
 
-  // console.log("res : ", res, typeof(res), res.includes("Submitted"));
-  
-  // if success
-  // pushToServerButton.classList.remove("remark_fade");
-  // pushToServerButton.innerText = "Success !"  
-  // setTimeout(() => {
-  //   pushToServerButton.innerText = "Save Annotations";
-  // }, 2000)
-  // pushToServerButton.addEventListener("click", handlePushToServer);
+    if(messagePopup) {
+      messagePopup.children[0].innerText = "Downloading locally ..."
+    } else {
+      const markup = `
+        <span class="remark_message_popup" id="messagePopup">
+            <p class="remark_message_popup_content">Downloading locally ...</p>
+        </span>
+      `;
+      document.body.insertAdjacentHTML("beforeend", markup);
+    }  
+    
+  }
 
-  // else 
-  // pushToServerButton.classList.remove("remark_fade");
-  // pushToServerButton.classList.add("remark_error");
-  // pushToServerButton.innerText = "Some Error Occured";
-  // pushToServerButton.addEventListener("click", handlePushToServer)
-
+  sendMessageToBackground(data);
 }
 
-function downloadAnnotations() {
-
-  const temp = window.annotations;
-  let labels = []
-
-  temp.forEach((ele) => {
-    labels.push([ele["tag"] ,ele["x"], ele["y"], ele["width"], ele["height"]] )
-  });
-
-  labels = labels.join("\n")
-
-  console.log("download labels : ", labels)
-  
-  const labelBlob = new Blob([ labels ], { type: "text/plain" });
+function downloadAnnotations(annotations) {
+  const labelBlob = new Blob([ annotations ], { type: "text/plain" });
   const labelDataURI = window.URL.createObjectURL(labelBlob);
 
   downloadFile(labelDataURI, "labels.txt");
   return;
   
+}
+
+function downloadScreenshot(screenshotDataURI) {
+  downloadFile(screenshotDataURI, "screenshot.jpg");
 }
 
 async function takeScreenShot() {
@@ -521,6 +612,9 @@ async function takeScreenShot() {
     return dataURI
   });
   
+
+  renderMenu();
+
   console.log("return val : ", uri)
   return uri;
 
@@ -1048,6 +1142,12 @@ async function POST(url, data, contentType = "application/json") {
 
 // ****************** Chrome APIs ******************
 
+async function getCurrentTab() {
+  let queryOptions = { active: true };
+  let [tab] = await chrome.tabs.query(queryOptions);
+  return tab;
+}
+
 function setDataToStorage(key, value) {
   try {
     // [k] is a computed property.
@@ -1069,9 +1169,8 @@ function getDataFromStorage(key) {
 }
 
 function sendMessageToBackground(data) {
-  chrome.runtime.sendMessage(data , function(response) {
-    console.log(response);
-  });
+  PORT.postMessage({ data: data });
+
 }
 
 // ****************** Other utils ******************

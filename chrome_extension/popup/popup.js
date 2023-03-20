@@ -18,9 +18,7 @@ async function handleInit() {
   initBtn.removeEventListener("click", handleInit);
   initBtn.classList.add("remark_fade");
   initBtn.innerText = "Running ...";
-
-  setDataToStorage("remark_running", true);
-
+  
   const tab = await getCurrentTab();
 
   chrome.scripting.executeScript({
@@ -37,6 +35,7 @@ async function handleInit() {
     target: { tabId: tab.id },
     files: ["scripts/style.css"],
   });
+
   return;
 }
 
@@ -153,7 +152,7 @@ async function handlePushToServer() {
 
 async function handleSignout() {
   setDataToStorage("remark_email", null);
-  setDataToStorage("remark_running", false);
+  setDataToStorage("remark_running", "");
   setDataToStorage("remark_screenshot_datauri", null);
   setDataToStorage("remark_annotation_data", null);
 
@@ -220,6 +219,7 @@ async function renderUserStats() {
     curUserPos = -1,
     curUserCount;
 
+  const tab = await getCurrentTab();
   const storageData = await getDataFromStorage(null);
   const email = storageData["remark_email"];
   const running = storageData["remark_running"];
@@ -300,7 +300,8 @@ async function renderUserStats() {
 
   const initBtn = document.getElementById("remark_start");
   if (initBtn) {
-    if(running) {
+    if(running && running.includes(String(tab.url))) {
+      console.log("inc check : ", String(tab.url), running, running.includes(String(tab.url)))
       initBtn.removeEventListener("click", handleInit);
       initBtn.classList.add("remark_fade");
       initBtn.innerText = "Running ...";

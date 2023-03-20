@@ -1,65 +1,66 @@
 var BACKEND_URL = "http://localhost:3000/api";
 
-chrome.runtime.onMessage.addListener(async function (
-  data,
-  sender,
-  sendResponse
-) {
-  if (data.action === "pushToServer") {
-    console.log("data : ", data);
-    try {
-      const url = `${BACKEND_URL}/submit`;
-	  const email = data.email;
+chrome.runtime.onConnect.addListener(function (port) {
+  console.log("Connected to injected script:", port);
 
-      const imgFile = dataURItoFile(data.screenshotDataURI, "screenshot.png");
+  // Listen for data from the injected script
+  port.onMessage.addListener(async function (message) {
+    const data = message.data;
+    console.log("Received data from injected script:", data);
 
-      const labelBlob = new Blob([data.labels], { type: "text/plain" });
-      const labelFile = new File([labelBlob], "labels.txt", {
-        type: "text/plain",
-      });
+    console.log("in bg : data : ", data.action);
+    if (data.action == "pushToServer") {
+      console.log("in bg : data : ", data);
+      try {
+        const url = `${BACKEND_URL}/submit`;
+        const email = data.email;
 
-	  console.log("imgFile : ", imgFile)
-	  console.log("labelFile : ", labelFile)
+        const imgFile = dataURItoFile(data.screenshotDataURI, "screenshot.png");
 
-      var myHeaders = new Headers();
-      myHeaders.append("email", String(email));
+        const labelBlob = new Blob([data.labels], { type: "text/plain" });
+        const labelFile = new File([labelBlob], "labels.txt", {
+          type: "text/plain",
+        });
 
-      var formdata = new FormData();
-      formdata.append("label", labelFile);
-      formdata.append("image", imgFile);
-      logFormData(formdata);
+        console.log("imgFile : ", imgFile);
+        console.log("labelFile : ", labelFile);
 
-      const requestOptions = {
-        method: "POST",
-        mode: "cors",
-        headers: myHeaders,
-        body: formdata,
-        redirect: "follow",
-      };
+        var myHeaders = new Headers();
+        myHeaders.append("email", String(email));
 
-      let res = await fetch(url, requestOptions);
-      res = await res.text();
+        var formdata = new FormData();
+        formdata.append("label", labelFile);
+        formdata.append("image", imgFile);
+        logFormData(formdata);
 
-      console.log("res : ", res, typeof res, res.includes("Submitted"));
+        const requestOptions = {
+          method: "POST",
+          mode: "cors",
+          headers: myHeaders,
+          body: formdata,
+          redirect: "follow",
+        };
 
-      if (res && res.includes("Submitted")) {
-        console.log("SUCCESSFUL SUBMISSION !");
-        sendResponse("success");
-      } else {
-        console.log("FAILED : ", res);
-        sendResponse("failed");
+        let res = await fetch(url, requestOptions);
+        res = await res.text();
+
+        console.log("res : ", res, typeof res, res.includes("Submitted"));
+
+        if (res && res.includes("Submitted")) {
+          console.log("SUCCESSFUL SUBMISSION !");
+          port.postMessage({ result: "screenshotSuccess" });
+        } else {
+          console.log("FAILED : ", res);
+          port.postMessage({ result: "screenshotFailed" });
+        }
+      } catch (e) {
+        sendResponse({
+          error: e.message,
+        });
       }
-    } catch (e) {
-      sendResponse({
-        error: e.message,
-      });
     }
-
-    return true; // keep the message channel open for sendResponse()
-  }
-  return true;
+  });
 });
-
 
 function logFormData(formData) {
   for (let e of Array.from(formData)) {
@@ -90,10 +91,13 @@ function dataURIToBlob(dataURI) {
 }
 
 function dataURItoFile(dataurl, filename) {
-  let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-      bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-  while(n--){
-      u8arr[n] = bstr.charCodeAt(n);
+  let arr = dataurl.split(","),
+    mime = arr[0].match(/:(.*?);/)[1],
+    bstr = atob(arr[1]),
+    n = bstr.length,
+    u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
   }
-  return new File([u8arr], filename, {type:mime});
+  return new File([u8arr], filename, { type: mime });
 }

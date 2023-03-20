@@ -47,6 +47,37 @@
   opacity: 0.5;
 }
 
+.remark_message_popup {
+  height: 40px !important;
+  padding: 20px !important;
+  width: auto !important;
+  z-index: 100000000 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  background-color: var(--remark-color-white) !important;
+  border: var(--remark-default-border) !important;
+  box-shadow: var(--remark-default-box-shadow-light) !important;
+  border-radius: 8px !important;
+  position: fixed !important;
+  bottom: 40px !important;
+  left: 720px !important;
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s !important;
+  color: var(--remark-color-grey-dark-3) !important;
+}
+
+.remark_message_popup_content {
+  color: var(--remark-color-success-darker) !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin: 10px;
+}
+
+
 /* ***************************** HIGHLIGHT ****************************** */
 
 .highlight_element_light {
