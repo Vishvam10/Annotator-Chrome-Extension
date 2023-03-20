@@ -1,4 +1,5 @@
-var BACKEND_URL = "http://localhost:3000/api";
+var BACKEND_URL = "https://data-science-theta.vercel.app/api";
+// var BACKEND_URL = "http://localhost:3000/api";
 
 chrome.runtime.onConnect.addListener(function (port) {
   console.log("Connected to injected script:", port);
@@ -23,7 +24,10 @@ chrome.runtime.onConnect.addListener(function (port) {
         });
 
         console.log("imgFile : ", imgFile);
+        console.log("imgFile size : ", convertFileSize(imgFile.size));
         console.log("labelFile : ", labelFile);
+
+
 
         var myHeaders = new Headers();
         myHeaders.append("email", String(email));
@@ -100,4 +104,26 @@ function dataURItoFile(dataurl, filename) {
     u8arr[n] = bstr.charCodeAt(n);
   }
   return new File([u8arr], filename, { type: mime });
+}
+
+function convertFileSize(bytes, si=false, dp=1) {
+  const thresh = si ? 1000 : 1024;
+
+  if (Math.abs(bytes) < thresh) {
+    return bytes + ' B';
+  }
+
+  const units = si 
+    ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'] 
+    : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+  let u = -1;
+  const r = 10**dp;
+
+  do {
+    bytes /= thresh;
+    ++u;
+  } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
+
+
+  return bytes.toFixed(dp) + ' ' + units[u];
 }

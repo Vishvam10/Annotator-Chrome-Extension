@@ -2,35 +2,31 @@
   const storageData = await getDataFromStorage("remark_running");
   const running = storageData["remark_running"];
   window.annotations = [];
-  
+
   console.log("INIT ...", running);
-  
+
   if (running && running.includes(String(location.href))) {
     console.log("reached : ", running, running.includes(String(location.href)));
     remark_destroy();
     return;
   } else {
-    
-    const temp = running + "," + String(location.href)
+    const temp = running + "," + String(location.href);
     setDataToStorage("remark_running", temp);
 
-    const port = chrome.runtime.connect({ name: 'injected' });
+    const port = chrome.runtime.connect({ name: "injected" });
     remark_init(port);
   }
 })();
 
-
-
 // ***************** Global Variables ****************
 
-// var BACKEND_URL = "https://data-science-theta.vercel.app/api";
-var BACKEND_URL = "http://localhost:3000/api";
+var BACKEND_URL = "https://data-science-theta.vercel.app/api";
+// var BACKEND_URL = "http://localhost:3000/api";
 
 var REMARK_GROUP_ACTIONS = false;
 var REMARK_DOWNLOAD_LOCAL = false;
 
 var PORT;
-
 
 REMARK_ADDITIONAL_STYLES = null;
 annotationNodes = [];
@@ -69,7 +65,6 @@ var VALID_HTML_ELEMENTS = [
 
 // ***************** Initialization ******************
 
-
 function remark_init(port) {
   console.log("DOM AND DEBUG CHECK : ", document.body, DEBUG);
   const style = document.createElement("style");
@@ -79,20 +74,19 @@ function remark_init(port) {
   PORT = port;
 
   // Listen for data from the background script
-  port.onMessage.addListener(async function(message) {
-    console.log('Received message from background script:', message);
+  port.onMessage.addListener(async function (message) {
+    console.log("Received message from background script:", message);
 
     // Do something with the data
     if (message.result == "screenshotSuccess") {
-
       const storageData = await getDataFromStorage("remark_running");
       const running = storageData["remark_running"];
       const temp = running.replace(String(location.href), "");
       setDataToStorage("remark_running", temp);
 
       const messagePopupCheck = document.getElementById("messagePopup");
-      if(messagePopupCheck) {
-        removeHTMLElement(messagePopupCheck)
+      if (messagePopupCheck) {
+        removeHTMLElement(messagePopupCheck);
       }
 
       const markup = `
@@ -102,20 +96,19 @@ function remark_init(port) {
       `;
       document.body.insertAdjacentHTML("beforeend", markup);
 
-      const messagePopup = document.getElementById("messagePopup");
+      // const messagePopup = document.getElementById("messagePopup");
 
-      setTimeout(() => {
-        removeHTMLElement(messagePopup);
-      }, 3000)
+      // setTimeout(() => {
+      //   removeHTMLElement(messagePopup);
+      // }, 3000)
 
-      setTimeout(() => {
-        location.reload();
-      }, 1000)
-      
+      // setTimeout(() => {
+      //   location.reload();
+      // }, 1000)
     } else {
       const messagePopupCheck = document.getElementById("messagePopup");
-      if(messagePopupCheck) {
-        removeHTMLElement(messagePopupCheck)
+      if (messagePopupCheck) {
+        removeHTMLElement(messagePopupCheck);
       }
 
       const markup = `
@@ -126,19 +119,17 @@ function remark_init(port) {
 
       document.body.insertAdjacentHTML("beforeend", markup);
 
-      const messagePopup = document.getElementById("messagePopup");
-      setTimeout(() => {
-        removeHTMLElement(messagePopup);
-      }, 3000)
-      
-      setTimeout(() => {
-        location.reload();
-      }, 1000)
+      // const messagePopup = document.getElementById("messagePopup");
+      // setTimeout(() => {
+      //   removeHTMLElement(messagePopup);
+      // }, 3000)
 
-
+      // setTimeout(() => {
+      //   location.reload();
+      // }, 1000)
     }
   });
-  
+
   disableAllCickableElements();
   renderMenu();
   loadAllAnnotations();
@@ -152,16 +143,13 @@ function remark_destroy() {
 }
 
 function startAnnotationProcess() {
- 
   document.body.addEventListener("click", clickListener, false);
   document.body.addEventListener("mouseover", mouseOverListener, false);
   document.body.addEventListener("mouseout", mouseOutListener, false);
-  document.addEventListener("scroll", scrollListener)
-    
+  document.addEventListener("scroll", scrollListener);
 }
 
 function stopAnnotationProcess() {
-
   document.addEventListener("click", () => {
     return false;
   });
@@ -207,8 +195,7 @@ function clickListener(e) {
         console.log("click -> delete annotation");
       }
     }
-  } 
-  else {
+  } else {
     // Add label
     if (t.classList.contains("highlight_element_light")) {
       if (t.classList.contains("highlight_element_strong")) {
@@ -244,7 +231,6 @@ function clickListener(e) {
       if (DEBUG) {
         console.log("click -> add annotation");
       }
-
     } else if (t.classList.contains("highlight_element_strong")) {
       // Select label
       prevNode = curNode;
@@ -256,7 +242,7 @@ function clickListener(e) {
       }
 
       curNode = t;
-      curNode.classList.add("highlight_element_selected")
+      curNode.classList.add("highlight_element_selected");
       const id = t.dataset.annotation_id;
       const ann = getAnnotationByID(id);
       setCurrentLabelAsOption(ann.tag);
@@ -325,7 +311,7 @@ function scrollListener() {
     //   direction = "down";
     // }
     window.requestAnimationFrame(() => {
-      updateTooltipPosition()
+      updateTooltipPosition();
       ticking = false;
     });
 
@@ -333,9 +319,7 @@ function scrollListener() {
   }
 }
 
-
 // ******************* Handlers ********************
-
 
 function handleCreateLabel(targetHTMLElement) {
   const rect = targetHTMLElement.getBoundingClientRect();
@@ -366,10 +350,10 @@ function handleCreateLabel(targetHTMLElement) {
 
   if (isValidAnnotation(annotation)) {
     window.annotations.push(annotation);
-    
+
     const tooltipMarkup = createTagTooltipMarkup(annotation, "span");
     targetHTMLElement.insertAdjacentHTML("afterbegin", tooltipMarkup);
-    annotationNodes.push([annotation["id"], annotation["y"]]);    
+    annotationNodes.push([annotation["id"], annotation["y"]]);
     targetHTMLElement.dataset.annotation_id = annotation["id"];
     return;
   }
@@ -384,7 +368,7 @@ function handleEditLabel(targetHTMLElement, newTag) {
       for (let ele of window.annotations) {
         if (ele["id"] == annotation_id) {
           ele["tag"] = newTag;
-          updateTooltip(annotation_id, newTag)
+          updateTooltip(annotation_id, newTag);
           if (DEBUG) {
             console.log("edit : window.annotations : ", ele);
           }
@@ -421,7 +405,7 @@ function handleDeleteLabel(targetHTMLElement) {
 
   removeTooltip(annotation_id);
   targetHTMLElement.classList.remove("highlight_element_selected");
-  
+
   delete targetHTMLElement.dataset.annotation_id;
 
   setCurrentLabelAsOption("span");
@@ -445,7 +429,7 @@ function handleBatchDelete(targetHTMLElements) {
 }
 
 function handleBatchEdit(targetHTMLElements, val) {
-  console.log("batch edit : ", targetHTMLElements, val)
+  console.log("batch edit : ", targetHTMLElements, val);
   for (let i = 0; i < targetHTMLElements.length; i++) {
     const ele = targetHTMLElements[i];
     handleEditLabel(ele, val);
@@ -480,26 +464,24 @@ async function handleScreenshot() {
   return dataURI;
 }
 
-
 async function handlePushToServer() {
   const pushToServerButton = document.getElementById("pushToServerButton");
   pushToServerButton.classList.add("remark_fade");
-  pushToServerButton.removeEventListener("click", handlePushToServer)
-  
+  pushToServerButton.removeEventListener("click", handlePushToServer);
+
   const emailStorageData = await getDataFromStorage("remark_email");
   const email = emailStorageData["remark_email"];
 
   pushToServerButton.innerText = "Getting annotations";
-  
+
   const messagePopupCheck = document.getElementById("messagePopup");
-  if(messagePopupCheck) {
-    removeHTMLElement(messagePopupCheck)
+  if (messagePopupCheck) {
+    removeHTMLElement(messagePopupCheck);
   }
 
-  
   const messagePopup = document.getElementById("messagePopup");
-  if(messagePopup) {
-    messagePopup.children[0].innerText = "Getting annotations ..."
+  if (messagePopup) {
+    messagePopup.children[0].innerText = "Getting annotations ...";
   } else {
     const markup = `
       <span class="remark_message_popup" id="messagePopup">
@@ -509,23 +491,23 @@ async function handlePushToServer() {
     document.body.insertAdjacentHTML("beforeend", markup);
   }
 
-  let labels = []
+  let labels = [];
 
   const temp = window.annotations;
 
   temp.forEach((ele) => {
-    labels.push([ele["tag"] ,ele["x"], ele["y"], ele["width"], ele["height"]] )
+    labels.push([ele["tag"], ele["x"], ele["y"], ele["width"], ele["height"]]);
   });
 
   labels = labels.join("\n");
 
-  console.log("email : ", email)
-  console.log("labels : ", labels)
+  console.log("email : ", email);
+  console.log("labels : ", labels);
 
   const screenshotDataURI = await handleScreenshot();
 
-  if(messagePopup) {
-    messagePopup.children[0].innerText = "Taking screenshot ..."
+  if (messagePopup) {
+    messagePopup.children[0].innerText = "Taking screenshot ...";
   } else {
     const markup = `
       <span class="remark_message_popup" id="messagePopup">
@@ -535,20 +517,19 @@ async function handlePushToServer() {
     document.body.insertAdjacentHTML("beforeend", markup);
   }
 
-  
   const data = {
-    "action" : "pushToServer",
-    "email" : email,
-    "labels": labels,
-    "screenshotDataURI" : screenshotDataURI
-  }
+    action: "pushToServer",
+    email: email,
+    labels: labels,
+    screenshotDataURI: screenshotDataURI,
+  };
 
-  if(REMARK_DOWNLOAD_LOCAL) {
+  if (REMARK_DOWNLOAD_LOCAL) {
     downloadAnnotations(labels);
     downloadScreenshot(screenshotDataURI);
 
-    if(messagePopup) {
-      messagePopup.children[0].innerText = "Downloading locally ..."
+    if (messagePopup) {
+      messagePopup.children[0].innerText = "Downloading locally ...";
     } else {
       const markup = `
         <span class="remark_message_popup" id="messagePopup">
@@ -556,20 +537,18 @@ async function handlePushToServer() {
         </span>
       `;
       document.body.insertAdjacentHTML("beforeend", markup);
-    }  
-    
+    }
   }
 
   sendMessageToBackground(data);
 }
 
 function downloadAnnotations(annotations) {
-  const labelBlob = new Blob([ annotations ], { type: "text/plain" });
+  const labelBlob = new Blob([annotations], { type: "text/plain" });
   const labelDataURI = window.URL.createObjectURL(labelBlob);
 
   downloadFile(labelDataURI, "labels.txt");
   return;
-  
 }
 
 function downloadScreenshot(screenshotDataURI) {
@@ -577,7 +556,6 @@ function downloadScreenshot(screenshotDataURI) {
 }
 
 async function takeScreenShot() {
-
   // Scroll to top
   document.documentElement.scrollTop = 0;
   document.documentElement.scrollTop = document.documentElement.scrollHeight;
@@ -586,45 +564,42 @@ async function takeScreenShot() {
   // Remove ReMark elements
   const els = Array.from(document.querySelectorAll("*"));
   const menu = document.getElementById("remarkMainMenu");
-  if(menu) {
+  if (menu) {
     removeHTMLElement(menu);
   }
-  for(const el of els) {
+  for (const el of els) {
     el.classList.remove("highlight_element_strong");
     el.classList.remove("highlight_element_light");
     el.classList.remove("highlight_element_selected");
     const id = el.dataset.annotation_id;
 
-    if(id) {
-      console.log("reached 2 : ", id)
+    if (id) {
+      console.log("reached 2 : ", id);
       const hid = `${id}_tooltip`;
       const ele = document.getElementById(hid);
       removeHTMLElement(ele);
     }
-  }  
+  }
 
   // Take screenshot
   const uri = await html2canvas(document.documentElement, {
     allowTaint: true,
-    useCORS: true
-  }).then(function(canvas) {
-    const dataURI = canvas.toDataURL();
-    return dataURI
+    useCORS: true,
+  }).then(function (canvas) {
+    const dataURI = canvas.toDataURL("image/jpeg", 0.7);
+    return dataURI;
   });
-  
 
   renderMenu();
 
-  console.log("return val : ", uri)
+  console.log("return val : ", uri);
   return uri;
-
 }
 
 function createTagTooltipMarkup(annotation, tag) {
-
-  const top = parseInt(annotation["y"] - window.scrollY)+ "px";
+  const top = parseInt(annotation["y"] - window.scrollY) + "px";
   const left = annotation["x"] + "px";
-  
+
   const markup = `
     <span class="remark_tag_tooltip" style="top:${top}; left:${left}" id="${annotation["id"]}_tooltip">
       <p class="remark_tag_tooltip_info">${tag}</p>
@@ -637,21 +612,19 @@ function createTagTooltipMarkup(annotation, tag) {
 function updateTooltip(annotation_id, tag) {
   const id = `${annotation_id}_tooltip`;
   const ele = document.getElementById(id).children[0];
-  
-  if(ele) {
+
+  if (ele) {
     ele.innerText = tag;
   }
-
 }
 
 function removeTooltip(annotation_id) {
   const id = `${annotation_id}_tooltip`;
   const ele = document.getElementById(id);
 
-  if(ele) {
+  if (ele) {
     removeHTMLElement(ele);
   }
-
 }
 
 // *************** Render functions ***************
@@ -724,7 +697,7 @@ async function renderMenu() {
             <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="downloadCheckbox">
             <div class="remark_toggle_switch"></div>
           </label>
-          <button type="button" class="remark_standard_button" id="pushToServerButton">Push to server</button>
+          <button type="button" class="remark_standard_button" id="pushToServerButton">Save Annotations</button>
           <p style="font-size: 11px; margin: 30px 0px -10px 0px; color: var(--remark-color-grey-light-2); line-height: 16px;"><b>NOTE :</b> Elements will be grouped by their classname and their tagname</p>
         </div>  
         </div>
@@ -766,7 +739,9 @@ async function renderMenu() {
 
   // ****************** BUTTON EVENT LISTENERS *****************
 
-  const menuCloseBtn = document.getElementById("remark_standard_menu_close_btn");
+  const menuCloseBtn = document.getElementById(
+    "remark_standard_menu_close_btn"
+  );
   menuCloseBtn.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -787,7 +762,10 @@ async function renderMenu() {
     if (val != "remove_label") {
       if (REMARK_GROUP_ACTIONS) {
         const className = String(
-          curNode.className.replace("highlight_element_strong", "").replace("highlight_element_selected", "").replace("highlight_element_light", "")
+          curNode.className
+            .replace("highlight_element_strong", "")
+            .replace("highlight_element_selected", "")
+            .replace("highlight_element_light", "")
         );
         const elements = document.getElementsByClassName(className);
         handleBatchEdit(elements, val);
@@ -836,22 +814,20 @@ async function renderMenu() {
       inp.checked = true;
       REMARK_DOWNLOAD_LOCAL = true;
     }
-    console.log("LOCAL DOWNLOAD : ", REMARK_DOWNLOAD_LOCAL)
+    console.log("LOCAL DOWNLOAD : ", REMARK_DOWNLOAD_LOCAL);
   });
 
   const pushToServerButton = document.getElementById("pushToServerButton");
-  pushToServerButton.addEventListener("click", handlePushToServer)
-
+  pushToServerButton.addEventListener("click", handlePushToServer);
 }
-
 
 // Can be optimized with the IntersectionObserverAPI
 function updateTooltipPosition() {
-  for(let i=0; i<annotationNodes.length; i++) {
+  for (let i = 0; i < annotationNodes.length; i++) {
     const id = `${annotationNodes[i][0]}_tooltip`;
     const top = annotationNodes[i][1];
     const tooltip = document.getElementById(id);
-    if(tooltip) {
+    if (tooltip) {
       const tooltipTop = top - parseInt(window.scrollY);
       tooltip.style.top = `${tooltipTop}px`;
     }
@@ -860,9 +836,7 @@ function updateTooltipPosition() {
 
 // const debouncedUpdateTooltipPosition = debounce(updateTooltipPosition, 100);
 
-
 // *************** Annotations Utils ***************
-
 
 function getAnnotationByID(annotation_id) {
   for (let ele of window.annotations) {
@@ -890,8 +864,8 @@ function getAllAnnotations() {
 }
 
 function isValidAnnotation(curAnnotation) {
-  if(!window.annotations || window.annotations == undefined) {
-    window.annotations = []
+  if (!window.annotations || window.annotations == undefined) {
+    window.annotations = [];
     return true;
   }
   for (let i = 0; i < window.annotations.length; i++) {
@@ -940,7 +914,6 @@ async function loadAllAnnotations() {
   } finally {
     return;
   }
-
 }
 
 function saveAllAnnotations() {
@@ -1170,7 +1143,6 @@ function getDataFromStorage(key) {
 
 function sendMessageToBackground(data) {
   PORT.postMessage({ data: data });
-
 }
 
 // ****************** Other utils ******************
@@ -1204,12 +1176,15 @@ function dataURIToBlob(dataURI) {
 }
 
 function dataURItoFile(dataurl, filename) {
-  let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-      bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-  while(n--){
-      u8arr[n] = bstr.charCodeAt(n);
+  let arr = dataurl.split(","),
+    mime = arr[0].match(/:(.*?);/)[1],
+    bstr = atob(arr[1]),
+    n = bstr.length,
+    u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
   }
-  return new File([u8arr], filename, {type:mime});
+  return new File([u8arr], filename, { type: mime });
 }
 
 function debounce(fn, delay) {

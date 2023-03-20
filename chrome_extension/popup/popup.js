@@ -10,8 +10,8 @@ window.onload = async function () {
   }
 };
 
-var BACKEND_URL = "http://localhost:3000/api";
-// var BACKEND_URL = "https://data-science-theta.vercel.app/api"
+var BACKEND_URL = "https://data-science-theta.vercel.app/api"
+// var BACKEND_URL = "http://localhost:3000/api";
 
 async function handleInit() {
   const initBtn = document.getElementById("remark_start");
