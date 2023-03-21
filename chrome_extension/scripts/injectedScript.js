@@ -59,18 +59,27 @@ function remark_init(port) {
       const temp = running.replace(String(location.href), "");
       setDataToStorage("remark_running", temp);
 
+      const messagePopupCheck = document.getElementById("messagePopup");
+      if (messagePopupCheck) {
+        removeHTMLElement(messagePopupCheck);
+      }
+
       const markup = `
         <span class="remark_message_popup" id="messagePopup">
             <p class="remark_message_popup_content">Save Annotation : Success</p>
         </span>
       `;
-      document.body.insertAdjacentHTML("afterbegin", markup);
+      document.body.insertAdjacentHTML("beforeend", markup);
 
-      const messagePopup = document.querySelector(".remark_message_popup");
+      const messagePopup = document.getElementById("messagePopup");
       removeHTMLElement(messagePopup)
       loadAllAnnotations()
 
     } else {
+      const messagePopupCheck = document.getElementById("messagePopup");
+      if (messagePopupCheck) {
+        removeHTMLElement(messagePopupCheck);
+      }
 
       const markup = `
         <span class="remark_message_popup" id="messagePopup">
@@ -78,9 +87,9 @@ function remark_init(port) {
         </span>
       `;
 
-      document.body.insertAdjacentHTML("afterbegin", markup);
+      document.body.insertAdjacentHTML("beforeend", markup);
 
-      const messagePopup = document.getElementById(".remark_message_popup");
+      const messagePopup = document.getElementById("messagePopup");
       removeHTMLElement(messagePopup);
 
     }
@@ -538,6 +547,12 @@ async function handlePushToServer() {
         </span>
       `;
       document.body.insertAdjacentHTML("beforeend", markup);
+      const messagePopup = document.getElementById("messagePopup");
+      setTimeout(() => {
+        if(messagePopup) {
+          removeHTMLElement(messagePopup);
+        }
+      }, 1500)
     }
   }
   
@@ -600,17 +615,12 @@ async function renderMenu() {
           </div>
       </div>
       <div class="remark_menu_body">
-        <div class="remark_settings_subgroup">
-          <label for="labelType" class="remark_form_label" style="width: 160px; line-height: 20px;">Select tag for component from the list</label>
-                      
+        <div class="remark_settings_subgroup"> 
+          <label for="remark_tag_dropdown" class="remark_form_label" style="width: 160px; line-height: 20px;">Annotate from list</label>
             <input type="text" list="remark_tag_options" id="remark_tag_dropdown">
-            
             <datalist id="remark_tag_options">
-              
               ${labelMarkup}
-              
               <option value="remove_label" class="remark_tag_option"></option>
-            
             </datalist>
 
           <label class="remark_toggle" id="groupActionsBtn">
@@ -682,6 +692,7 @@ async function renderMenu() {
 
   const dropdown = document.getElementById("remark_tag_dropdown");
   dropdown.addEventListener("input", checkValidity);
+  dropdown.addEventListener("keypress", checkValidityOnKeypress);
 
   const dropdownOptions = document.getElementById("remark_tag_options");
   dropdownOptions.addEventListener("click", (e) => {
@@ -756,32 +767,60 @@ function selectTagHandler(value) {
   }
 }
 
+var tempNewOption = "";
+
 function checkValidity() {
   let input = document.getElementById("remark_tag_dropdown");
   let list = document.getElementById("remark_tag_options");
   let optionExists = false;
+  // let check = false;
   for (let i = 0; i < list.options.length; i++) {
-    if (input.value.toLowerCase() === list.options[i].value.toLowerCase() && input.value.length > 0) {
+    if (input.value.toLowerCase() === list.options[i].value.toLowerCase() && input.value.trim().length > 0) {
       optionExists = true;
       console.log("valid option : ", input.value);
       selectTagHandler(input.value)
       break;
     }
   }
-  if (!optionExists) {
-    let newOption = document.createElement("option");
-    newOption.className = "remark_tag_option";
-    newOption.innerText = "(Create) " + input.value;
-    list.appendChild(newOption);  
-    console.log(newOption);
-    // debouncedHandleCreateTag(newOption.value);
+
+  // for (let i = 0; i < list.options.length; i++) {
+  //   if(list.options[i].innerText == "To create, press enter" ) {
+  //     check = true;
+  //     break;
+  //   }
+  // }
+
+  if(optionExists) {
+    tempNewOption = "";
+    return;
+  } 
+
+  // if(!check) {
+  //   const option = document.createElement("option");
+  //   option.id = "remark_create_tag_temp"
+  //   option.innerText = "To create, press enter"
+  //   list.appendChild(option)
+  // }
+
+
+  tempNewOption = input.value.trim();
+}
+
+function checkValidityOnKeypress(e) {
+  if(e.key === "Enter" || e.keyCode === 13) {
+    const dropdown = document.getElementById("remark_tag_dropdown");
+    if(document.activeElement === dropdown && tempNewOption.trim().length > 1) {
+      handleCreateTag(tempNewOption)
+    }
+    // console.log("ENTER : ", e.key, document.activeElement === dropdown, tempNewOption);
   }
 }
 
-// const debouncedHandleCreateTag = debounce(handleCreateTag, 500)
+const debouncedHandleCreateTag = debounce(handleCreateTag, 1000)
 
 
 // *************** Annotation utils ***************
+
 
 function getAnnotationByID(annotation_id) {
   for (let ele of window.annotations) {
@@ -980,7 +1019,6 @@ function getElementByXpath(path) {
 
 function removeHTMLElement(ele) {
   if (ele && ele.parentElement) {
-    console.log("ASDASDASD")
     ele.parentElement.removeChild(ele);
   }
   return;

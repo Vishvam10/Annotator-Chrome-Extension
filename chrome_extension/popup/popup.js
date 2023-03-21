@@ -2,8 +2,10 @@ window.onload = async function () {
   const storageData = await getDataFromStorage(null);
   const email = storageData["remark_email"];
 
+  console.log(email, storageData)
+
   // Check if the user has signed in
-  if (email !== null) {
+  if (email) {
     renderUserStats();
   } else {
     renderSignupForm();
