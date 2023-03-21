@@ -83,9 +83,9 @@
 .highlight_element_light {
   cursor: crosshair;
   border-radius: 2px;
-  background: rgba(13, 109, 253, 0.393);
+  background: rgba(13, 109, 253, 0.393) !important;
   transition: background-color 125ms ease-in-out 0s;
-  z-index: 100000000;
+  z-index: 100000000 !important;
 }
 
 .highlight_element_strong {
@@ -93,7 +93,7 @@
   background: #0d6dfd1f !important;
   border-radius: 2px;
   cursor: crosshair;
-  z-index: 100000;
+  z-index: 100000000 !important;
 }
 
 .remark_hide_highlight {

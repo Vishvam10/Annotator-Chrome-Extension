@@ -236,6 +236,10 @@ function mouseOverListener(e) {
         return;
       }
     }
+    if(tag == "IMG") {
+      console.log("AFASDMAOSdj")
+      ele.style.setProperty("display", "inline-block", "important");
+    }
     tempBuffer.push(ele);
     ele.classList.add("highlight_element_light");
   });
@@ -244,17 +248,20 @@ function mouseOverListener(e) {
 function mouseOutListener(e) {
   e.preventDefault();
   e.stopPropagation();
-
+  
   tempBuffer.forEach((ele) => {
     const tag = ele.tagName;
-  
+    
     if (ele.className) {
       if (
         ele.className.includes("remark_") ||
         ele.className.includes("highlight_element_strong")
-      ) {
-        return;
+        ) {
+          return;
+        }
       }
+      if(tag == "IMG") {
+        ele.style.setProperty("display", "", "important");
     }
     ele.classList.remove("highlight_element_light");
     
