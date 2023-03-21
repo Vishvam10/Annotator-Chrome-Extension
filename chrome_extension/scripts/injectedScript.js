@@ -59,32 +59,18 @@ function remark_init(port) {
       const temp = running.replace(String(location.href), "");
       setDataToStorage("remark_running", temp);
 
-      const messagePopupCheck = document.getElementById("messagePopup");
-      if (messagePopupCheck) {
-        removeHTMLElement(messagePopupCheck);
-      }
-
       const markup = `
         <span class="remark_message_popup" id="messagePopup">
             <p class="remark_message_popup_content">Save Annotation : Success</p>
         </span>
       `;
-      document.body.insertAdjacentHTML("beforeend", markup);
+      document.body.insertAdjacentHTML("afterbegin", markup);
 
-      // const messagePopup = document.getElementById("messagePopup");
+      const messagePopup = document.querySelector(".remark_message_popup");
+      removeHTMLElement(messagePopup)
+      loadAllAnnotations()
 
-      // setTimeout(() => {
-      //   removeHTMLElement(messagePopup);
-      // }, 3000)
-
-      // setTimeout(() => {
-      //   location.reload();
-      // }, 1000)
     } else {
-      const messagePopupCheck = document.getElementById("messagePopup");
-      if (messagePopupCheck) {
-        removeHTMLElement(messagePopupCheck);
-      }
 
       const markup = `
         <span class="remark_message_popup" id="messagePopup">
@@ -92,16 +78,11 @@ function remark_init(port) {
         </span>
       `;
 
-      document.body.insertAdjacentHTML("beforeend", markup);
+      document.body.insertAdjacentHTML("afterbegin", markup);
 
-      // const messagePopup = document.getElementById("messagePopup");
-      // setTimeout(() => {
-      //   removeHTMLElement(messagePopup);
-      // }, 3000)
+      const messagePopup = document.getElementById(".remark_message_popup");
+      removeHTMLElement(messagePopup);
 
-      // setTimeout(() => {
-      //   location.reload();
-      // }, 1000)
     }
   });
 
@@ -430,6 +411,7 @@ async function handleCreateTag(value) {
 }
 
 function createTagTooltipMarkup(annotation, tag) {
+  console.log("reached", annotation, tag)
   const top = parseInt(annotation["y"] - window.scrollY) + "px";
   const left = annotation["x"] + "px";
 
@@ -438,6 +420,7 @@ function createTagTooltipMarkup(annotation, tag) {
       <p class="remark_tag_tooltip_info">${tag}</p>
     </span>
   `;
+  
 
   return markup;
 }
@@ -557,7 +540,8 @@ async function handlePushToServer() {
       document.body.insertAdjacentHTML("beforeend", markup);
     }
   }
-
+  
+  saveAllAnnotations();
   sendMessageToBackground(data);
 }
 
@@ -577,6 +561,12 @@ function renderAllAnnotations(annotations) {
       } else {
         node.classList.remove("highlight_element_light");
         node.classList.add("highlight_element_strong");
+        
+        window.annotations.push(ele);
+        const tooltipMarkup = createTagTooltipMarkup(ele, ele["tag"]);
+        node.insertAdjacentHTML("afterbegin", tooltipMarkup);
+        annotationNodes.push([ele["id"], ele["y"]]);
+        node.dataset.annotation_id = ele["id"];
       }
     }
   }
@@ -858,12 +848,12 @@ function setCurrentLabelAsOption(val) {
 // ***************** Load and Save *****************
 
 async function loadAllAnnotations() {
+  console.log("in load annotations")
   try {
     const storageData = await getDataFromStorage("remark_annotation_data");
     const data = storageData["remark_annotation_data"];
     annotations = JSON.parse(data)["data"];
     renderAllAnnotations(annotations);
-    setDataToStorage("remark_annotation_data", null);
   } catch (e) {
     console.log("No annotations to load");
   } finally {
@@ -871,9 +861,17 @@ async function loadAllAnnotations() {
   }
 }
 
-function saveAllAnnotations() {
-  const d = JSON.stringify({ data: window.annotations });
-  setDataToStorage("remark_annotations", d);
+async function saveAllAnnotations() {
+  const id = String(location.href);
+  const d = JSON.stringify({ 
+    id: id,
+    data: window.annotations 
+  });
+
+  setDataToStorage("remark_annotation_data", d);
+
+  window.annotations = [];
+  annotationNodes = [];
   return;
 }
 
@@ -982,6 +980,7 @@ function getElementByXpath(path) {
 
 function removeHTMLElement(ele) {
   if (ele && ele.parentElement) {
+    console.log("ASDASDASD")
     ele.parentElement.removeChild(ele);
   }
   return;
@@ -1070,11 +1069,11 @@ async function POST(url, data, contentType = "application/json") {
 
 // ****************** Chrome APIs ******************
 
-async function getCurrentTab() {
-  let queryOptions = { active: true };
-  let [tab] = await chrome.tabs.query(queryOptions);
-  return tab;
-}
+// async function getCurrentTab() {
+//   let queryOptions = { active: true };
+//   let [tab] = await chrome.tabs.query(queryOptions);
+//   return tab;
+// }
 
 function setDataToStorage(key, value) {
   try {

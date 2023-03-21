@@ -3,7 +3,7 @@ var BACKEND_URL = "https://data-science-theta.vercel.app/api";
 
 chrome.runtime.onConnect.addListener(function (port) {
   console.log("Connected to injected script:", port);
-
+  const tab = 
   // Listen for data from the injected script
   port.onMessage.addListener(async function (message) {
     const data = message.data;
@@ -26,8 +26,6 @@ chrome.runtime.onConnect.addListener(function (port) {
         console.log("imgFile : ", imgFile);
         console.log("imgFile size : ", convertFileSize(imgFile.size));
         console.log("labelFile : ", labelFile);
-
-
 
         var myHeaders = new Headers();
         myHeaders.append("email", String(email));
