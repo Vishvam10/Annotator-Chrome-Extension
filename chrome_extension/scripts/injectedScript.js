@@ -696,7 +696,7 @@ async function renderMenu() {
     menuBody.classList.toggle("remark_hide");
     menuContainer.classList.toggle("remark_menu_resize");
   });
-
+  
   const dropdown = document.getElementById("remark_tag_dropdown");
   dropdown.addEventListener("input", checkValidity);
   dropdown.addEventListener("keypress", checkValidityOnKeypress);
@@ -711,6 +711,9 @@ async function renderMenu() {
     console.log("option change : ", e.target)
   })
 
+  const groupInp = document.getElementsByName("groupAnnotationCheckbox")[0];
+  groupInp.checked = REMARK_GROUP_ACTIONS;
+
   const groupActionsBtn = document.getElementById("groupActionsBtn");
   groupActionsBtn.addEventListener("click", (e) => {
     const inp = document.getElementsByName("groupAnnotationCheckbox")[0];
@@ -722,6 +725,9 @@ async function renderMenu() {
       REMARK_GROUP_ACTIONS = true;
     }
   });
+  
+  const downloadInp = document.getElementsByName("downloadCheckbox")[0];
+  downloadInp.checked = REMARK_DOWNLOAD_LOCAL;
 
   const downloadBtn = document.getElementById("downloadBtn");
   downloadBtn.addEventListener("click", (e) => {
