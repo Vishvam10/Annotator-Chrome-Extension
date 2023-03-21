@@ -225,8 +225,16 @@
   width: 100%;
 }
 
-/* ******************************* TOGGLE ******************************* */
+#remark_tag_dropdown{
+  background: white;
+  border: var(--remark-default-border);
+  height: 36px;
+  border-radius: 6px;
+  padding: 8px;
+  color: var(--remark-color-grey-dark-2);
+}
 
+/* ******************************* TOGGLE ******************************* */
 
 .remark_toggle {
   cursor: pointer;

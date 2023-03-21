@@ -229,10 +229,12 @@ async function renderUserStats() {
     return;
   }
 
+  let e = email.split("@")[0]
+
   let markup = `
     <span class="remark_user_info">
       <p>Signed in as</p>
-      <h4 class="remark_user_email">${email}</h4>      
+      <h4 class="remark_user_email">${e}</h4>      
     </span>
     <table id="remark_scoreboard">
       <tr style="background-color: var(--remark-color-primary); color: var(--remark-color-white);">

@@ -409,9 +409,9 @@ function handleBatchEdit(targetHTMLElements, val) {
   }
 }
 
-async function handleCreateNewTag() {
-  const inp = document.getElementById("createNewTag");
-  const val = inp.value.trim().toLowerCase();
+async function handleCreateTag(value) {
+  console.log("creating tag : ", value)
+  const val = value.trim().toLowerCase();
   if (val && val.length > 0) {
     const data = {
       title: val,
@@ -425,6 +425,51 @@ async function handleCreateNewTag() {
       return;
     } else {
       console.log(res);
+    }
+  }
+}
+
+function createTagTooltipMarkup(annotation, tag) {
+  const top = parseInt(annotation["y"] - window.scrollY) + "px";
+  const left = annotation["x"] + "px";
+
+  const markup = `
+    <span class="remark_tag_tooltip" style="top:${top}; left:${left}" id="${annotation["id"]}_tooltip">
+      <p class="remark_tag_tooltip_info">${tag}</p>
+    </span>
+  `;
+
+  return markup;
+}
+
+function updateTooltip(annotation_id, tag) {
+  const id = `${annotation_id}_tooltip`;
+  const ele = document.getElementById(id).children[0];
+
+  if (ele) {
+    ele.innerText = tag;
+  }
+}
+
+function removeTooltip(annotation_id) {
+  const id = `${annotation_id}_tooltip`;
+  const ele = document.getElementById(id);
+
+  if (ele) {
+    removeHTMLElement(ele);
+  }
+}
+
+function updateTooltipPosition() {
+  // Can be optimized with the IntersectionObserverAPI
+
+  for (let i = 0; i < annotationNodes.length; i++) {
+    const id = `${annotationNodes[i][0]}_tooltip`;
+    const top = annotationNodes[i][1];
+    const tooltip = document.getElementById(id);
+    if (tooltip) {
+      const tooltipTop = top - parseInt(window.scrollY);
+      tooltip.style.top = `${tooltipTop}px`;
     }
   }
 }
@@ -516,89 +561,6 @@ async function handlePushToServer() {
   sendMessageToBackground(data);
 }
 
-function downloadAnnotations(annotations) {
-  const labelBlob = new Blob([annotations], { type: "text/plain" });
-  const labelDataURI = window.URL.createObjectURL(labelBlob);
-
-  downloadFile(labelDataURI, "labels.txt");
-  return;
-}
-
-function downloadScreenshot(screenshotDataURI) {
-  downloadFile(screenshotDataURI, "screenshot.jpg");
-}
-
-async function takeScreenShot() {
-  // Scroll to top
-  document.documentElement.scrollTop = 0;
-  document.documentElement.scrollTop = document.documentElement.scrollHeight;
-  document.documentElement.scrollTop = 0;
-
-  // Remove ReMark elements
-  const els = Array.from(document.querySelectorAll("*"));
-  const menu = document.getElementById("remarkMainMenu");
-  if (menu) {
-    removeHTMLElement(menu);
-  }
-  for (const el of els) {
-    el.classList.remove("highlight_element_strong");
-    el.classList.remove("highlight_element_light");
-    el.classList.remove("highlight_element_selected");
-    const id = el.dataset.annotation_id;
-
-    if (id) {
-      console.log("reached 2 : ", id);
-      const hid = `${id}_tooltip`;
-      const ele = document.getElementById(hid);
-      removeHTMLElement(ele);
-    }
-  }
-
-  // Take screenshot
-  const uri = await html2canvas(document.documentElement, {
-    allowTaint: true,
-    useCORS: true,
-  }).then(function (canvas) {
-    const dataURI = canvas.toDataURL("image/jpeg", 0.7);
-    return dataURI;
-  });
-
-  renderMenu();
-
-  console.log("return val : ", uri);
-  return uri;
-}
-
-function createTagTooltipMarkup(annotation, tag) {
-  const top = parseInt(annotation["y"] - window.scrollY) + "px";
-  const left = annotation["x"] + "px";
-
-  const markup = `
-    <span class="remark_tag_tooltip" style="top:${top}; left:${left}" id="${annotation["id"]}_tooltip">
-      <p class="remark_tag_tooltip_info">${tag}</p>
-    </span>
-  `;
-
-  return markup;
-}
-
-function updateTooltip(annotation_id, tag) {
-  const id = `${annotation_id}_tooltip`;
-  const ele = document.getElementById(id).children[0];
-
-  if (ele) {
-    ele.innerText = tag;
-  }
-}
-
-function removeTooltip(annotation_id) {
-  const id = `${annotation_id}_tooltip`;
-  const ele = document.getElementById(id);
-
-  if (ele) {
-    removeHTMLElement(ele);
-  }
-}
 
 // *************** Render functions ***************
 
@@ -631,8 +593,8 @@ async function renderMenu() {
   for (let i = 0; i < labels.length; i++) {
     const val = labels[i];
     labelMarkup += `
-            <option value="${val}" class="remark_">${val}</option>
-        `;
+      <option value="${val}" class="remark_">${val}</option>
+    `;
   }
 
   const markup = `
@@ -650,16 +612,17 @@ async function renderMenu() {
       <div class="remark_menu_body">
         <div class="remark_settings_subgroup">
           <label for="labelType" class="remark_form_label" style="width: 160px; line-height: 20px;">Select tag for component from the list</label>
-          <select name="labelType" id="labelTypeBtn" class="remark_">
+                      
+            <input type="text" list="remark_tag_options" id="remark_tag_dropdown">
+            
+            <datalist id="remark_tag_options">
+              
               ${labelMarkup}
-              <option value="remove_label" class="remark_">Remove Label</option>
-          </select>
-          <h4 style="margin: 16px 0px 0px 0px; color: var(--remark-color-grey-light-1); font-size: 16px">OR</h4>
-          <div style="float:left; width: 100%; margin: 0.1rem 0rem -0.4rem 0rem;">
-              <label for="createNewTag" class="remark_form_label" style="margin: 20px 0px 2px 0px;">Create new tag</label>
-              <input type="text" name="createNewTag" id="createNewTag" class="remark_form_input" placeholder="Enter a new tag">
-          </div>
-          <button type="button" class="remark_standard_button remark_secondary_button" id="createNewTagBtn">Create new tag</button>
+              
+              <option value="remove_label" class="remark_tag_option"></option>
+            
+            </datalist>
+
           <label class="remark_toggle" id="groupActionsBtn">
             <span class="remark_toggle_label">Annotate similar components?</span>
             <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
@@ -727,40 +690,18 @@ async function renderMenu() {
     menuContainer.classList.toggle("remark_menu_resize");
   });
 
-  const labelTypeBtn = document.getElementById("labelTypeBtn");
-  labelTypeBtn.addEventListener("change", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const val = String(e.target.value);
-    if (val != "remove_label") {
-      if (REMARK_GROUP_ACTIONS) {
-        const className = String(
-          curNode.className
-            .replace("highlight_element_strong", "")
-            .replace("highlight_element_selected", "")
-            .replace("highlight_element_light", "")
-        );
-        const elements = document.getElementsByClassName(className);
-        handleBatchEdit(elements, val);
-      } else {
-        handleEditLabel(curNode, val);
-      }
-    } else {
-      if (REMARK_GROUP_ACTIONS) {
-        const className = String(
-          curNode.className.replace("highlight_element_strong", "")
-        );
-        const elements = document.getElementsByClassName(className);
-        handleBatchDelete(elements);
-        for (let ele of elements) {
-          ele.classList.remove("highlight_element_strong");
-        }
-      } else {
-        handleDeleteLabel(curNode);
-        curNode.classList.remove("highlight_element_strong");
-      }
+  const dropdown = document.getElementById("remark_tag_dropdown");
+  dropdown.addEventListener("input", checkValidity);
+
+  const dropdownOptions = document.getElementById("remark_tag_options");
+  dropdownOptions.addEventListener("click", (e) => {
+    if (e.target.tagName.toLowerCase() === 'option') {
+      // Get the value of the clicked option tag
+      const selectedValue = e.target.value;
+      console.log(`Selected value: ${selectedValue}`);
     }
-  });
+    console.log("option change : ", e.target)
+  })
 
   const groupActionsBtn = document.getElementById("groupActionsBtn");
   groupActionsBtn.addEventListener("click", (e) => {
@@ -773,9 +714,6 @@ async function renderMenu() {
       REMARK_GROUP_ACTIONS = true;
     }
   });
-
-  const createNewTagBtn = document.getElementById("createNewTagBtn");
-  createNewTagBtn.addEventListener("click", handleCreateNewTag);
 
   const downloadBtn = document.getElementById("downloadBtn");
   downloadBtn.addEventListener("click", (e) => {
@@ -794,22 +732,66 @@ async function renderMenu() {
   pushToServerButton.addEventListener("click", handlePushToServer);
 }
 
-// Can be optimized with the IntersectionObserverAPI
-function updateTooltipPosition() {
-  for (let i = 0; i < annotationNodes.length; i++) {
-    const id = `${annotationNodes[i][0]}_tooltip`;
-    const top = annotationNodes[i][1];
-    const tooltip = document.getElementById(id);
-    if (tooltip) {
-      const tooltipTop = top - parseInt(window.scrollY);
-      tooltip.style.top = `${tooltipTop}px`;
+// ****************** Tag utils *******************
+
+function selectTagHandler(value) {
+  const val = String(value);
+  if (val != "remove_label") {
+    if (REMARK_GROUP_ACTIONS) {
+      const className = String(
+        curNode.className
+          .replace("highlight_element_strong", "")
+          .replace("highlight_element_selected", "")
+          .replace("highlight_element_light", "")
+      );
+      const elements = document.getElementsByClassName(className);
+      handleBatchEdit(elements, val);
+    } else {
+      handleEditLabel(curNode, val);
+    }
+  } else {
+    if (REMARK_GROUP_ACTIONS) {
+      const className = String(
+        curNode.className.replace("highlight_element_strong", "")
+      );
+      const elements = document.getElementsByClassName(className);
+      handleBatchDelete(elements);
+      for (let ele of elements) {
+        ele.classList.remove("highlight_element_strong");
+      }
+    } else {
+      handleDeleteLabel(curNode);
+      curNode.classList.remove("highlight_element_strong");
     }
   }
 }
 
-// const debouncedUpdateTooltipPosition = debounce(updateTooltipPosition, 100);
+function checkValidity() {
+  let input = document.getElementById("remark_tag_dropdown");
+  let list = document.getElementById("remark_tag_options");
+  let optionExists = false;
+  for (let i = 0; i < list.options.length; i++) {
+    if (input.value.toLowerCase() === list.options[i].value.toLowerCase() && input.value.length > 0) {
+      optionExists = true;
+      console.log("valid option : ", input.value);
+      selectTagHandler(input.value)
+      break;
+    }
+  }
+  if (!optionExists) {
+    let newOption = document.createElement("option");
+    newOption.className = "remark_tag_option";
+    newOption.innerText = "(Create) " + input.value;
+    list.appendChild(newOption);  
+    console.log(newOption);
+    // debouncedHandleCreateTag(newOption.value);
+  }
+}
 
-// *************** Annotations Utils ***************
+// const debouncedHandleCreateTag = debounce(handleCreateTag, 500)
+
+
+// *************** Annotation utils ***************
 
 function getAnnotationByID(annotation_id) {
   for (let ele of window.annotations) {
@@ -857,19 +839,19 @@ function isValidAnnotation(curAnnotation) {
 }
 
 function setCurrentLabelAsOption(val) {
-  const labelTypeBtn = document.getElementById("labelTypeBtn");
-  const n = labelTypeBtn.length;
+  const dropdown = document.getElementById("remark_tag_dropdown");
+  const n = dropdown.length;
 
   let ind = -2;
 
   for (let i = 0; i < n; i++) {
-    if (labelTypeBtn[i].value == val) {
+    if (dropdown[i].value == val) {
       ind = i;
       break;
     }
   }
   if (ind != -2) {
-    labelTypeBtn.selectedIndex = String(ind);
+    dropdown.selectedIndex = String(ind);
   }
 }
 
@@ -1118,20 +1100,12 @@ function sendMessageToBackground(data) {
   PORT.postMessage({ data: data });
 }
 
-// ****************** Other utils ******************
+// **************** Conversion utils*****************
 
 function logFormData(formData) {
   for (let e of Array.from(formData)) {
     console.log(e[0], " : ", e[1]);
   }
-}
-
-function downloadFile(dataURI, fileName) {
-  const downloadLink = document.createElement("a");
-  downloadLink.href = dataURI;
-  downloadLink.download = fileName;
-  downloadLink.click();
-  downloadLink.remove();
 }
 
 function dataURIToBlob(dataURI) {
@@ -1169,3 +1143,68 @@ function debounce(fn, delay) {
     }, delay);
   };
 }
+
+// ***************** Download Utils *****************
+
+
+function downloadAnnotations(annotations) {
+  const labelBlob = new Blob([annotations], { type: "text/plain" });
+  const labelDataURI = window.URL.createObjectURL(labelBlob);
+
+  downloadFile(labelDataURI, "labels.txt");
+  return;
+}
+
+function downloadScreenshot(screenshotDataURI) {
+  downloadFile(screenshotDataURI, "screenshot.jpg");
+}
+
+function downloadFile(dataURI, fileName) {
+  const downloadLink = document.createElement("a");
+  downloadLink.href = dataURI;
+  downloadLink.download = fileName;
+  downloadLink.click();
+  downloadLink.remove();
+}
+
+async function takeScreenShot() {
+  // Scroll to top
+  document.documentElement.scrollTop = 0;
+  document.documentElement.scrollTop = document.documentElement.scrollHeight;
+  document.documentElement.scrollTop = 0;
+
+  // Remove ReMark elements
+  const els = Array.from(document.querySelectorAll("*"));
+  const menu = document.getElementById("remarkMainMenu");
+  if (menu) {
+    removeHTMLElement(menu);
+  }
+  for (const el of els) {
+    el.classList.remove("highlight_element_strong");
+    el.classList.remove("highlight_element_light");
+    el.classList.remove("highlight_element_selected");
+    const id = el.dataset.annotation_id;
+
+    if (id) {
+      console.log("reached 2 : ", id);
+      const hid = `${id}_tooltip`;
+      const ele = document.getElementById(hid);
+      removeHTMLElement(ele);
+    }
+  }
+
+  // Take screenshot
+  const uri = await html2canvas(document.documentElement, {
+    allowTaint: true,
+    useCORS: true,
+  }).then(function (canvas) {
+    const dataURI = canvas.toDataURL("image/jpeg", 0.7);
+    return dataURI;
+  });
+
+  renderMenu();
+
+  console.log("return val : ", uri);
+  return uri;
+}
+

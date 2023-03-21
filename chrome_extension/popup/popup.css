@@ -241,7 +241,7 @@ h6 {
   color: var(--remark-color-primary);
   border: none;
   border-radius: 0rem;
-  margin: 2rem 0rem 0rem 7rem;
+  margin: 2rem 0rem 0rem 9.4rem;
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
 }
 
@@ -270,9 +270,9 @@ h6 {
 }
 
 .remark_popup_container {
-  width: 20rem;
+  width: 24rem;
   height: auto;
-  padding: 2rem;
+  padding: 2.4rem;
   color: var(--remark-color-grey-dark-2);
 }
 
@@ -350,7 +350,8 @@ h6 {
 
 #loginBtn,
 #signupBtn {
-  width: 23.2rem;
+  width: 27rem;
+  margin: 1rem 0rem 0rem 1rem;
 }
 
 .remark_init_text {
