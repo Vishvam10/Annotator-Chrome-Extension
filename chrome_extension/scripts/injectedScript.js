@@ -37,31 +37,6 @@ var DEBUG = true;
 
 var dragging = false;
 
-var VALID_HTML_ELEMENTS = [
-  "DIV",
-  "SPAN",
-  "BUTTON",
-  "H1",
-  "H2",
-  "H3",
-  "H4",
-  "H5",
-  "H6",
-  "IMG",
-  "P",
-  "PICTURE",
-  "SVG",
-  "NAV",
-  "A",
-  "TABLE",
-  "INPUT",
-  "LABEL",
-  "FORM",
-  "AUDIO",
-  "VIDEO",
-  "UL",
-  "LI",
-];
 
 // ***************** Initialization ******************
 
@@ -263,18 +238,16 @@ function mouseOverListener(e) {
   const elements = document.getElementsByClassName(className);
   Array.from(elements).forEach((ele) => {
     const tag = ele.tagName;
-    if (VALID_HTML_ELEMENTS.includes(tag)) {
-      if (ele.className) {
-        if (
-          ele.className.includes("remark_") ||
-          ele.className.includes("highlight_element_strong")
-        ) {
-          return;
-        }
+    if (ele.className) {
+      if (
+        ele.className.includes("remark_") ||
+        ele.className.includes("highlight_element_strong")
+      ) {
+        return;
       }
-      tempBuffer.push(ele);
-      ele.classList.add("highlight_element_light");
     }
+    tempBuffer.push(ele);
+    ele.classList.add("highlight_element_light");
   });
 }
 
@@ -284,17 +257,17 @@ function mouseOutListener(e) {
 
   tempBuffer.forEach((ele) => {
     const tag = ele.tagName;
-    if (VALID_HTML_ELEMENTS.includes(tag)) {
-      if (ele.className) {
-        if (
-          ele.className.includes("remark_") ||
-          ele.className.includes("highlight_element_strong")
-        ) {
-          return;
-        }
+  
+    if (ele.className) {
+      if (
+        ele.className.includes("remark_") ||
+        ele.className.includes("highlight_element_strong")
+      ) {
+        return;
       }
-      ele.classList.remove("highlight_element_light");
     }
+    ele.classList.remove("highlight_element_light");
+    
   });
   tempBuffer = [];
 }
@@ -688,12 +661,12 @@ async function renderMenu() {
           </div>
           <button type="button" class="remark_standard_button remark_secondary_button" id="createNewTagBtn">Create new tag</button>
           <label class="remark_toggle" id="groupActionsBtn">
-            <span class="remark_toggle_label">Tag all similar components ?</span>
+            <span class="remark_toggle_label">Annotate similar components?</span>
             <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
             <div class="remark_toggle_switch"></div>
           </label>
           <label class="remark_toggle" id="downloadBtn">
-            <span class="remark_toggle_label">Download annotations locally ?</span>
+            <span class="remark_toggle_label">Download locally?</span>
             <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="downloadCheckbox">
             <div class="remark_toggle_switch"></div>
           </label>
