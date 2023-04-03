@@ -426,6 +426,12 @@ svg > * {
   stroke: inherit !important;
 }
 
+.remark_menu_option_selected {
+  background-color: var(--remark-color-primary);
+  outline: none;
+  border: none;
+}
+
 /* **************************** TOOLTIP ****************************** */
 
 .remark_tag_tooltip {

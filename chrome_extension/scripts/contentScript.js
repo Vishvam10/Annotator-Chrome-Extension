@@ -27,6 +27,7 @@
 // var BACKEND_URL = "https://data-science-theta.vercel.app/api";
 var BACKEND_URL = "http://localhost:3000/api";
 
+var REMARK_RUNNING = false;
 var REMARK_GROUP_ACTIONS = false;
 var REMARK_DOWNLOAD_LOCAL = false;
 
@@ -50,6 +51,8 @@ async function remark_init() {
 
   const temp = running + "," + String(location.href);
   setDataToStorage("remark_running", temp);
+
+  REMARK_RUNNING = true;
 
   console.log("POPUP AND BACKGROUND CONNECTION CHECK : ");
 
@@ -116,34 +119,38 @@ async function remark_destroy() {
   const storageData = await getDataFromStorage("remark_running");
   const running = storageData["remark_running"];
 
+  REMARK_RUNNING = false;
+
   console.log("goint to destroy ...", running.includes(String(location.href)), running)
 
-  removeAllExistingModals();
   stopHighlightElements();
   stopAnnotationProcess();
 }
 
 function startAnnotationProcess() {
-  document.body.addEventListener("click", clickListener, true);
-  document.body.addEventListener("mouseover", mouseOverListener, true);
-  document.body.addEventListener("mouseout", mouseOutListener, true);
-  document.body.addEventListener("scroll", scrollListener, true);
+  document.body.addEventListener("click", clickListener, false);
+  document.body.addEventListener("mouseover", mouseOverListener, false);
+  document.body.addEventListener("mouseout", mouseOutListener, false);
+  document.addEventListener("scroll", scrollListener, false);
 }
 
 function stopAnnotationProcess() {
-  document.body.removeEventListener("click", clickListener, true);
-  document.body.removeEventListener("mouseover", mouseOverListener, true);
-  document.body.removeEventListener("mouseout", mouseOutListener, true);
-  document.body.removeEventListener("scroll", scrollListener, true);
-  // document.addEventListener("click", () => {
-  //   return false;
-  // });
-  // document.addEventListener("mouseover", () => {
-  //   return false;
-  // });
-  // document.addEventListener("mouseout", () => {
-  //   return false;
-  // });
+  // document.body.removeEventListener("click", clickListener);
+  // document.body.removeEventListener("mouseover", mouseOverListener);
+  // document.body.removeEventListener("mouseout", mouseOutListener);
+  // document.body.removeEventListener("scroll", scrollListener);
+  document.addEventListener("click", () => {
+    return false;
+  });
+  document.addEventListener("mouseover", () => {
+    return false;
+  });
+  document.addEventListener("mouseout", () => {
+    return false;
+  });
+  document.addEventListener("scroll", () => {
+    return false;
+  })
 
   return;
 }
@@ -216,26 +223,7 @@ function clickListener(e) {
       if (DEBUG) {
         console.log("click -> add annotation");
       }
-    } else if (t.classList.contains("highlight_element_strong")) {
-      // Select label
-      prevNode = curNode;
-      if (
-        prevNode &&
-        prevNode.className.includes("highlight_element_selected")
-      ) {
-        prevNode.classList.remove("highlight_element_selected");
-      }
-
-      curNode = t;
-      curNode.classList.add("highlight_element_selected");
-      const id = t.dataset.annotation_id;
-      const ann = getAnnotationByID(id);
-      setCurrentLabelAsOption(ann.tag);
-
-      if (DEBUG) {
-        console.log("click -> set current label : ", ann.tag);
-      }
-    }
+    } 
   }
 }
 
@@ -399,7 +387,6 @@ function handleDeleteLabel(targetHTMLElement) {
 
   delete targetHTMLElement.dataset.annotation_id;
 
-  setCurrentLabelAsOption("span");
   if (DEBUG) {
     console.log("delete : window.annotations : ", annotationNodes);
   }
@@ -495,8 +482,6 @@ function updateTooltipPosition() {
 }
 
 async function handleScreenshot() {
-  const pushToServerButton = document.getElementById("pushToServerButton");
-  pushToServerButton.innerText = "Taking screenshot";
   const dataURI = await takeScreenShot();
   // console.log("reached data uri : ", dataURI)
   return dataURI;
@@ -567,7 +552,6 @@ async function handlePushToServer() {
   saveAllAnnotations();
   sendMessageToBackground(data);
 }
-
 
 async function handleLocalDownload() {
   const temp = window.annotations;
@@ -662,9 +646,6 @@ function renderAllAnnotations(annotations) {
   // })
 
 async function renderMenu() {
-  const storageData = await getDataFromStorage("remark_running");
-  const running = storageData["remark_running"];
-
 
   if (document.getElementById("remarkMainMenu")) {
     removeHTMLElement(document.getElementById("remarkMainMenu"));
@@ -677,7 +658,7 @@ async function renderMenu() {
     <div class="remark_menu_option" title="Take screenshot and upload/download the data" id="screenshotBtn">
       <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" class="ionicon" viewBox="0 0 512 512"><path d="M350.54,148.68l-26.62-42.06C318.31,100.08,310.62,96,302,96H210c-8.62,0-16.31,4.08-21.92,10.62l-26.62,42.06C155.85,155.23,148.62,160,140,160H80a32,32,0,0,0-32,32V384a32,32,0,0,0,32,32H432a32,32,0,0,0,32-32V192a32,32,0,0,0-32-32H373C364.35,160,356.15,155.23,350.54,148.68Z" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><circle cx="256" cy="272" r="80" style="fill:none;stroke:#000;stroke-miterlimit:10;stroke-width:32px"/><polyline points="124 158 124 136 100 136 100 158" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>
     </div>
-    <div class="remark_menu_option" title="Tag similar components" id="groupActionsBtn" data-groupactions=false>
+    <div class="remark_menu_option" title="Tag similar components" id="groupActionsBtn" data-groupactions="false">
       <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" class="ionicon" viewBox="0 0 512 512"><rect x="48" y="48" width="176" height="176" rx="20" ry="20" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="288" y="48" width="176" height="176" rx="20" ry="20" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="48" y="288" width="176" height="176" rx="20" ry="20" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="288" y="288" width="176" height="176" rx="20" ry="20" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>
     </div>
   `
@@ -740,23 +721,23 @@ async function renderMenu() {
     const check = groupActionsBtn.dataset.groupactions;
 
     console.log("click : group actions : ", check, typeof(check), REMARK_GROUP_ACTIONS)
-    if (check === true) {
+    if (check === "true") {
       groupActionsBtn.classList.remove("remark_option_check");
       REMARK_GROUP_ACTIONS = false;
-      groupActionsBtn.dataset.groupactions = false;
+      groupActionsBtn.dataset.groupactions = "false";
     } else {
       groupActionsBtn.classList.add("remark_option_check");
       REMARK_GROUP_ACTIONS = true;
-      groupActionsBtn.dataset.groupactions = true;
+      groupActionsBtn.dataset.groupactions = "true";
     }
   });
 
   const startAnnotationBtn = document.getElementById("startAnnotationBtn");
   startAnnotationBtn.addEventListener("click", (e) => {
-    if (running && running.includes(String(location.href))) {
-      console.log("reached : ", running, " URL CHECK : ", running.includes(String(location.href)));
+    console.log("click : start annotation : ", REMARK_RUNNING)
+    if(REMARK_RUNNING) {
+      console.log("reached : ", REMARK_RUNNING);
       remark_destroy();
-      return;
     } else {
       remark_init();
     }
@@ -790,7 +771,6 @@ async function renderMenu() {
       Array.from(menu_options.children).forEach((ele) => {
         removeHTMLElement(ele);
       })
-
       renderMenu();
       
     })
@@ -944,22 +924,6 @@ function isValidAnnotation(curAnnotation) {
   return true;
 }
 
-function setCurrentLabelAsOption(val) {
-  const dropdown = document.getElementById("remark_tag_dropdown");
-  const n = dropdown.length;
-
-  let ind = -2;
-
-  for (let i = 0; i < n; i++) {
-    if (dropdown[i].value == val) {
-      ind = i;
-      break;
-    }
-  }
-  if (ind != -2) {
-    dropdown.selectedIndex = String(ind);
-  }
-}
 
 // ***************** Load and Save *****************
 
@@ -993,12 +957,6 @@ async function saveAllAnnotations() {
 
 // **************** DOM Operations *****************
 
-function removeAllExistingModals() {
-  const menu_check = document.querySelector(".remark_standard_menu_container");
-  if (menu_check) {
-    removeHTMLElement(menu_check);
-  }
-}
 
 function removeHighlight(annotation) {
   const t = annotation["html_target"];
