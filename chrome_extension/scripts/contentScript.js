@@ -30,11 +30,12 @@ var BACKEND_URL = "http://localhost:3000/api";
 var REMARK_RUNNING = false;
 var REMARK_GROUP_ACTIONS = false;
 var REMARK_DOWNLOAD_LOCAL = false;
+var REMARK_ADDITIONAL_STYLES = null;
 
 var POPUP_PORT, BACKGROUND_PORT;
 
-REMARK_ADDITIONAL_STYLES = null;
-annotationNodes = [];
+var availableLabels;
+var annotationNodes = [];
 
 var tempBuffer = [];
 var curNode;
@@ -124,6 +125,7 @@ async function remark_destroy() {
   console.log("goint to destroy ...", running.includes(String(location.href)), running)
 
   stopHighlightElements();
+  removeAllTooltips()
   stopAnnotationProcess();
 }
 
@@ -135,10 +137,11 @@ function startAnnotationProcess() {
 }
 
 function stopAnnotationProcess() {
-  // document.body.removeEventListener("click", clickListener);
-  // document.body.removeEventListener("mouseover", mouseOverListener);
-  // document.body.removeEventListener("mouseout", mouseOutListener);
-  // document.body.removeEventListener("scroll", scrollListener);
+  document.body.removeEventListener("click", clickListener);
+  document.body.removeEventListener("mouseover", mouseOverListener);
+  document.body.removeEventListener("mouseout", mouseOutListener);
+  document.body.removeEventListener("scroll", scrollListener);
+
   document.addEventListener("click", () => {
     return false;
   });
@@ -299,7 +302,7 @@ function scrollListener() {
 
 // ******************* Handlers ********************
 
-function handleCreateLabel(targetHTMLElement) {
+async function handleCreateLabel(targetHTMLElement) {
   const rect = targetHTMLElement.getBoundingClientRect();
   const x = Math.round(rect.x),
     y = Math.round(rect.y) + parseInt(window.scrollY),
@@ -329,18 +332,26 @@ function handleCreateLabel(targetHTMLElement) {
   if (isValidAnnotation(annotation)) {
     window.annotations.push(annotation);
 
-    const tooltipMarkup = createTagTooltipMarkup(annotation, "span");
+    const tooltipMarkup = await createTagTooltipMarkup(annotation, "span");
     targetHTMLElement.insertAdjacentHTML("afterbegin", tooltipMarkup);
+
+    const pid = annotation["id"] + "_dropdown";
+    const inp = document.getElementById(pid);
+    autocomplete(inp, availableLabels);
+  
+
     annotationNodes.push([annotation["id"], annotation["y"]]);
     targetHTMLElement.dataset.annotation_id = annotation["id"];
+
     return;
   }
 
   return;
 }
 
-function handleEditLabel(targetHTMLElement, newTag) {
-  if (targetHTMLElement) {
+function handleEditLabel(targetHTMLElement, annotation_id, newTag) {
+  console.log("edit annotation : ", targetHTMLElement, annotation_id, typeof(annotation_id), newTag)
+  if (targetHTMLElement !== null) {
     if (targetHTMLElement.classList.contains("highlight_element_strong")) {
       const annotation_id = Number(targetHTMLElement.dataset.annotation_id);
       for (let ele of window.annotations) {
@@ -355,6 +366,18 @@ function handleEditLabel(targetHTMLElement, newTag) {
       }
     }
     return;
+  } else if(annotation_id !== null) {
+    for (let ele of window.annotations) {
+      if (ele["id"] == Number(annotation_id)) {
+        console.log("reached")
+        ele["tag"] = newTag;
+        updateTooltip(annotation_id, newTag);
+        if (DEBUG) {
+          console.log("edit using id : window.annotations : ", window.annotations);
+        }
+        break;
+      }
+    }
   }
   return;
 }
@@ -410,7 +433,7 @@ function handleBatchEdit(targetHTMLElements, val) {
   console.log("batch edit : ", targetHTMLElements, val);
   for (let i = 0; i < targetHTMLElements.length; i++) {
     const ele = targetHTMLElements[i];
-    handleEditLabel(ele, val);
+    handleEditLabel(ele, null, val);
   }
 }
 
@@ -434,17 +457,16 @@ async function handleCreateTag(value) {
   }
 }
 
-function createTagTooltipMarkup(annotation, tag) {
+async function createTagTooltipMarkup(annotation, tag) {
   console.log("reached", annotation, tag)
   const top = parseInt(annotation["y"] - window.scrollY) + "px";
   const left = annotation["x"] + "px";
 
   const markup = `
-    <span class="remark_tag_tooltip" style="top:${top}; left:${left}" id="${annotation["id"]}_tooltip">
-      <p class="remark_tag_tooltip_info">${tag}</p>
+    <span class="remark_tag_tooltip" style="top:${top}; left:${left}" id="${annotation["id"]}_tooltip">            
+      <input type="text" class="remark_tag_tooltip_info" id="${annotation["id"]}_dropdown" value="${tag}">  
     </span>
-  `;
-  
+  `;  
 
   return markup;
 }
@@ -488,14 +510,9 @@ async function handleScreenshot() {
 }
 
 async function handlePushToServer() {
-  const pushToServerButton = document.getElementById("pushToServerButton");
-  pushToServerButton.classList.add("remark_fade");
-  pushToServerButton.removeEventListener("click", handlePushToServer);
-
+  
   const emailStorageData = await getDataFromStorage("remark_email");
   const email = emailStorageData["remark_email"];
-
-  pushToServerButton.innerText = "Getting annotations";
 
   const messagePopupCheck = document.getElementById("messagePopup");
   if (messagePopupCheck) {
@@ -529,6 +546,8 @@ async function handlePushToServer() {
     console.log("labels : ", labels);
   }
 
+  saveAllAnnotations();
+
   const screenshotDataURI = await handleScreenshot();
 
   if (messagePopup) {
@@ -549,12 +568,16 @@ async function handlePushToServer() {
     screenshotDataURI: screenshotDataURI,
   };
 
-  saveAllAnnotations();
   sendMessageToBackground(data);
+
+  loadAllAnnotations();
 }
 
 async function handleLocalDownload() {
+
   const temp = window.annotations;
+  console.log("window.annotations : ", window.annotations)
+  console.log("temp : ", temp)
   let labels = [];
   
   temp.forEach((ele) => {
@@ -567,6 +590,8 @@ async function handleLocalDownload() {
     console.log("labels : ", labels);
   }
   
+  saveAllAnnotations();
+
   const screenshotDataURI = await handleScreenshot();
 
   downloadAnnotations(labels);
@@ -589,13 +614,17 @@ async function handleLocalDownload() {
       }
     }, 1500)
   }
+
+  loadAllAnnotations();
+
 }
 
 
 
 // *************** Render functions ***************
 
-function renderAllAnnotations(annotations) {
+async function renderAllAnnotations(annotations) {
+  console.log("annotations : ", annotations)
   for (let i = 0; i < annotations.length; i++) {
     const ele = annotations[i];
     const node = getElementByXpath(ele["html_xpath"]);
@@ -610,40 +639,15 @@ function renderAllAnnotations(annotations) {
         node.classList.add("highlight_element_strong");
         
         window.annotations.push(ele);
-        const tooltipMarkup = createTagTooltipMarkup(ele, ele["tag"]);
+        const tooltipMarkup = await createTagTooltipMarkup(ele, ele["tag"]);
         node.insertAdjacentHTML("afterbegin", tooltipMarkup);
+
         annotationNodes.push([ele["id"], ele["y"]]);
         node.dataset.annotation_id = ele["id"];
       }
     }
   }
 }
-
-
-  // let labelMarkup = "";
-  // const data = await GET(`${BACKEND_URL}/labels`);
-  // const labels = data["labels"];
-
-  // for (let i = 0; i < labels.length; i++) {
-  //   const val = labels[i];
-  //   labelMarkup += `
-  //     <option value="${val}" class="remark_">${val}</option>
-  //   `;
-  // }
-
-  // const dropdown = document.getElementById("remark_tag_dropdown");
-  // dropdown.addEventListener("input", checkValidity);
-  // dropdown.addEventListener("keypress", checkValidityOnKeypress);
-
-  // const dropdownOptions = document.getElementById("remark_tag_options");
-  // dropdownOptions.addEventListener("click", (e) => {
-  //   if (e.target.tagName.toLowerCase() === 'option') {
-  //     // Get the value of the clicked option tag
-  //     const selectedValue = e.target.value;
-  //     console.log(`Selected value: ${selectedValue}`);
-  //   }
-  //   console.log("option change : ", e.target)
-  // })
 
 async function renderMenu() {
 
@@ -720,13 +724,18 @@ async function renderMenu() {
 
     const check = groupActionsBtn.dataset.groupactions;
 
-    console.log("click : group actions : ", check, typeof(check), REMARK_GROUP_ACTIONS)
     if (check === "true") {
-      groupActionsBtn.classList.remove("remark_option_check");
+      groupActionsBtn.classList.remove("remark_menu_option_selected");
+      console.log(groupActionsBtn.children[0])
+      groupActionsBtn.children[0].style.stroke = "var(--remark-color-grey)";
+      
       REMARK_GROUP_ACTIONS = false;
       groupActionsBtn.dataset.groupactions = "false";
     } else {
-      groupActionsBtn.classList.add("remark_option_check");
+      groupActionsBtn.classList.add("remark_menu_option_selected");
+      console.log(groupActionsBtn.children[0])
+      groupActionsBtn.children[0].style.stroke = "var(--remark-color-white)";
+      
       REMARK_GROUP_ACTIONS = true;
       groupActionsBtn.dataset.groupactions = "true";
     }
@@ -739,6 +748,8 @@ async function renderMenu() {
       console.log("reached : ", REMARK_RUNNING);
       remark_destroy();
     } else {
+      startAnnotationBtn.classList.add("remark_menu_option_selected");
+      startAnnotationBtn.children[0].style.stroke = "var(--remark-color-white)";
       remark_init();
     }
   })
@@ -788,89 +799,30 @@ async function renderMenu() {
 
   })
 
+  availableLabels = await getAvailableLabels()
+
 }
 
 // ****************** Tag utils *******************
 
-function selectTagHandler(value) {
-  const val = String(value);
-  if (val != "remove_label") {
-    if (REMARK_GROUP_ACTIONS) {
-      const className = String(
-        curNode.className
-          .replace("highlight_element_strong", "")
-          .replace("highlight_element_selected", "")
-          .replace("highlight_element_light", "")
-      );
-      const elements = document.getElementsByClassName(className);
-      handleBatchEdit(elements, val);
-    } else {
-      handleEditLabel(curNode, val);
-    }
-  } else {
-    if (REMARK_GROUP_ACTIONS) {
-      const className = String(
-        curNode.className.replace("highlight_element_strong", "")
-      );
-      const elements = document.getElementsByClassName(className);
-      handleBatchDelete(elements);
-      for (let ele of elements) {
-        ele.classList.remove("highlight_element_strong");
-      }
-    } else {
-      handleDeleteLabel(curNode);
-      curNode.classList.remove("highlight_element_strong");
-    }
+function getLabelMarkup() {
+  
+  let labelMarkup = "";
+  for (let i = 0; i < availableLabels.length; i++) {
+    const val = availableLabels[i];
+    labelMarkup += `
+      <option value="${val}" class="remark_">${val}</option>
+    `;
   }
+
+  return labelMarkup;
+
 }
 
-var tempNewOption = "";
-
-function checkValidity() {
-  let input = document.getElementById("remark_tag_dropdown");
-  let list = document.getElementById("remark_tag_options");
-  let optionExists = false;
-  // let check = false;
-  for (let i = 0; i < list.options.length; i++) {
-    if (input.value.toLowerCase() === list.options[i].value.toLowerCase() && input.value.trim().length > 0) {
-      optionExists = true;
-      console.log("valid option : ", input.value);
-      selectTagHandler(input.value)
-      break;
-    }
-  }
-
-  // for (let i = 0; i < list.options.length; i++) {
-  //   if(list.options[i].innerText == "To create, press enter" ) {
-  //     check = true;
-  //     break;
-  //   }
-  // }
-
-  if(optionExists) {
-    tempNewOption = "";
-    return;
-  } 
-
-  // if(!check) {
-  //   const option = document.createElement("option");
-  //   option.id = "remark_create_tag_temp"
-  //   option.innerText = "To create, press enter"
-  //   list.appendChild(option)
-  // }
-
-
-  tempNewOption = input.value.trim();
-}
-
-function checkValidityOnKeypress(e) {
-  if(e.key === "Enter" || e.keyCode === 13) {
-    const dropdown = document.getElementById("remark_tag_dropdown");
-    if(document.activeElement === dropdown && tempNewOption.trim().length > 1) {
-      handleCreateTag(tempNewOption)
-    }
-    // console.log("ENTER : ", e.key, document.activeElement === dropdown, tempNewOption);
-  }
+async function getAvailableLabels() {
+  const data = await GET(`${BACKEND_URL}/labels`);
+  const labels = data["labels"];
+  return labels;
 }
 
 const debouncedHandleCreateTag = debounce(handleCreateTag, 1000)
@@ -928,12 +880,12 @@ function isValidAnnotation(curAnnotation) {
 // ***************** Load and Save *****************
 
 async function loadAllAnnotations() {
-  console.log("in load annotations")
   try {
     const storageData = await getDataFromStorage("remark_annotation_data");
     const data = storageData["remark_annotation_data"];
-    annotations = JSON.parse(data)["data"];
-    renderAllAnnotations(annotations);
+    window.annotations = JSON.parse(data)["data"];
+    console.log("in load annotations", annotations)
+    renderAllAnnotations(window.annotations);
   } catch (e) {
     console.log("No annotations to load");
   } finally {
@@ -949,19 +901,14 @@ async function saveAllAnnotations() {
   });
 
   setDataToStorage("remark_annotation_data", d);
-
-  window.annotations = [];
-  annotationNodes = [];
   return;
 }
 
 // **************** DOM Operations *****************
 
-
-function removeHighlight(annotation) {
-  const t = annotation["html_target"];
-  if (t && t.className.includes("highlight_element_strong")) {
-    t.classList.remove("highlight_element_strong");
+function removeAllTooltips() {
+  for(let ele of window.annotations) {
+    removeTooltip(ele["id"])
   }
 }
 
@@ -1258,7 +1205,6 @@ async function takeScreenShot() {
     const id = el.dataset.annotation_id;
 
     if (id) {
-      console.log("reached 2 : ", id);
       const hid = `${id}_tooltip`;
       const ele = document.getElementById(hid);
       removeHTMLElement(ele);
@@ -1266,17 +1212,99 @@ async function takeScreenShot() {
   }
 
   // Take screenshot
-  const uri = await html2canvas(document.documentElement, {
-    allowTaint: true,
-    useCORS: true,
-  }).then(function (canvas) {
-    const dataURI = canvas.toDataURL("image/jpeg", 0.7);
-    return dataURI;
-  });
-
-  renderMenu();
-
-  console.log("return val : ", uri);
-  return uri;
+  try {
+    const uri = await html2canvas(document.documentElement, {
+      allowTaint: true,
+      useCORS: true,
+    }).then(function (canvas) {
+      const dataURI = canvas.toDataURL("image/jpeg", 0.7);
+      return dataURI;
+    });
+  
+    renderMenu();
+  
+    console.log("return val : ", uri);
+    return uri;
+  } catch(e) {
+    console.error("error : ", e.message);
+  }
 }
 
+function autocomplete(inp, arr) {
+
+  var currentFocus;
+
+  const annotation_id = inp.id.split("_dropdown")[0];
+  console.log("annotation id : ", annotation_id)
+  
+  inp.addEventListener("input", function(e) {
+      var a, b, i, val = this.value;
+      closeAllLists();
+      if (!val) { return false;}
+      currentFocus = -1;
+      a = document.createElement("DIV");
+      a.setAttribute("id", this.id + "autocomplete-list");
+      a.setAttribute("class", "remark_autocomplete-items");
+      this.parentNode.appendChild(a);
+      for (i = 0; i < arr.length; i++) {
+        if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+          b = document.createElement("DIV");
+          b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+          b.innerHTML += arr[i].substr(val.length);
+          b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+          b.addEventListener("click", function(e) {
+              inp.value = this.getElementsByTagName("input")[0].value.trim();
+              console.log("click : options : ", inp.value);
+              handleEditLabel(null, annotation_id, inp.value)
+              closeAllLists();
+          });
+          a.appendChild(b);
+        }
+      }
+  });
+
+  inp.addEventListener("keydown", function(e) {
+      var x = document.getElementById(this.id + "autocomplete-list");
+      if (x) x = x.getElementsByTagName("div");
+      if (e.keyCode == 40) {
+        currentFocus++;
+        addActive(x);
+      } else if (e.keyCode == 38) { 
+        addActive(x);
+      } else if (e.keyCode == 13) {
+        e.preventDefault();
+        console.log("keypress : enter : ", x[currentFocus])
+        if (currentFocus > -1) {
+          /*and simulate a click on the "active" item:*/
+          if (x) x[currentFocus].click();
+        }
+      }
+  });
+
+  function addActive(x) {
+    if (!x) return false;
+    removeActive(x);
+    if (currentFocus >= x.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = (x.length - 1);
+    x[currentFocus].classList.add("remark_autocomplete-active");
+  }
+
+  function removeActive(x) {
+    for (var i = 0; i < x.length; i++) {
+      x[i].classList.remove("remark_autocomplete-active");
+    }
+  }
+
+  function closeAllLists(ele) {
+    var x = document.getElementsByClassName("remark_autocomplete-items");
+    for (var i = 0; i < x.length; i++) {
+      if (ele != x[i] && ele != inp) {
+        x[i].parentNode.removeChild(x[i]);
+      }
+    }
+  }
+
+  document.addEventListener("click", function (e) {
+    closeAllLists(e.target);
+  });
+}
