@@ -332,7 +332,7 @@ async function handleCreateLabel(targetHTMLElement) {
   if (isValidAnnotation(annotation)) {
     window.annotations.push(annotation);
 
-    const tooltipMarkup = await createTagTooltipMarkup(annotation, "span");
+    const tooltipMarkup = await createTagTooltipMarkup(annotation, annotation["tag"]);
     targetHTMLElement.insertAdjacentHTML("afterbegin", tooltipMarkup);
 
     const pid = annotation["id"] + "_dropdown";
