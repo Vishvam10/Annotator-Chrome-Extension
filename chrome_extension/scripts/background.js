@@ -3,14 +3,11 @@ var BACKEND_URL = "https://data-science-theta.vercel.app/api";
 
 chrome.runtime.onConnect.addListener(function (port) {
   console.log("Connected to injected script:", port);
-  const tab = 
   // Listen for data from the injected script
   port.onMessage.addListener(async function (message) {
     const data = message.data;
     console.log("Received data from injected script:", data);
-
-    console.log("in bg : data : ", data.action);
-    if (data.action == "pushToServer") {
+    if (action in data && data.action == "pushToServer") {
       console.log("in bg : data : ", data);
       try {
         const url = `${BACKEND_URL}/submit`;

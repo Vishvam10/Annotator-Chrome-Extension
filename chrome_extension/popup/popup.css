@@ -345,7 +345,7 @@ h6 {
   background-color: var(--remark-color-primary);
   color: var(--remark-color-white);
   height: 5rem;
-  margin: 3rem 0rem 1rem -0.2rem;ō
+  margin: 3rem 0rem 1rem -0.2rem;
 }
 
 #loginBtn,
@@ -432,3 +432,88 @@ z
   font-size: 0.7rem;
   color: var(--remark-color-grey-light-1);
 } 
+
+.remark_option_check {
+  background: var(--remark-color-primary);
+}
+
+.remark_standard_menu_container {
+  height: auto;
+  width: 32px;
+  border-radius: 12px;
+  background-color: var(--remark-color-grey-light-4);
+  border: var(--remark-default-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  z-index: 1000000000000;
+  position: fixed;
+  top: 20px;
+  left: 14px;
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
+  font-family: var(--remark-default-sanserif-font);
+}
+
+.remark_menu_body {
+  height: 100%;
+  width: 100%;
+}
+
+.remark_main_heading {
+  font-size: 12px;
+  color: var(--remark-color-grey);
+  text-align: center;
+  margin: 5px 0px 0px 0px;
+  font-weight: bold;
+}
+
+.remark_menu_options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0px 10px 0px;
+}
+
+.remark_menu_option {
+  height: 24px;
+  width: 24px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--remark-color-grey-light-3);
+  border: var(--remark-default-border);
+  border-radius: 12px;
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
+  cursor: pointer;
+}
+
+.remark_menu_option_active {
+  background-color: #0d6efd;
+}
+
+.remark_menu_option:hover {
+  transform: scale(1.05);
+  background-color: var(--remark-color-grey-light-2);
+}
+
+.remark_menu_option:active {
+  transform: scale(1.0);
+}
+
+.ionicon {
+  width: 20px !important;
+  height: 20px !important;
+  color: inherit !important;
+  stroke: var(--remark-color-grey);
+}
+
+svg > * {
+  fill: none !important;
+  stroke: inherit !important;
+}

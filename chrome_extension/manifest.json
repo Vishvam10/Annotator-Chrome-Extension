@@ -13,6 +13,13 @@
     "scripting",
     "storage"
   ],
+  "content_scripts" : [
+    {
+      "matches" : ["*://*/*", "<all_urls>"],
+      "js" : ["./scripts/contentScript.js"],
+      "css" : ["./css/contentScript.css"]
+    }
+  ],
   "background": {
     "service_worker": "./scripts/background.js"
   }

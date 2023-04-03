@@ -1,32 +1,36 @@
 (async () => {
-  const storageData = await getDataFromStorage("remark_running");
-  const running = storageData["remark_running"];
+
   window.annotations = [];
 
-  console.log("INIT ...", running);
+  console.log("loaded contentscript ...");
+  
+  chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+      console.log("message : ", request, sender)
 
-  if (running && running.includes(String(location.href))) {
-    console.log("reached : ", running, running.includes(String(location.href)));
-    remark_destroy();
-    return;
-  } else {
-    const temp = running + "," + String(location.href);
-    setDataToStorage("remark_running", temp);
+      if(request.from == "popup") {
+        if(request.message == "remark_init") {
+          console.log("ASD")
+          renderMenu()
+        }
+      }
 
-    const port = chrome.runtime.connect({ name: "injected" });
-    remark_init(port);
-  }
+    }
+  );
+
+
+
 })();
 
 // ***************** Global Variables ****************
 
-var BACKEND_URL = "https://data-science-theta.vercel.app/api";
-// var BACKEND_URL = "http://localhost:3000/api";
+// var BACKEND_URL = "https://data-science-theta.vercel.app/api";
+var BACKEND_URL = "http://localhost:3000/api";
 
 var REMARK_GROUP_ACTIONS = false;
 var REMARK_DOWNLOAD_LOCAL = false;
 
-var PORT;
+var POPUP_PORT, BACKGROUND_PORT;
 
 REMARK_ADDITIONAL_STYLES = null;
 annotationNodes = [];
@@ -40,16 +44,19 @@ var dragging = false;
 
 // ***************** Initialization ******************
 
-function remark_init(port) {
-  console.log("DOM AND DEBUG CHECK : ", document.body, DEBUG);
-  const style = document.createElement("style");
-  window.REMARK_ADDITIONAL_STYLES = style;
-  document.body.appendChild(style);
+async function remark_init() {
+  const storageData = await getDataFromStorage("remark_running");
+  const running = storageData["remark_running"];
 
-  PORT = port;
+  const temp = running + "," + String(location.href);
+  setDataToStorage("remark_running", temp);
+
+  console.log("POPUP AND BACKGROUND CONNECTION CHECK : ");
+
+  BACKGROUND_PORT = chrome.runtime.connect({ name: "injected" });
 
   // Listen for data from the background script
-  port.onMessage.addListener(async function (message) {
+  BACKGROUND_PORT.onMessage.addListener(async function (message) {
     console.log("Received message from background script:", message);
 
     // Do something with the data
@@ -95,35 +102,48 @@ function remark_init(port) {
     }
   });
 
+  // console.log("DOM AND DEBUG CHECK : ", document.body, DEBUG);
+  const style = document.createElement("style");
+  window.REMARK_ADDITIONAL_STYLES = style;
+  document.body.appendChild(style);
+
   disableAllCickableElements();
-  renderMenu();
   loadAllAnnotations();
   startAnnotationProcess();
 }
 
-function remark_destroy() {
+async function remark_destroy() {
+  const storageData = await getDataFromStorage("remark_running");
+  const running = storageData["remark_running"];
+
+  console.log("goint to destroy ...", running.includes(String(location.href)), running)
+
   removeAllExistingModals();
   stopHighlightElements();
   stopAnnotationProcess();
 }
 
 function startAnnotationProcess() {
-  document.body.addEventListener("click", clickListener, false);
-  document.body.addEventListener("mouseover", mouseOverListener, false);
-  document.body.addEventListener("mouseout", mouseOutListener, false);
-  document.addEventListener("scroll", scrollListener);
+  document.body.addEventListener("click", clickListener, true);
+  document.body.addEventListener("mouseover", mouseOverListener, true);
+  document.body.addEventListener("mouseout", mouseOutListener, true);
+  document.body.addEventListener("scroll", scrollListener, true);
 }
 
 function stopAnnotationProcess() {
-  document.addEventListener("click", () => {
-    return false;
-  });
-  document.addEventListener("mouseover", () => {
-    return false;
-  });
-  document.addEventListener("mouseout", () => {
-    return false;
-  });
+  document.body.removeEventListener("click", clickListener, true);
+  document.body.removeEventListener("mouseover", mouseOverListener, true);
+  document.body.removeEventListener("mouseout", mouseOutListener, true);
+  document.body.removeEventListener("scroll", scrollListener, true);
+  // document.addEventListener("click", () => {
+  //   return false;
+  // });
+  // document.addEventListener("mouseover", () => {
+  //   return false;
+  // });
+  // document.addEventListener("mouseout", () => {
+  //   return false;
+  // });
 
   return;
 }
@@ -375,6 +395,7 @@ function handleDeleteLabel(targetHTMLElement) {
 
   removeTooltip(annotation_id);
   targetHTMLElement.classList.remove("highlight_element_selected");
+  targetHTMLElement.classList.remove("highlight_element_strong");
 
   delete targetHTMLElement.dataset.annotation_id;
 
@@ -518,8 +539,10 @@ async function handlePushToServer() {
 
   labels = labels.join("\n");
 
-  console.log("email : ", email);
-  console.log("labels : ", labels);
+  if(DEBUG) {
+    console.log("email : ", email);
+    console.log("labels : ", labels);
+  }
 
   const screenshotDataURI = await handleScreenshot();
 
@@ -541,31 +564,49 @@ async function handlePushToServer() {
     screenshotDataURI: screenshotDataURI,
   };
 
-  if (REMARK_DOWNLOAD_LOCAL) {
-    downloadAnnotations(labels);
-    downloadScreenshot(screenshotDataURI);
-
-    if (messagePopup) {
-      messagePopup.children[0].innerText = "Downloading locally ...";
-    } else {
-      const markup = `
-        <span class="remark_message_popup" id="messagePopup">
-            <p class="remark_message_popup_content">Downloading locally ...</p>
-        </span>
-      `;
-      document.body.insertAdjacentHTML("beforeend", markup);
-      const messagePopup = document.getElementById("messagePopup");
-      setTimeout(() => {
-        if(messagePopup) {
-          removeHTMLElement(messagePopup);
-        }
-      }, 1500)
-    }
-  }
-  
   saveAllAnnotations();
   sendMessageToBackground(data);
 }
+
+
+async function handleLocalDownload() {
+  const temp = window.annotations;
+  let labels = [];
+  
+  temp.forEach((ele) => {
+    labels.push([ele["tag"], ele["x"], ele["y"], ele["width"], ele["height"]]);
+  });
+
+  labels = labels.join("\n");
+
+  if(DEBUG) {
+    console.log("labels : ", labels);
+  }
+  
+  const screenshotDataURI = await handleScreenshot();
+
+  downloadAnnotations(labels);
+  downloadScreenshot(screenshotDataURI);
+
+  const messagePopup = document.getElementById("messagePopup");
+  if (messagePopup) {
+    messagePopup.children[0].innerText = "Downloading locally ...";
+  } else {
+    const markup = `
+      <span class="remark_message_popup" id="messagePopup">
+          <p class="remark_message_popup_content">Downloading locally ...</p>
+      </span>
+    `;
+    document.body.insertAdjacentHTML("beforeend", markup);
+    const messagePopup = document.getElementById("messagePopup");
+    setTimeout(() => {
+      if(messagePopup) {
+        removeHTMLElement(messagePopup);
+      }
+    }, 1500)
+  }
+}
+
 
 
 // *************** Render functions ***************
@@ -594,58 +635,67 @@ function renderAllAnnotations(annotations) {
   }
 }
 
+
+  // let labelMarkup = "";
+  // const data = await GET(`${BACKEND_URL}/labels`);
+  // const labels = data["labels"];
+
+  // for (let i = 0; i < labels.length; i++) {
+  //   const val = labels[i];
+  //   labelMarkup += `
+  //     <option value="${val}" class="remark_">${val}</option>
+  //   `;
+  // }
+
+  // const dropdown = document.getElementById("remark_tag_dropdown");
+  // dropdown.addEventListener("input", checkValidity);
+  // dropdown.addEventListener("keypress", checkValidityOnKeypress);
+
+  // const dropdownOptions = document.getElementById("remark_tag_options");
+  // dropdownOptions.addEventListener("click", (e) => {
+  //   if (e.target.tagName.toLowerCase() === 'option') {
+  //     // Get the value of the clicked option tag
+  //     const selectedValue = e.target.value;
+  //     console.log(`Selected value: ${selectedValue}`);
+  //   }
+  //   console.log("option change : ", e.target)
+  // })
+
 async function renderMenu() {
+  const storageData = await getDataFromStorage("remark_running");
+  const running = storageData["remark_running"];
+
+
   if (document.getElementById("remarkMainMenu")) {
     removeHTMLElement(document.getElementById("remarkMainMenu"));
   }
-  let labelMarkup = "";
-  const data = await GET(`${BACKEND_URL}/labels`);
-  const labels = data["labels"];
 
-  for (let i = 0; i < labels.length; i++) {
-    const val = labels[i];
-    labelMarkup += `
-      <option value="${val}" class="remark_">${val}</option>
-    `;
-  }
+  const defaulMenuOptionsMarkup = `
+    <div class="remark_menu_option" title="Start annotation" id="startAnnotationBtn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" class="ionicon" viewBox="0 0 512 512"><line x1="256" y1="96" x2="256" y2="56" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><line x1="256" y1="456" x2="256" y2="416" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><path d="M256,112A144,144,0,1,0,400,256,144,144,0,0,0,256,112Z" style="fill:none;stroke:#000;stroke-miterlimit:10;stroke-width:32px"/><line x1="416" y1="256" x2="456" y2="256" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><line x1="56" y1="256" x2="96" y2="256" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/></svg>
+    </div>
+    <div class="remark_menu_option" title="Take screenshot and upload/download the data" id="screenshotBtn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" class="ionicon" viewBox="0 0 512 512"><path d="M350.54,148.68l-26.62-42.06C318.31,100.08,310.62,96,302,96H210c-8.62,0-16.31,4.08-21.92,10.62l-26.62,42.06C155.85,155.23,148.62,160,140,160H80a32,32,0,0,0-32,32V384a32,32,0,0,0,32,32H432a32,32,0,0,0,32-32V192a32,32,0,0,0-32-32H373C364.35,160,356.15,155.23,350.54,148.68Z" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><circle cx="256" cy="272" r="80" style="fill:none;stroke:#000;stroke-miterlimit:10;stroke-width:32px"/><polyline points="124 158 124 136 100 136 100 158" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>
+    </div>
+    <div class="remark_menu_option" title="Tag similar components" id="groupActionsBtn" data-groupactions=false>
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" class="ionicon" viewBox="0 0 512 512"><rect x="48" y="48" width="176" height="176" rx="20" ry="20" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="288" y="48" width="176" height="176" rx="20" ry="20" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="48" y="288" width="176" height="176" rx="20" ry="20" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="288" y="288" width="176" height="176" rx="20" ry="20" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>
+    </div>
+  `
 
   const markup = `
     <div class="remark_standard_menu_container" id="remarkMainMenu">
       <div class="remark_standard_menu_header">
-          <p style="margin: 5px 0px 0px 0px; font-weight: bold; color: inherit; font-size: 16px;">ReMark</p>
-          <div class="remark_standard_menu_actions">
-            <span class="remark_close_btn" id="remark_standard_menu_close_btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn">
-                    <path fill="currentColor" d="m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4l-6 6Z" class="remark_"/>
-                </svg>
-            </span>
+          <p class="remark_main_heading">ReMark</p>
+          <!-- <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" class="ionicon" viewBox="0 0 512 512"><polyline points="328 112 184 256 328 400" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/></svg> -->
+      </div>
+      <div class="remark_menu_body"> 
+          <div class="remark_menu_options">
+              ${defaulMenuOptionsMarkup}
           </div>
       </div>
-      <div class="remark_menu_body">
-        <div class="remark_settings_subgroup"> 
-          <label for="remark_tag_dropdown" class="remark_form_label" style="width: 160px; line-height: 20px;">Annotate from list</label>
-            <input type="text" list="remark_tag_options" id="remark_tag_dropdown">
-            <datalist id="remark_tag_options">
-              ${labelMarkup}
-              <option value="remove_label" class="remark_tag_option"></option>
-            </datalist>
-
-          <label class="remark_toggle" id="groupActionsBtn">
-            <span class="remark_toggle_label">Annotate similar components?</span>
-            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="groupAnnotationCheckbox">
-            <div class="remark_toggle_switch"></div>
-          </label>
-          <label class="remark_toggle" id="downloadBtn">
-            <span class="remark_toggle_label">Download locally?</span>
-            <input class="remark_toggle_checkbox remark_remark_settings_input" type="checkbox" name="downloadCheckbox">
-            <div class="remark_toggle_switch"></div>
-          </label>
-          <button type="button" class="remark_standard_button" id="pushToServerButton">Save Annotations</button>
-          <p style="font-size: 11px; margin: 30px 0px -10px 0px; color: var(--remark-color-grey-light-2); line-height: 16px;"><b>NOTE :</b> Elements will be grouped by their classname and their tagname</p>
-        </div>  
-        </div>
     </div> 
   `;
+
   document.body.insertAdjacentHTML("afterbegin", markup);
 
   // ************************ DRAGGING ************************
@@ -682,68 +732,82 @@ async function renderMenu() {
 
   // ****************** BUTTON EVENT LISTENERS *****************
 
-  const menuCloseBtn = document.getElementById(
-    "remark_standard_menu_close_btn"
-  );
-  menuCloseBtn.addEventListener("click", (e) => {
+  const groupActionsBtn = document.getElementById("groupActionsBtn");
+  groupActionsBtn.addEventListener("click", (e) => {
+    groupActionsBtn.style.backgroundColor = "var(--remark-color-primary);"
+    groupActionsBtn.children[0].style.stroke = "var(--remark-color-white);"
+
+    const check = groupActionsBtn.dataset.groupactions;
+
+    console.log("click : group actions : ", check, typeof(check), REMARK_GROUP_ACTIONS)
+    if (check === true) {
+      groupActionsBtn.classList.remove("remark_option_check");
+      REMARK_GROUP_ACTIONS = false;
+      groupActionsBtn.dataset.groupactions = false;
+    } else {
+      groupActionsBtn.classList.add("remark_option_check");
+      REMARK_GROUP_ACTIONS = true;
+      groupActionsBtn.dataset.groupactions = true;
+    }
+  });
+
+  const startAnnotationBtn = document.getElementById("startAnnotationBtn");
+  startAnnotationBtn.addEventListener("click", (e) => {
+    if (running && running.includes(String(location.href))) {
+      console.log("reached : ", running, " URL CHECK : ", running.includes(String(location.href)));
+      remark_destroy();
+      return;
+    } else {
+      remark_init();
+    }
+  })
+
+  const screenshotBtn = document.getElementById("screenshotBtn");
+  screenshotBtn.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const menuContainer = document.querySelector(
-      ".remark_standard_menu_container"
-    );
-    const menuBody = document.querySelector(".remark_menu_body");
-    menuBody.classList.toggle("remark_hide");
-    menuContainer.classList.toggle("remark_menu_resize");
-  });
-  
-  const dropdown = document.getElementById("remark_tag_dropdown");
-  dropdown.addEventListener("input", checkValidity);
-  dropdown.addEventListener("keypress", checkValidityOnKeypress);
+    const menu_options = document.querySelector(".remark_menu_options");
+    Array.from(menu_options.children).forEach((ele) => {
+      removeHTMLElement(ele);
+    })
 
-  const dropdownOptions = document.getElementById("remark_tag_options");
-  dropdownOptions.addEventListener("click", (e) => {
-    if (e.target.tagName.toLowerCase() === 'option') {
-      // Get the value of the clicked option tag
-      const selectedValue = e.target.value;
-      console.log(`Selected value: ${selectedValue}`);
-    }
-    console.log("option change : ", e.target)
+    const uploadDownloadMarkup = `
+      <span style="font-size: 12px" id="menuBackBtn">Back</span>
+      <div class="remark_menu_option" title="Upload to server" id="uploadToServerBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" class="ionicon" viewBox="0 0 512 512"><path d="M320,367.79h76c55,0,100-29.21,100-83.6s-53-81.47-96-83.6c-8.89-85.06-71-136.8-144-136.8-69,0-113.44,45.79-128,91.2-60,5.7-112,43.88-112,106.4s54,106.4,120,106.4h56" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><polyline points="320 255.79 256 191.79 192 255.79" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="256" y1="448.21" x2="256" y2="207.79" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>
+      </div>
+      <div class="remark_menu_option" title="Download locally" id="localDownloadBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" class="ionicon" viewBox="0 0 512 512"><path d="M320,336h76c55,0,100-21.21,100-75.6s-53-73.47-96-75.6C391.11,99.74,329,48,256,48c-69,0-113.44,45.79-128,91.2-60,5.7-112,35.88-112,98.4S70,336,136,336h56" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><polyline points="192 400.1 256 464 320 400.1" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="256" y1="224" x2="256" y2="448.03" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>
+      </div>
+    `
+
+    menu_options.insertAdjacentHTML("afterbegin", uploadDownloadMarkup);
+
+    const menuBackBtn = document.getElementById("menuBackBtn");
+    menuBackBtn.addEventListener("click", (e) => {
+      console.log("click : back");
+      Array.from(menu_options.children).forEach((ele) => {
+        removeHTMLElement(ele);
+      })
+
+      renderMenu();
+      
+    })
+
+    const uploadToServerBtn = document.getElementById("uploadToServerBtn");
+    uploadToServerBtn.addEventListener("click", (e) => {
+      console.log("click : upload");
+    })
+
+    const localDownloadBtn = document.getElementById("localDownloadBtn");
+    localDownloadBtn.addEventListener("click", (e) => {
+      console.log("click : download locally");
+      handleLocalDownload()
+    })
+
   })
 
-  const groupInp = document.getElementsByName("groupAnnotationCheckbox")[0];
-  groupInp.checked = REMARK_GROUP_ACTIONS;
-
-  const groupActionsBtn = document.getElementById("groupActionsBtn");
-  groupActionsBtn.addEventListener("click", (e) => {
-    const inp = document.getElementsByName("groupAnnotationCheckbox")[0];
-    if (inp.checked === true) {
-      inp.checked = false;
-      REMARK_GROUP_ACTIONS = false;
-    } else {
-      inp.checked = true;
-      REMARK_GROUP_ACTIONS = true;
-    }
-  });
-  
-  const downloadInp = document.getElementsByName("downloadCheckbox")[0];
-  downloadInp.checked = REMARK_DOWNLOAD_LOCAL;
-
-  const downloadBtn = document.getElementById("downloadBtn");
-  downloadBtn.addEventListener("click", (e) => {
-    const inp = document.getElementsByName("downloadCheckbox")[0];
-    if (inp.checked === true) {
-      inp.checked = false;
-      REMARK_DOWNLOAD_LOCAL = false;
-    } else {
-      inp.checked = true;
-      REMARK_DOWNLOAD_LOCAL = true;
-    }
-    console.log("LOCAL DOWNLOAD : ", REMARK_DOWNLOAD_LOCAL);
-  });
-
-  const pushToServerButton = document.getElementById("pushToServerButton");
-  pushToServerButton.addEventListener("click", handlePushToServer);
 }
 
 // ****************** Tag utils *******************
@@ -1147,7 +1211,7 @@ function getDataFromStorage(key) {
 }
 
 function sendMessageToBackground(data) {
-  PORT.postMessage({ data: data });
+  BACKGROUND_PORT.postMessage({ data: data });
 }
 
 // **************** Conversion utils*****************

@@ -210,14 +210,6 @@
   margin: 18px 0px 0px 0px;
 }
 
-#groupActionsBtn {
-  margin: 20px 0px 0px 0px;
-}
-
-#downloadBtn {
-  margin: 20px 0px 10px 0px;
-}
-
 #createNewTag {
   height: 36px;
   font-size: 14px;
@@ -349,19 +341,25 @@
 /* ****************************** MENU ******************************* */
 
 
+.remark_option_check {
+  background: var(--remark-color-primary);
+}
+
 .remark_standard_menu_container {
   height: auto;
-  width: 240px;
+  width: 64px;
   border-radius: 12px;
   background-color: var(--remark-color-grey-light-4);
   border: var(--remark-default-border);
   display: flex;
   flex-direction: column;
-  padding: 24px;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
   z-index: 1000000000000;
   position: fixed;
-  top: 20px;
-  left: 14px;
+  top: 240px;
+  left: 24px;
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
   font-family: var(--remark-default-sanserif-font);
 }
@@ -371,70 +369,62 @@
   width: 100%;
 }
 
-.remark_menu_resize {
-  height: 32px;
-}
-
-.remark_standard_menu_header {
-  padding: 0px;
-  height: 20px;
-  margin: -12px 0rem 20px 0rem;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: var(--remark-color-primary);
-}
-
 .remark_main_heading {
-  font-size: 16px;
-  color: var(--remark-color-grey-dark-2);
+  font-size: 12px;
+  color: var(--remark-color-grey);
   text-align: center;
+  margin: 5px 0px 0px 0px;
+  font-weight: bold;
 }
 
-.remark_settings {
-  height: 100%;
+.remark_menu_options {
   display: flex;
   flex-direction: column;
-  margin: -10px 0px -30px 0px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0px 10px 0px;
 }
 
-.remark_settings_subgroup {
+.remark_menu_option {
+  height: 40px;
+  width: 40px;
   padding: 10px;
-  margin: 0px 0px 0px -10px;
-}
-
-.remark_settings_subgroup_row {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  margin: 28px 0px 0px 0px;
-  gap: 20px;
+  background-color: var(--remark-color-grey-light-3);
+  border: var(--remark-default-border);
+  border-radius: 12px;
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) 0s;
+  cursor: pointer;
 }
 
-.remark_settings_subgroup_title {
-  margin: 2px 0px 2px 0px;
-  font-size: 7px;
-  color: var(--remark-color-grey-light-1);
+.remark_menu_option_active {
+  background-color: #0d6efd;
 }
 
-.remark_setting_subgroup_item {
-  margin: 4px 0px 0px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.remark_menu_option:hover {
+  transform: scale(1.05);
+  background-color: var(--remark-color-grey-light-2);
 }
 
-.remark_standard_menu_actions {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  width: 10%;
+.remark_menu_option:active {
+  transform: scale(1.0);
 }
 
+.ionicon {
+  width: 32px !important;
+  height: 32px !important;
+  color: inherit !important;
+  stroke: var(--remark-color-grey);
+}
+
+svg > * {
+  fill: none !important;
+  stroke: inherit !important;
+}
 
 /* **************************** TOOLTIP ****************************** */
 

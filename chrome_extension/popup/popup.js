@@ -2,41 +2,27 @@ window.onload = async function () {
   const storageData = await getDataFromStorage(null);
   const email = storageData["remark_email"];
 
-  console.log(email, storageData)
+  console.log(email, storageData);
 
   // Check if the user has signed in
   if (email) {
     renderUserStats();
   } else {
     renderSignupForm();
+    sendMessageToForeground("hello from popup.js")
   }
 };
 
-var BACKEND_URL = "https://data-science-theta.vercel.app/api"
-// var BACKEND_URL = "http://localhost:3000/api";
+// var BACKEND_URL = "https://data-science-theta.vercel.app/api"
+var BACKEND_URL = "http://localhost:3000/api";
 
 async function handleInit() {
   const initBtn = document.getElementById("remark_start");
   initBtn.removeEventListener("click", handleInit);
   initBtn.classList.add("remark_fade");
   initBtn.innerText = "Running ...";
-  
-  const tab = await getCurrentTab();
 
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    files: ["/scripts/html2canvas.min.js"],
-  });
-
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    files: ["/scripts/injectedScript.js"],
-  });
-
-  chrome.scripting.insertCSS({
-    target: { tabId: tab.id },
-    files: ["scripts/style.css"],
-  });
+  sendMessageToForeground("remark_init");
 
   return;
 }
@@ -65,93 +51,6 @@ async function handleSignup(signupForm) {
   }
 }
 
-async function handlePushToServer() {
-  const pushToServerBtn = document.getElementById("pushToServerBtn");
-  pushToServerBtn.classList.add("remark_fade");
-  pushToServerBtn.removeEventListener("click", handlePushToServer);
-
-  const tab = await getCurrentTab();
-  const url = `${BACKEND_URL}/submit`;
-
-  const emailStorageData = await getDataFromStorage("remark_email");
-  const email = emailStorageData["remark_email"];
-
-  const [result] = await chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: () => {
-      // const allAnnotations = document.querySelectorAll(
-      //   "[data-annotation_id]"
-      // );
-      let res = [];
-
-      for (let annotation of window.annotations) {
-        res.push(annotation);
-      }
-      console.log("res : ", res);
-      return res;
-    },
-  });
-
-  pushToServerBtn.innerText = "Getting annotations";
-
-  let labels = [];
-
-  const temp = result["result"];
-
-  temp.forEach((ele) => {
-    labels.push([ele["tag"], ele["x"], ele["y"], ele["width"], ele["height"]]);
-  });
-
-  labels = labels.join("\n");
-
-  console.log("labels : ", labels);
-
-  const screenshotDataURI = await handleScreenshot();
-  const imgFile = dataURItoFile(screenshotDataURI, "screenshot.png");
-
-  const labelBlob = new Blob([labels], { type: "text/plain" });
-  const labelFile = new File([labelBlob], "labels.txt", { type: "text/plain" });
-
-  var myHeaders = new Headers();
-  myHeaders.append("email", String(email));
-
-  var formdata = new FormData();
-  formdata.append("label", labelFile);
-  formdata.append("image", imgFile);
-  logFormData(formdata);
-
-  pushToServerBtn.innerText = "Saving";
-
-  var requestOptions = {
-    method: "POST",
-    headers: myHeaders,
-    body: formdata,
-    redirect: "follow",
-  };
-
-  let res = await fetch(url, requestOptions);
-  res = await res.text();
-
-  console.log("res : ", res, typeof res, res.includes("Submitted"));
-
-  if (res && res.includes("Submitted")) {
-    console.log("SUCCESSFUL SUBMISSION !");
-    pushToServerBtn.classList.remove("remark_fade");
-    pushToServerBtn.innerText = "Success !";
-    setTimeout(() => {
-      pushToServerBtn.innerText = "Save Annotations";
-    }, 2000);
-    pushToServerBtn.addEventListener("click", handlePushToServer);
-    handleInit();
-  } else {
-    pushToServerBtn.classList.remove("remark_fade");
-    pushToServerBtn.classList.add("remark_error");
-    pushToServerBtn.innerText = "Some Error Occured";
-    pushToServerBtn.addEventListener("click", handlePushToServer);
-    handleInit();
-  }
-}
-
 async function handleSignout() {
   setDataToStorage("remark_email", null);
   setDataToStorage("remark_running", "");
@@ -168,17 +67,6 @@ async function handleSignout() {
   });
 
   window.close();
-}
-
-async function handleScreenshot() {
-  const pushToServerBtn = document.getElementById("pushToServerBtn");
-  pushToServerBtn.innerText = "Taking screenshot";
-
-  const tab = await getCurrentTab();
-  const dataURI = await takeScreenShot(tab);
-  console.log("reached data uri : ", dataURI);
-  downloadFile(dataURI, "s.jpg");
-  return dataURI;
 }
 
 // *************** Render functions ****************
@@ -215,7 +103,12 @@ function renderSignupForm() {
 
 async function renderUserStats() {
   const url = `${BACKEND_URL}/scoreboard`;
-  const data = await GET(url);
+  let data;
+  try {
+    data = await GET(url);
+  } catch(e) {
+    console.error("error : ", e.message);
+  }
   const users = data["users"];
   let curUserEmail,
     curUserPos = -1,
@@ -231,7 +124,7 @@ async function renderUserStats() {
     return;
   }
 
-  let e = email.split("@")[0]
+  let e = email.split("@")[0];
 
   let markup = `
     <span class="remark_user_info">
@@ -304,8 +197,13 @@ async function renderUserStats() {
 
   const initBtn = document.getElementById("remark_start");
   if (initBtn) {
-    if(running && running.includes(String(tab.url))) {
-      console.log("inc check : ", String(tab.url), running, running.includes(String(tab.url)))
+    if (running && running.includes(String(tab.url))) {
+      console.log(
+        "inc check : ",
+        String(tab.url),
+        running,
+        running.includes(String(tab.url))
+      );
       initBtn.removeEventListener("click", handleInit);
       initBtn.classList.add("remark_fade");
       initBtn.innerText = "Running ...";
@@ -397,6 +295,16 @@ function clearDataFromStorage(keys = [], all = true) {
       }
     });
   }
+}
+
+function sendMessageToForeground(message) {
+  chrome.tabs.query({currentWindow: true, active: true}, function (tabs){
+    var activeTab = tabs[0];
+    chrome.tabs.sendMessage(activeTab.id, {
+      "from" : "popup",
+      "message": message
+    });
+  });
 }
 
 // *************** Utility functions ***************
