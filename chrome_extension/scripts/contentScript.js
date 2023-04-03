@@ -1235,7 +1235,8 @@ function autocomplete(inp, arr) {
   var currentFocus;
 
   const annotation_id = inp.id.split("_dropdown")[0];
-  console.log("annotation id : ", annotation_id)
+  console.log("annotation id : ", annotation_id);
+
   
   inp.addEventListener("input", function(e) {
       var a, b, i, val = this.value;
@@ -1255,7 +1256,20 @@ function autocomplete(inp, arr) {
           b.addEventListener("click", function(e) {
               inp.value = this.getElementsByTagName("input")[0].value.trim();
               console.log("click : options : ", inp.value);
-              handleEditLabel(null, annotation_id, inp.value)
+              if(REMARK_GROUP_ACTIONS) {                              
+                const cname = String(
+                  inp.parentNode.parentNode.className.replace("highlight_element_strong", "")
+                );
+                const elements = document.getElementsByClassName(cname);
+                handleBatchEdit(elements, inp.value);
+                for (let ele of elements) {
+                  const aid = ele.dataset.annotation_id;
+                  const iid = aid + "_dropdown";
+                  document.getElementById(iid).value = inp.value;
+                }
+              } else {
+                handleEditLabel(null, annotation_id, inp.value)
+              }
               closeAllLists();
           });
           a.appendChild(b);
