@@ -1,5 +1,5 @@
-var BACKEND_URL = "https://data-science-theta.vercel.app/api";
-// var BACKEND_URL = "http://localhost:3000/api";
+// var BACKEND_URL = "https://data-science-theta.vercel.app/api";
+var BACKEND_URL = "http://localhost:3000/api";
 
 chrome.runtime.onConnect.addListener(function (port) {
   console.log("Connected to injected script:", port);
@@ -7,7 +7,7 @@ chrome.runtime.onConnect.addListener(function (port) {
   port.onMessage.addListener(async function (message) {
     const data = message.data;
     console.log("Received data from injected script:", data);
-    if (action in data && data.action == "pushToServer") {
+    if ("action" in data && data.action == "pushToServer") {
       console.log("in bg : data : ", data);
       try {
         const url = `${BACKEND_URL}/submit`;

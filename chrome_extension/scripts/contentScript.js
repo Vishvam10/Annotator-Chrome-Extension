@@ -339,7 +339,6 @@ async function handleCreateLabel(targetHTMLElement) {
     const inp = document.getElementById(pid);
     autocomplete(inp, availableLabels);
   
-
     annotationNodes.push([annotation["id"], annotation["y"]]);
     targetHTMLElement.dataset.annotation_id = annotation["id"];
 
@@ -449,10 +448,11 @@ async function handleCreateTag(value) {
       if (DEBUG) {
         console.log("add : labels : ", res);
       }
-      renderMenu();
-      return;
+      availableLabels = await getAvailableLabels();
+      return true;
     } else {
       console.log(res);
+      return false;
     }
   }
 }
@@ -570,7 +570,7 @@ async function handlePushToServer() {
 
   sendMessageToBackground(data);
 
-  loadAllAnnotations();
+  remark_init();
 }
 
 async function handleLocalDownload() {
@@ -619,8 +619,6 @@ async function handleLocalDownload() {
 
 }
 
-
-
 // *************** Render functions ***************
 
 async function renderAllAnnotations(annotations) {
@@ -641,6 +639,10 @@ async function renderAllAnnotations(annotations) {
         window.annotations.push(ele);
         const tooltipMarkup = await createTagTooltipMarkup(ele, ele["tag"]);
         node.insertAdjacentHTML("afterbegin", tooltipMarkup);
+    
+        const pid = ele["id"] + "_dropdown";
+        const inp = document.getElementById(pid);
+        autocomplete(inp, availableLabels);
 
         annotationNodes.push([ele["id"], ele["y"]]);
         node.dataset.annotation_id = ele["id"];
@@ -663,7 +665,7 @@ async function renderMenu() {
       <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" class="ionicon" viewBox="0 0 512 512"><path d="M350.54,148.68l-26.62-42.06C318.31,100.08,310.62,96,302,96H210c-8.62,0-16.31,4.08-21.92,10.62l-26.62,42.06C155.85,155.23,148.62,160,140,160H80a32,32,0,0,0-32,32V384a32,32,0,0,0,32,32H432a32,32,0,0,0,32-32V192a32,32,0,0,0-32-32H373C364.35,160,356.15,155.23,350.54,148.68Z" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><circle cx="256" cy="272" r="80" style="fill:none;stroke:#000;stroke-miterlimit:10;stroke-width:32px"/><polyline points="124 158 124 136 100 136 100 158" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>
     </div>
     <div class="remark_menu_option" title="Tag similar components" id="groupActionsBtn" data-groupactions="false">
-      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" class="ionicon" viewBox="0 0 512 512"><rect x="48" y="48" width="176" height="176" rx="20" ry="20" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="288" y="48" width="176" height="176" rx="20" ry="20" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="48" y="288" width="176" height="176" rx="20" ry="20" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="288" y="288" width="176" height="176" rx="20" ry="20" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" class="ionicon" viewBox="0 0 512 512"><rect x="64" y="64" width="80" height="80" rx="40" ry="40" style="fill:none;stroke:#000;stroke-miterlimit:10;stroke-width:32px"/><rect x="216" y="64" width="80" height="80" rx="40" ry="40" style="fill:none;stroke:#000;stroke-miterlimit:10;stroke-width:32px"/><rect x="368" y="64" width="80" height="80" rx="40" ry="40" style="fill:none;stroke:#000;stroke-miterlimit:10;stroke-width:32px"/><rect x="64" y="216" width="80" height="80" rx="40" ry="40" style="fill:none;stroke:#000;stroke-miterlimit:10;stroke-width:32px"/><rect x="216" y="216" width="80" height="80" rx="40" ry="40" style="fill:none;stroke:#000;stroke-miterlimit:10;stroke-width:32px"/><rect x="368" y="216" width="80" height="80" rx="40" ry="40" style="fill:none;stroke:#000;stroke-miterlimit:10;stroke-width:32px"/><rect x="64" y="368" width="80" height="80" rx="40" ry="40" style="fill:none;stroke:#000;stroke-miterlimit:10;stroke-width:32px"/><rect x="216" y="368" width="80" height="80" rx="40" ry="40" style="fill:none;stroke:#000;stroke-miterlimit:10;stroke-width:32px"/><rect x="368" y="368" width="80" height="80" rx="40" ry="40" style="fill:none;stroke:#000;stroke-miterlimit:10;stroke-width:32px"/></svg>
     </div>
   `
 
@@ -765,7 +767,9 @@ async function renderMenu() {
     })
 
     const uploadDownloadMarkup = `
-      <span style="font-size: 12px" id="menuBackBtn">Back</span>
+      <span id="menuBackBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" class="ionicon" viewBox="0 0 512 512"><polyline points="328 112 184 256 328 400" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/></svg>
+      </span>
       <div class="remark_menu_option" title="Upload to server" id="uploadToServerBtn">
           <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" class="ionicon" viewBox="0 0 512 512"><path d="M320,367.79h76c55,0,100-29.21,100-83.6s-53-81.47-96-83.6c-8.89-85.06-71-136.8-144-136.8-69,0-113.44,45.79-128,91.2-60,5.7-112,43.88-112,106.4s54,106.4,120,106.4h56" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><polyline points="320 255.79 256 191.79 192 255.79" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="256" y1="448.21" x2="256" y2="207.79" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>
       </div>
@@ -789,6 +793,7 @@ async function renderMenu() {
     const uploadToServerBtn = document.getElementById("uploadToServerBtn");
     uploadToServerBtn.addEventListener("click", (e) => {
       console.log("click : upload");
+      handlePushToServer();
     })
 
     const localDownloadBtn = document.getElementById("localDownloadBtn");
@@ -1287,9 +1292,13 @@ function autocomplete(inp, arr) {
         addActive(x);
       } else if (e.keyCode == 13) {
         e.preventDefault();
-        console.log("keypress : enter : ", x[currentFocus])
+        console.log("keypress : enter : ", inp.value);
+        const val = inp.value.trim();
+        const res = handleCreateTag(val);
+        if(res) {
+          handleEditLabel(null, annotation_id, val);
+        }
         if (currentFocus > -1) {
-          /*and simulate a click on the "active" item:*/
           if (x) x[currentFocus].click();
         }
       }

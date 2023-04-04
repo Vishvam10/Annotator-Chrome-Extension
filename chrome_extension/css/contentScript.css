@@ -186,7 +186,6 @@
   margin: 16px 0px 0px 0px;
 }
 
-
 .remark_close_btn {
   margin: 4px 0px 0px 0px;
   cursor: pointer;
@@ -223,6 +222,16 @@
   border-radius: 6px;
   padding: 8px;
   color: var(--remark-color-grey-dark-2);
+}
+
+#menuBackBtn {
+  color: var(--remark-color-grey);
+  cursor: pointer;
+  font-size: 10px !important;
+  width: 20px !important;
+  display: inherit;
+  height: 20px !important;
+  margin: 0px 0px 10px 0px;
 }
 
 /* ******************************* TOGGLE ******************************* */
@@ -465,7 +474,8 @@ svg > * {
 }
 
 .remark_tag_tooltip_info:focus {
-  border: none;
+  border: none !important;
+  outline: none !important;
 }
 
 /* ************************** AUTOCOMPLETE *************************** */
@@ -473,7 +483,7 @@ svg > * {
 .remark_autocomplete-items {
   position: absolute;
   border: var(--remark-default-border);
-  z-index: 99;
+  z-index: 1000000000 !important;
   /*position the autocomplete items to be the same width as the container:*/
   top: 100%;
   left: 0;
